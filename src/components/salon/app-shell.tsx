@@ -1,0 +1,116 @@
+import { Link, useRouterState } from "@tanstack/react-router";
+import type { ReactNode } from "react";
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Sparkles,
+  Users2,
+  UserCircle,
+  Receipt,
+  Settings,
+  Search,
+  Bell,
+  Scissors,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const nav = [
+  { to: "/", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/bookings", label: "الحجوزات", icon: CalendarDays },
+  { to: "/calendar", label: "التقويم", icon: CalendarDays },
+  { to: "/services", label: "الخدمات", icon: Sparkles },
+  { to: "/staff", label: "الموظفون", icon: Users2 },
+  { to: "/customers", label: "العملاء", icon: UserCircle },
+  { to: "/invoices", label: "الفواتير", icon: Receipt },
+] as const;
+
+export function AppShell({ children, title, subtitle, action }: {
+  children: ReactNode;
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+}) {
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+
+  return (
+    <div className="min-h-screen flex" dir="rtl">
+      {/* Sidebar */}
+      <aside className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
+        <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
+          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
+            <Scissors className="size-5 text-primary-foreground" />
+          </div>
+          <div>
+            <div className="font-bold text-base leading-none">لمسة</div>
+            <div className="text-[11px] text-muted-foreground mt-1">إدارة المشاغل</div>
+          </div>
+        </div>
+        <nav className="flex-1 p-3 space-y-1">
+          {nav.map((n) => {
+            const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
+            const Icon = n.icon;
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                  active
+                    ? "bg-gradient-to-l from-primary/20 to-accent/10 text-foreground border border-primary/30 shadow-[var(--shadow-glow)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                )}
+              >
+                <Icon className="size-4" />
+                <span>{n.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-3 border-t border-border">
+          <Link to="/" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent">
+            <Settings className="size-4" />
+            <span>الإعدادات</span>
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 border-b border-border bg-background/40 backdrop-blur-xl sticky top-0 z-30">
+          <div className="h-full px-4 md:px-8 flex items-center gap-4">
+            <div className="flex-1 max-w-md relative">
+              <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <input
+                placeholder="ابحث عن عميل، حجز، أو خدمة..."
+                className="w-full h-10 rounded-lg bg-muted/40 border border-border pr-10 pl-3 text-sm outline-none focus:border-primary/50 focus:bg-muted/60 transition"
+              />
+            </div>
+            <button className="size-10 rounded-lg border border-border bg-muted/40 hover:bg-muted grid place-items-center relative">
+              <Bell className="size-4" />
+              <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-accent" />
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <div className="text-sm font-semibold leading-none">صالون لمسة</div>
+                <div className="text-[11px] text-muted-foreground mt-1">فرع الروضة</div>
+              </div>
+              <div className="size-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold">
+                ل
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
+            {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+          </div>
+          {action}
+        </div>
+
+        <main className="px-4 md:px-8 pb-10 flex-1 min-w-0">{children}</main>
+      </div>
+    </div>
+  );
+}
