@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSalon, formatSAR, formatDate } from "@/lib/salon-store";
-import { Receipt, TrendingUp, CheckCircle2 } from "lucide-react";
+import { useSalon, formatSAR, formatDate, type Invoice } from "@/lib/salon-store";
+import { Receipt, TrendingUp, CheckCircle2, Eye } from "lucide-react";
+import { useState } from "react";
+import { InvoiceReceipt } from "@/components/salon/invoice-receipt";
 
 export const Route = createFileRoute("/invoices")({
   head: () => ({
@@ -21,6 +23,7 @@ const METHOD_LABEL = {
 
 function InvoicesPage() {
   const { invoices, customers, bookings } = useSalon((s) => s);
+  const [selected, setSelected] = useState<Invoice | null>(null);
   const total = invoices.reduce((a, i) => a + i.total, 0);
   const vat = invoices.reduce((a, i) => a + i.vat, 0);
 
