@@ -1,0 +1,195 @@
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
+import { useSalon, actions, formatSAR, formatTime, formatDate, STATUS_LABEL, STATUS_TONE, isToday } from "@/lib/salon-store";
+import { useSession, auth } from "@/lib/auth-store";
+import { CalendarDays, LogOut, Scissors, TrendingUp, Users2, CheckCircle2, Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import type { BookingStatus } from "@/lib/salon-store";
+
+export const Route = createFileRoute("/specialist")({
+  head: () => ({
+    meta: [
+      { title: "لوحة الأخصائية — صالون لمسة" },
+      { name: "description", content: "لوحة الأخصائية: مواعيدك اليوم، عمولاتك، وأداؤك." },
+    ],
+  }),
+  component: SpecialistPage,
+});
+
+function SpecialistPage() {
+  const session = useSession();
+  const navigate = useNavigate();
+  const { bookings, services, customers, staff } = useSalon((s) => s);
+
+  useEffect(() => {
+    if (session === null) navigate({ to: "/login" });
+    else if (session && session.role !== "staff") navigate({ to: "/login" });
+  }, [session, navigate]);
+
+  const me = staff.find((s) => s.id === session?.id);
+
+  const mine = useMemo(
+    () => bookings.filter((b) => b.staffId === session?.id).sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()),
+    [bookings, session],
+  );
+  const today = mine.filter((b) => isToday(b.startsAt) && b.status !== "cancelled");
+  const upcoming = mine.filter((b) => !isToday(b.startsAt) && new Date(b.startsAt) > new Date() && b.status !== "cancelled");
+  const completed = mine.filter((b) => b.status === "completed");
+  const revenue = completed.reduce((sum, b) => sum + (b.price - b.discount), 0);
+  const commission = me ? (revenue * me.commissionPct) / 100 : 0;
+  const uniqueClients = new Set(completed.map((b) => b.customerId)).size;
+
+  if (!session || !me) return null;
+
+  const setStatus = (id: string, status: BookingStatus) => {
+    actions.updateBooking(id, { status });
+    toast.success("تم التحديث");
+  };
+
+  return (
+    <div className="min-h-screen" dir="rtl">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/70 backdrop-blur-xl">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
+          <Link to="/site" className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center shadow-[var(--shadow-glow)]">
+              <Scissors className="size-5 text-primary-foreground" />
+            </div>
+            <div>
+              <div className="font-bold text-sm leading-none">صالون لمسة</div>
+              <div className="text-[11px] text-muted-foreground mt-1">لوحة الأخصائية</div>
+            </div>
+          </Link>
+          <button
+            onClick={() => { auth.signOut(); navigate({ to: "/site" }); }}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted"
+          >
+            <LogOut className="size-4" /> خروج
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-6">
+        {/* Profile */}
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
+          <div className="absolute -top-16 -left-16 size-56 rounded-full bg-accent/20 blur-3xl" />
+          <div className="relative flex items-center gap-4 flex-wrap">
+            <div className="size-16 rounded-2xl bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground text-2xl font-bold shadow-[var(--shadow-glow)]">
+              {me.name.charAt(0)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-muted-foreground">أهلاً بكِ</div>
+              <div className="text-2xl font-bold">{me.name}</div>
+              <div className="text-xs text-muted-foreground mt-1">{me.role} • عمولة {me.commissionPct}%</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard icon={<CalendarDays className="size-5" />} label="مواعيد اليوم" value={today.length.toString()} tone="primary" />
+          <StatCard icon={<CheckCircle2 className="size-5" />} label="خدمات مكتملة" value={completed.length.toString()} tone="success" />
+          <StatCard icon={<Users2 className="size-5" />} label="عملاء" value={uniqueClients.toString()} tone="accent" />
+          <StatCard icon={<TrendingUp className="size-5" />} label="عمولتك" value={formatSAR(commission)} tone="gradient" />
+        </div>
+
+        {/* Today */}
+        <section>
+          <h2 className="text-xl font-bold mb-4">مواعيد اليوم</h2>
+          {today.length === 0 ? (
+            <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground">لا مواعيد اليوم</div>
+          ) : (
+            <div className="space-y-3">
+              {today.map((b) => {
+                const c = customers.find((x) => x.id === b.customerId);
+                const svcs = b.serviceIds.map((id) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
+                return (
+                  <div key={b.id} className="glass-card rounded-2xl p-4 flex items-center gap-4 flex-wrap">
+                    <div className="text-center min-w-[70px]">
+                      <div className="text-lg font-bold gradient-text">{formatTime(b.startsAt)}</div>
+                      <div className="text-[10px] text-muted-foreground">{b.durationMin} د</div>
+                    </div>
+                    <div className="flex-1 min-w-[180px]">
+                      <div className="font-bold">{c?.name}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{svcs}</div>
+                      <a href={`tel:${c?.phone}`} className="text-[11px] text-primary mt-1 inline-flex items-center gap-1"><Phone className="size-3" /> {c?.phone}</a>
+                    </div>
+                    <div className="text-sm font-bold">{formatSAR(b.price - b.discount)}</div>
+                    <span className={cn("text-[10px] px-2 py-1 rounded-md border font-semibold", STATUS_TONE[b.status])}>
+                      {STATUS_LABEL[b.status]}
+                    </span>
+                    <div className="flex gap-2">
+                      {b.status !== "in_progress" && b.status !== "completed" && (
+                        <button onClick={() => setStatus(b.id, "in_progress")} className="text-xs px-3 h-8 rounded-lg bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25">
+                          بدء
+                        </button>
+                      )}
+                      {b.status !== "completed" && (
+                        <button onClick={() => setStatus(b.id, "completed")} className="text-xs px-3 h-8 rounded-lg bg-success/15 text-success border border-success/30 hover:bg-success/25">
+                          إتمام
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Upcoming */}
+        {upcoming.length > 0 && (
+          <section>
+            <h2 className="text-xl font-bold mb-4">قادمة</h2>
+            <div className="glass-card rounded-2xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-xs text-muted-foreground">
+                  <tr>
+                    <th className="text-right py-3 px-4 font-semibold">التاريخ</th>
+                    <th className="text-right py-3 px-4 font-semibold">الوقت</th>
+                    <th className="text-right py-3 px-4 font-semibold">العميلة</th>
+                    <th className="text-right py-3 px-4 font-semibold">الخدمة</th>
+                    <th className="text-right py-3 px-4 font-semibold">المبلغ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {upcoming.map((b) => {
+                    const c = customers.find((x) => x.id === b.customerId);
+                    const svcs = b.serviceIds.map((id) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
+                    return (
+                      <tr key={b.id} className="border-t border-border">
+                        <td className="py-3 px-4 text-xs">{formatDate(b.startsAt)}</td>
+                        <td className="py-3 px-4 font-mono text-xs">{formatTime(b.startsAt)}</td>
+                        <td className="py-3 px-4 font-semibold">{c?.name}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{svcs}</td>
+                        <td className="py-3 px-4 font-bold">{formatSAR(b.price - b.discount)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone: "primary" | "success" | "accent" | "gradient" }) {
+  const toneCls = {
+    primary: "text-primary bg-primary/10 border-primary/20",
+    success: "text-success bg-success/10 border-success/20",
+    accent: "text-accent bg-accent/10 border-accent/20",
+    gradient: "text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent",
+  }[tone];
+  return (
+    <div className="glass-card rounded-2xl p-4">
+      <div className={cn("size-10 rounded-xl grid place-items-center border", tone === "gradient" ? "border-primary/20 bg-gradient-to-br from-primary/20 to-accent/20 text-primary-foreground" : toneCls)}>
+        {icon}
+      </div>
+      <div className="mt-3 text-[11px] text-muted-foreground">{label}</div>
+      <div className={cn("mt-1 text-xl font-bold", tone === "gradient" && "gradient-text")}>{value}</div>
+    </div>
+  );
+}

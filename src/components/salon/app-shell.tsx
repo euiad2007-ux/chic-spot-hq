@@ -66,10 +66,14 @@ export function AppShell({ children, title, subtitle, action }: {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-border">
-          <Link to="/" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent">
+        <div className="p-3 border-t border-border space-y-1">
+          <Link to="/site" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent">
+            <Sparkles className="size-4" />
+            <span>الموقع العام</span>
+          </Link>
+          <Link to="/login" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent">
             <Settings className="size-4" />
-            <span>الإعدادات</span>
+            <span>تسجيل الدخول</span>
           </Link>
         </div>
       </aside>
