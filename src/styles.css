@@ -135,3 +135,11 @@
   background-clip: text;
   color: transparent;
 }
+
+@media print {
+  body * { visibility: hidden !important; }
+  .receipt, .receipt * { visibility: visible !important; }
+  .receipt { position: absolute !important; inset: 0 !important; margin: 0 auto !important; box-shadow: none !important; }
+  @page { margin: 8mm; size: 80mm auto; }
+}
+
