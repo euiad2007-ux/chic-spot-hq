@@ -109,8 +109,31 @@ export function AppShell({ children, title, subtitle, action }: {
           {action}
         </div>
 
-        <main className="px-4 md:px-8 pb-10 flex-1 min-w-0">{children}</main>
+        <main className="px-4 md:px-8 pb-24 md:pb-10 flex-1 min-w-0">{children}</main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/85 backdrop-blur-xl">
+        <div className="grid grid-cols-5">
+          {nav.slice(0, 5).map((n) => {
+            const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
+            const Icon = n.icon;
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition",
+                  active ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                <Icon className={cn("size-5", active && "drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]")} />
+                <span>{n.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
