@@ -10,9 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as SpecialistRouteImport } from './routes/specialist'
+import { Route as SiteRouteImport } from './routes/site'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as ClientRouteImport } from './routes/client'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BookingsRouteImport } from './routes/bookings'
 import { Route as IndexRouteImport } from './routes/index'
@@ -22,9 +26,24 @@ const StaffRoute = StaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpecialistRoute = SpecialistRouteImport.update({
+  id: '/specialist',
+  path: '/specialist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteRoute = SiteRouteImport.update({
+  id: '/site',
+  path: '/site',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvoicesRoute = InvoicesRouteImport.update({
@@ -35,6 +54,11 @@ const InvoicesRoute = InvoicesRouteImport.update({
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientRoute = ClientRouteImport.update({
+  id: '/client',
+  path: '/client',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarRoute = CalendarRouteImport.update({
@@ -57,18 +81,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bookings': typeof BookingsRoute
   '/calendar': typeof CalendarRoute
+  '/client': typeof ClientRoute
   '/customers': typeof CustomersRoute
   '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
   '/services': typeof ServicesRoute
+  '/site': typeof SiteRoute
+  '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookings': typeof BookingsRoute
   '/calendar': typeof CalendarRoute
+  '/client': typeof ClientRoute
   '/customers': typeof CustomersRoute
   '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
   '/services': typeof ServicesRoute
+  '/site': typeof SiteRoute
+  '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesById {
@@ -76,9 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bookings': typeof BookingsRoute
   '/calendar': typeof CalendarRoute
+  '/client': typeof ClientRoute
   '/customers': typeof CustomersRoute
   '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
   '/services': typeof ServicesRoute
+  '/site': typeof SiteRoute
+  '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRouteTypes {
@@ -87,27 +123,39 @@ export interface FileRouteTypes {
     | '/'
     | '/bookings'
     | '/calendar'
+    | '/client'
     | '/customers'
     | '/invoices'
+    | '/login'
     | '/services'
+    | '/site'
+    | '/specialist'
     | '/staff'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/bookings'
     | '/calendar'
+    | '/client'
     | '/customers'
     | '/invoices'
+    | '/login'
     | '/services'
+    | '/site'
+    | '/specialist'
     | '/staff'
   id:
     | '__root__'
     | '/'
     | '/bookings'
     | '/calendar'
+    | '/client'
     | '/customers'
     | '/invoices'
+    | '/login'
     | '/services'
+    | '/site'
+    | '/specialist'
     | '/staff'
   fileRoutesById: FileRoutesById
 }
@@ -115,9 +163,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingsRoute: typeof BookingsRoute
   CalendarRoute: typeof CalendarRoute
+  ClientRoute: typeof ClientRoute
   CustomersRoute: typeof CustomersRoute
   InvoicesRoute: typeof InvoicesRoute
+  LoginRoute: typeof LoginRoute
   ServicesRoute: typeof ServicesRoute
+  SiteRoute: typeof SiteRoute
+  SpecialistRoute: typeof SpecialistRoute
   StaffRoute: typeof StaffRoute
 }
 
@@ -130,11 +182,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/specialist': {
+      id: '/specialist'
+      path: '/specialist'
+      fullPath: '/specialist'
+      preLoaderRoute: typeof SpecialistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/site': {
+      id: '/site'
+      path: '/site'
+      fullPath: '/site'
+      preLoaderRoute: typeof SiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invoices': {
@@ -149,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client': {
+      id: '/client'
+      path: '/client'
+      fullPath: '/client'
+      preLoaderRoute: typeof ClientRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendar': {
@@ -179,9 +259,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingsRoute: BookingsRoute,
   CalendarRoute: CalendarRoute,
+  ClientRoute: ClientRoute,
   CustomersRoute: CustomersRoute,
   InvoicesRoute: InvoicesRoute,
+  LoginRoute: LoginRoute,
   ServicesRoute: ServicesRoute,
+  SiteRoute: SiteRoute,
+  SpecialistRoute: SpecialistRoute,
   StaffRoute: StaffRoute,
 }
 export const routeTree = rootRouteImport
