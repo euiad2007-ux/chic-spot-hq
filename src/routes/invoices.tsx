@@ -66,17 +66,18 @@ function InvoicesPage() {
                 <th className="text-right p-3 font-medium">الضريبة</th>
                 <th className="text-right p-3 font-medium">الإجمالي</th>
                 <th className="text-right p-3 font-medium">الدفع</th>
+                <th className="text-right p-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
               {invoices.length === 0 && (
-                <tr><td colSpan={8} className="p-12 text-center text-muted-foreground">لا توجد فواتير بعد</td></tr>
+                <tr><td colSpan={9} className="p-12 text-center text-muted-foreground">لا توجد فواتير بعد</td></tr>
               )}
               {invoices.slice().reverse().map((i) => {
                 const c = customers.find((x) => x.id === i.customerId);
                 const b = bookings.find((x) => x.id === i.bookingId);
                 return (
-                  <tr key={i.id} className="border-t border-border hover:bg-muted/20">
+                  <tr key={i.id} onClick={() => setSelected(i)} className="border-t border-border hover:bg-muted/20 cursor-pointer">
                     <td className="p-3 font-mono text-xs text-primary">{i.number}</td>
                     <td className="p-3 font-mono text-xs">{b?.code}</td>
                     <td className="p-3 font-semibold">{c?.name}</td>
@@ -85,6 +86,11 @@ function InvoicesPage() {
                     <td className="p-3 text-muted-foreground">{formatSAR(i.vat)}</td>
                     <td className="p-3 font-bold gradient-text">{formatSAR(i.total)}</td>
                     <td className="p-3"><span className="text-xs px-2 py-1 rounded-full bg-success/15 text-success border border-success/30">{METHOD_LABEL[i.method]}</span></td>
+                    <td className="p-3">
+                      <button onClick={(e) => { e.stopPropagation(); setSelected(i); }} className="size-8 rounded-lg bg-primary/15 text-primary grid place-items-center hover:bg-primary/25" aria-label="عرض الفاتورة">
+                        <Eye className="size-4" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -92,6 +98,8 @@ function InvoicesPage() {
           </table>
         </div>
       </div>
+
+      {selected && <InvoiceReceipt invoice={selected} onClose={() => setSelected(null)} />}
     </AppShell>
   );
 }
