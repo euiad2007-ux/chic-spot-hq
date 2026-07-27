@@ -201,15 +201,16 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
   const [time, setTime] = useState<string>("");
 
   const svc = services.find((s) => s.id === serviceId);
+  const svcTotal = svc ? serviceTotalMin(svc) : 0;
 
   const slots = useMemo(() => {
     if (!svc || !staffId) return [];
-    return getDaySlots({ date, staffId, durationMin: svc.durationMin });
-  }, [date, staffId, svc?.durationMin, svc]);
+    return getDaySlots({ date, staffId, durationMin: svcTotal });
+  }, [date, staffId, svcTotal, svc]);
 
   const selectedSlot = slots.find((s) => s.time === time);
   const startsAt = selectedSlot?.startsAt ?? "";
-  const conflict = svc && startsAt ? checkBookingConflict({ staffId, startsAt, durationMin: svc.durationMin }) : null;
+  const conflict = svc && startsAt ? checkBookingConflict({ staffId, startsAt, durationMin: svcTotal }) : null;
 
   const submit = () => {
     if (!svc) return;
@@ -220,7 +221,7 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
       staffId,
       serviceIds: [serviceId],
       startsAt,
-      durationMin: svc.durationMin,
+      durationMin: svcTotal,
       price: svc.price,
       discount: 0,
     });
