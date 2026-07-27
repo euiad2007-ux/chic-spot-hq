@@ -563,3 +563,206 @@ function MiniStat({ label, value, highlight }: { label: string; value: string; h
     </div>
   );
 }
+
+// ============= Payslip printable =============
+
+function PayslipDialog({
+  staff, rep, payments, onClose,
+}: {
+  staff: import("@/lib/salon-store").Staff;
+  rep: ReturnType<typeof computeStaffPayroll>;
+  payments: import("@/lib/payroll-store").PayrollPayment[];
+  onClose: () => void;
+}) {
+  const { settings } = usePayroll((s) => s);
+  const site = useSiteSettings((s) => s);
+  const doPrint = () => {
+    document.body.classList.add("printing-payslip");
+    window.print();
+    setTimeout(() => document.body.classList.remove("printing-payslip"), 300);
+  };
+  const allowancesTotal = (staff.allowances ?? []).reduce((a, x) => a + x.amount, 0);
+  const now = new Date();
+  const issued = new Intl.DateTimeFormat("ar-SA", { dateStyle: "long", timeStyle: "short" }).format(now);
+  const receiptId = `PS-${staff.id.slice(0, 4).toUpperCase()}-${Date.now().toString(36).slice(-5).toUpperCase()}`;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-start p-4 overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-3xl mx-auto my-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3 no-print">
+          <h3 className="font-bold text-lg text-foreground">كشف راتب</h3>
+          <div className="flex gap-2">
+            <button onClick={doPrint} className="h-10 px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-bold inline-flex items-center gap-2">
+              <Printer className="size-4" /> طباعة
+            </button>
+            <button onClick={onClose} className="h-10 px-4 rounded-lg border border-border text-sm inline-flex items-center gap-2">
+              <X className="size-4" /> إغلاق
+            </button>
+          </div>
+        </div>
+
+        <div className="payslip-print bg-white text-neutral-900 rounded-2xl shadow-xl p-8" dir="rtl">
+          {/* Header */}
+          <div className="flex items-start justify-between border-b-2 border-neutral-200 pb-5">
+            <div>
+              <div className="text-2xl font-black">{site.salonName}</div>
+              <div className="text-xs text-neutral-500 mt-1">كشف راتب موظف</div>
+            </div>
+            <div className="text-left text-xs">
+              <div><b>رقم الكشف:</b> <span className="font-mono">{receiptId}</span></div>
+              <div className="text-neutral-500 mt-0.5">{issued}</div>
+            </div>
+          </div>
+
+          {/* Employee info */}
+          <div className="grid grid-cols-2 gap-4 mt-5 text-sm">
+            <div className="space-y-1">
+              <div className="text-[11px] text-neutral-500">الموظف</div>
+              <div className="font-bold text-base">{staff.name}</div>
+              <div className="text-xs text-neutral-600">{staff.role}</div>
+              <div className="text-xs text-neutral-600">جوال: {staff.phone}</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-[11px] text-neutral-500">فترة الاحتساب</div>
+              <div className="text-sm"><b>من:</b> {staff.hireDate ? new Intl.DateTimeFormat("ar-SA", { dateStyle: "long" }).format(new Date(staff.hireDate)) : "غير محدد"}</div>
+              <div className="text-sm"><b>إلى:</b> {new Intl.DateTimeFormat("ar-SA", { dateStyle: "long" }).format(now)}</div>
+              <div className="text-xs text-neutral-600">
+                قيمة الساعة: <b>{formatSAR(rep.rate)}</b> · الحد الشهري: <b>{settings.monthlyHours}س</b>
+                {settings.overtimeEnabled ? ` · أوفر تايم ×${settings.overtimeMultiplier}` : ""}
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly breakdown */}
+          <div className="mt-5">
+            <div className="text-xs font-bold text-neutral-700 mb-2">تفصيل الأشهر</div>
+            <table className="w-full text-xs border border-neutral-200">
+              <thead className="bg-neutral-50">
+                <tr>
+                  <th className="text-right p-2 border-b border-neutral-200">الشهر</th>
+                  <th className="text-right p-2 border-b border-neutral-200">الساعات</th>
+                  <th className="text-right p-2 border-b border-neutral-200">عادي</th>
+                  <th className="text-right p-2 border-b border-neutral-200">إضافي</th>
+                  <th className="text-right p-2 border-b border-neutral-200">الأجر</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rep.months.map((m) => (
+                  <tr key={m.key} className="border-b border-neutral-100">
+                    <td className="p-2 font-semibold">{m.label}</td>
+                    <td className="p-2 font-mono">{fmtHours(m.minutes)}</td>
+                    <td className="p-2 text-neutral-600">{formatSAR(m.regularPay)}</td>
+                    <td className="p-2 text-neutral-600">{m.overtimeMin > 0 ? formatSAR(m.overtimePay) : "—"}</td>
+                    <td className="p-2 font-bold">{formatSAR(m.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-neutral-50 font-bold">
+                <tr>
+                  <td className="p-2">الإجمالي</td>
+                  <td className="p-2 font-mono">{fmtHours(rep.totalMinutes)}</td>
+                  <td className="p-2" colSpan={2}></td>
+                  <td className="p-2">{formatSAR(rep.totalEarned)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {/* Payments */}
+          <div className="mt-5">
+            <div className="text-xs font-bold text-neutral-700 mb-2">المدفوعات المستلمة ({payments.length})</div>
+            {payments.length === 0 ? (
+              <div className="text-xs text-neutral-500 border border-dashed border-neutral-300 p-3 rounded">لا توجد دفعات</div>
+            ) : (
+              <table className="w-full text-xs border border-neutral-200">
+                <thead className="bg-neutral-50">
+                  <tr>
+                    <th className="text-right p-2 border-b border-neutral-200">التاريخ</th>
+                    <th className="text-right p-2 border-b border-neutral-200">الفترة</th>
+                    <th className="text-right p-2 border-b border-neutral-200">ملاحظة</th>
+                    <th className="text-right p-2 border-b border-neutral-200">المبلغ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr key={p.id} className="border-b border-neutral-100">
+                      <td className="p-2">{formatDate(p.paidAt)}</td>
+                      <td className="p-2 text-neutral-600">{p.periodFrom || p.periodTo ? `${p.periodFrom ?? "—"} → ${p.periodTo ?? "—"}` : "—"}</td>
+                      <td className="p-2 text-neutral-600">{p.note ?? "—"}</td>
+                      <td className="p-2 font-bold">{formatSAR(p.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Totals */}
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="space-y-1 text-xs">
+              <div>الراتب الأساسي: <b>{formatSAR(staff.salary ?? 0)}</b></div>
+              <div>البدلات: <b>{formatSAR(allowancesTotal)}</b></div>
+              {(staff.allowances ?? []).map((a) => (
+                <div key={a.id} className="text-neutral-500 pr-3">• {a.label}: {formatSAR(a.amount)}</div>
+              ))}
+            </div>
+            <div className="rounded-xl border-2 border-neutral-800 p-4 text-sm space-y-2">
+              <div className="flex items-center justify-between"><span>إجمالي المستحق</span><b>{formatSAR(rep.totalEarned)}</b></div>
+              <div className="flex items-center justify-between"><span>إجمالي المدفوع</span><b>{formatSAR(rep.totalPaid)}</b></div>
+              <div className="h-px bg-neutral-300" />
+              <div className="flex items-center justify-between text-base"><span className="font-bold">صافي الرصيد</span><b className="text-lg">{formatSAR(rep.balance)}</b></div>
+            </div>
+          </div>
+
+          {/* Signatures */}
+          <div className="mt-8 grid grid-cols-2 gap-6 text-xs">
+            <div className="text-center">
+              <div className="border-t border-neutral-400 pt-2">توقيع الموظف</div>
+            </div>
+            <div className="text-center">
+              <div className="border-t border-neutral-400 pt-2">توقيع الإدارة / الختم</div>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center text-[10px] text-neutral-400">
+            كشف مُولَّد آلياً من نظام لمسة — {issued}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function exportPayrollCSV(
+  staffList: import("@/lib/salon-store").Staff[],
+  records: import("@/lib/attendance-store").AttendanceRecord[],
+  payments: import("@/lib/payroll-store").PayrollPayment[],
+  settings: import("@/lib/payroll-store").PayrollSettings,
+) {
+  const rows = [["الموظف", "المسمى", "تاريخ التعيين", "قيمة الساعة", "الساعات", "المستحق", "المدفوع", "الرصيد"]];
+  for (const s of staffList) {
+    const r = computeStaffPayroll(s, records, payments, settings);
+    rows.push([
+      s.name, s.role, s.hireDate ?? "—",
+      String(r.rate), fmtHours(r.totalMinutes),
+      String(r.totalEarned), String(r.totalPaid), String(r.balance),
+    ]);
+  }
+  const csv = "\uFEFF" + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `payroll-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success("تم تصدير الملف");
+}
+
+function printFullLedger() {
+  document.body.classList.add("printing-payslip");
+  // Temporarily promote the ledger area if present
+  window.print();
+  setTimeout(() => document.body.classList.remove("printing-payslip"), 300);
+}
+
