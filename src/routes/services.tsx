@@ -38,30 +38,37 @@ const empty: FormState = {
 
 function ServicesPage() {
   const services = useSalon((s) => s.services);
+  const staff = useSalon((s) => s.staff);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+  const [staffIds, setStaffIds] = useState<string[]>([]);
 
-  const openNew = () => { setEditing(null); setForm(empty); setOpen(true); };
+  const openNew = () => {
+    setEditing(null); setForm(empty); setStaffIds([]); setOpen(true);
+  };
   const openEdit = (s: Service) => {
     setEditing(s);
     setForm({
       name: s.name, category: s.category, price: s.price, durationMin: s.durationMin,
       prepMin: s.prepMin ?? 0, cleanupMin: s.cleanupMin ?? 0, materials: s.materials ?? [],
     });
+    setStaffIds(staff.filter((st) => st.services.includes(s.id)).map((st) => st.id));
     setOpen(true);
   };
 
   const submit = () => {
     if (!form.name.trim()) return toast.error("اكتب اسم الخدمة");
     if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
+    let serviceId = editing?.id;
     if (editing) {
       actions.updateService(editing.id, form);
       toast.success("تم تحديث الخدمة");
     } else {
-      actions.addService({ ...form, active: true });
+      serviceId = actions.addService({ ...form, active: true });
       toast.success("تمت إضافة الخدمة");
     }
+    if (serviceId) actions.setServiceStaff(serviceId, staffIds);
     setOpen(false);
   };
 
