@@ -31,11 +31,44 @@ export interface Service {
 export interface InventoryItem {
   id: string;
   name: string;
-  unit: string; // مل، جم، قطعة...
-  stock: number;
+  unit: string;          // package label (e.g. "قنينة", "علبة", "أنبوب")
+  stock: number;         // number of packages available
   minStock: number;
-  costPerUnit: number;
+  costPerUnit: number;   // price per package
+  measure: string;       // base measure code: "count" | "g" | "mg" | "ml" | "l" | custom
+  sizePerUnit: number;   // how many base units per one package
 }
+
+export const DEFAULT_MEASURES: { code: string; label: string }[] = [
+  { code: "count", label: "عدد" },
+  { code: "g", label: "جرام" },
+  { code: "mg", label: "ملي جرام" },
+  { code: "ml", label: "ملليلتر" },
+  { code: "l", label: "لتر" },
+  { code: "cm", label: "سنتيمتر" },
+];
+
+const MEASURES_KEY = "lamsa_custom_measures_v1";
+export function loadMeasures(): { code: string; label: string }[] {
+  if (typeof window === "undefined") return DEFAULT_MEASURES;
+  try {
+    const raw = localStorage.getItem(MEASURES_KEY);
+    const custom = raw ? (JSON.parse(raw) as { code: string; label: string }[]) : [];
+    const seen = new Set(DEFAULT_MEASURES.map((m) => m.code));
+    return [...DEFAULT_MEASURES, ...custom.filter((c) => c.code && !seen.has(c.code))];
+  } catch { return DEFAULT_MEASURES; }
+}
+export function addCustomMeasure(m: { code: string; label: string }) {
+  if (typeof window === "undefined") return;
+  const cur = loadMeasures();
+  if (cur.find((x) => x.code === m.code)) return;
+  const custom = cur.filter((x) => !DEFAULT_MEASURES.find((d) => d.code === x.code));
+  localStorage.setItem(MEASURES_KEY, JSON.stringify([...custom, m]));
+}
+export function measureLabel(code: string) {
+  return loadMeasures().find((m) => m.code === code)?.label ?? code;
+}
+
 
 export interface Staff {
   id: string;
