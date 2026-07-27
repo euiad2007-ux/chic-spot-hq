@@ -8,11 +8,13 @@ import {
   type Weekday,
   type BreakWindow,
 } from "@/lib/booking-settings";
+import { useAttendance, attendanceActions, getCurrentPosition } from "@/lib/attendance-store";
 import { useSalon } from "@/lib/salon-store";
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Plus, Trash2, Clock, Coffee, Timer, CalendarClock, RotateCcw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Plus, Trash2, Clock, Coffee, Timer, CalendarClock, RotateCcw, MapPin, Crosshair } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/booking-settings")({
   head: () => ({
