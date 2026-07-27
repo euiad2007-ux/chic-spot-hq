@@ -19,14 +19,6 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-const PALETTES: { name: string; primary: string; accent: string; background: string; surface: string }[] = [
-  { name: "بنفسجي زاهي", primary: "#A855F7", accent: "#F0ABFC", background: "#FAF5FF", surface: "#FFFFFF" },
-  { name: "ذهبي فاتح", primary: "#D4AF37", accent: "#FDE68A", background: "#FFFBEB", surface: "#FFFFFF" },
-  { name: "وردي ناعم", primary: "#EC4899", accent: "#FBCFE8", background: "#FDF2F8", surface: "#FFFFFF" },
-  { name: "زمردي منعش", primary: "#10B981", accent: "#A7F3D0", background: "#ECFDF5", surface: "#FFFFFF" },
-  { name: "أزرق سماوي", primary: "#3B82F6", accent: "#BAE6FD", background: "#EFF6FF", surface: "#FFFFFF" },
-  { name: "نيود دافئ", primary: "#C08457", accent: "#F5DEB3", background: "#FFF8F0", surface: "#FFFFFF" },
-];
 
 const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
   { id: "elegant", name: "فاخر", desc: "تدرّجات ناعمة وتوهّجات — الأنسب للصالونات الراقية" },
