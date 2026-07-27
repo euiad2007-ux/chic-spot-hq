@@ -11,13 +11,30 @@ export type BookingStatus =
 
 export type PayStatus = "unpaid" | "partial" | "paid";
 
+export interface ServiceMaterial {
+  itemId: string;
+  qty: number;
+}
+
 export interface Service {
   id: string;
   name: string;
   category: string;
   price: number;
   durationMin: number;
+  prepMin: number;
+  cleanupMin: number;
+  materials: ServiceMaterial[];
   active: boolean;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  unit: string; // مل، جم، قطعة...
+  stock: number;
+  minStock: number;
+  costPerUnit: number;
 }
 
 export interface Staff {
@@ -26,7 +43,7 @@ export interface Staff {
   role: string;
   phone: string;
   commissionPct: number;
-  services: string[]; // service ids
+  services: string[];
   active: boolean;
 }
 
@@ -47,8 +64,8 @@ export interface Booking {
   customerId: string;
   staffId: string;
   serviceIds: string[];
-  startsAt: string; // ISO
-  durationMin: number;
+  startsAt: string;
+  durationMin: number; // total (prep + service + cleanup) used for scheduling
   price: number;
   discount: number;
   status: BookingStatus;
@@ -77,25 +94,44 @@ export interface SalonState {
   customers: Customer[];
   bookings: Booking[];
   invoices: Invoice[];
+  inventory: InventoryItem[];
 }
 
-const STORAGE_KEY = "lamsa_salon_v1";
+const STORAGE_KEY = "lamsa_salon_v2";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function seed(): SalonState {
-  const svc = (name: string, category: string, price: number, durationMin: number): Service => ({
-    id: uid(), name, category, price, durationMin, active: true,
+  const mkItem = (name: string, unit: string, stock: number, minStock: number, costPerUnit: number): InventoryItem => ({
+    id: uid(), name, unit, stock, minStock, costPerUnit,
+  });
+  const inventory: InventoryItem[] = [
+    mkItem("صبغة شعر", "أنبوب", 30, 8, 25),
+    mkItem("شامبو احترافي", "مل", 5000, 1000, 0.08),
+    mkItem("بلسم", "مل", 4000, 800, 0.06),
+    mkItem("طلاء أظافر", "قنينة", 40, 10, 12),
+    mkItem("مزيل طلاء", "مل", 2000, 500, 0.04),
+    mkItem("قناع بشرة", "قطعة", 25, 6, 18),
+    mkItem("قفازات", "زوج", 200, 40, 1.2),
+    mkItem("مناديل", "علبة", 60, 15, 6),
+  ];
+  const [dye, shampoo, conditioner, polish, remover, mask, gloves, tissues] = inventory;
+
+  const svc = (
+    name: string, category: string, price: number, durationMin: number,
+    prepMin: number, cleanupMin: number, materials: ServiceMaterial[],
+  ): Service => ({
+    id: uid(), name, category, price, durationMin, prepMin, cleanupMin, materials, active: true,
   });
   const services: Service[] = [
-    svc("قص شعر", "الشعر", 80, 30),
-    svc("صبغة شعر", "الشعر", 350, 90),
-    svc("تسريحة", "الشعر", 200, 60),
-    svc("مكياج سهرة", "المكياج", 400, 75),
-    svc("تنظيف بشرة", "البشرة", 250, 60),
-    svc("مناكير", "الأظافر", 90, 45),
-    svc("بديكير", "الأظافر", 110, 45),
-    svc("حمام مغربي", "العناية", 180, 60),
+    svc("قص شعر", "الشعر", 80, 30, 5, 5, [{ itemId: shampoo.id, qty: 30 }, { itemId: tissues.id, qty: 0.2 }]),
+    svc("صبغة شعر", "الشعر", 350, 90, 10, 10, [{ itemId: dye.id, qty: 1 }, { itemId: shampoo.id, qty: 40 }, { itemId: conditioner.id, qty: 30 }, { itemId: gloves.id, qty: 1 }]),
+    svc("تسريحة", "الشعر", 200, 60, 5, 5, [{ itemId: shampoo.id, qty: 20 }]),
+    svc("مكياج سهرة", "المكياج", 400, 75, 10, 10, [{ itemId: tissues.id, qty: 0.3 }]),
+    svc("تنظيف بشرة", "البشرة", 250, 60, 10, 10, [{ itemId: mask.id, qty: 1 }, { itemId: tissues.id, qty: 0.4 }, { itemId: gloves.id, qty: 1 }]),
+    svc("مناكير", "الأظافر", 90, 45, 5, 5, [{ itemId: polish.id, qty: 0.2 }, { itemId: remover.id, qty: 15 }]),
+    svc("بديكير", "الأظافر", 110, 45, 5, 5, [{ itemId: polish.id, qty: 0.2 }, { itemId: remover.id, qty: 15 }]),
+    svc("حمام مغربي", "العناية", 180, 60, 10, 15, [{ itemId: shampoo.id, qty: 50 }, { itemId: tissues.id, qty: 0.5 }]),
   ];
   const staff: Staff[] = [
     { id: uid(), name: "سارة العتيبي", role: "مصففة شعر", phone: "0501111111", commissionPct: 20, services: [services[0].id, services[1].id, services[2].id], active: true },
@@ -116,13 +152,17 @@ function seed(): SalonState {
   const at = (h: number, m: number = 0) => new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m).toISOString();
   let counter = 125;
   const mkCode = () => `BK-${now.getFullYear()}-${String(counter++).padStart(6, "0")}`;
+  const total = (ids: string[]) => ids.reduce((a, id) => {
+    const s = services.find((x) => x.id === id)!;
+    return a + s.prepMin + s.durationMin + s.cleanupMin;
+  }, 0);
 
   const bookings: Booking[] = [
-    { id: uid(), code: mkCode(), customerId: customers[0].id, staffId: staff[0].id, serviceIds: [services[1].id, services[2].id], startsAt: at(11), durationMin: 150, price: 550, discount: 50, status: "confirmed", payStatus: "partial", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[1].id, staffId: staff[1].id, serviceIds: [services[3].id], startsAt: at(13, 30), durationMin: 75, price: 400, discount: 0, status: "checked_in", payStatus: "unpaid", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[2].id, staffId: staff[2].id, serviceIds: [services[4].id], startsAt: at(16), durationMin: 60, price: 250, discount: 0, status: "new", payStatus: "unpaid", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[3].id, staffId: staff[3].id, serviceIds: [services[5].id, services[6].id], startsAt: at(18, 30), durationMin: 90, price: 200, discount: 0, status: "new", payStatus: "unpaid", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[0].id, staffId: staff[0].id, serviceIds: [services[0].id], startsAt: at(9), durationMin: 30, price: 80, discount: 0, status: "completed", payStatus: "paid", createdAt: iso(now) },
+    { id: uid(), code: mkCode(), customerId: customers[0].id, staffId: staff[0].id, serviceIds: [services[1].id, services[2].id], startsAt: at(11), durationMin: total([services[1].id, services[2].id]), price: 550, discount: 50, status: "confirmed", payStatus: "partial", createdAt: iso(now) },
+    { id: uid(), code: mkCode(), customerId: customers[1].id, staffId: staff[1].id, serviceIds: [services[3].id], startsAt: at(13, 30), durationMin: total([services[3].id]), price: 400, discount: 0, status: "checked_in", payStatus: "unpaid", createdAt: iso(now) },
+    { id: uid(), code: mkCode(), customerId: customers[2].id, staffId: staff[2].id, serviceIds: [services[4].id], startsAt: at(16), durationMin: total([services[4].id]), price: 250, discount: 0, status: "new", payStatus: "unpaid", createdAt: iso(now) },
+    { id: uid(), code: mkCode(), customerId: customers[3].id, staffId: staff[3].id, serviceIds: [services[5].id, services[6].id], startsAt: at(18, 30), durationMin: total([services[5].id, services[6].id]), price: 200, discount: 0, status: "new", payStatus: "unpaid", createdAt: iso(now) },
+    { id: uid(), code: mkCode(), customerId: customers[0].id, staffId: staff[0].id, serviceIds: [services[0].id], startsAt: at(9), durationMin: total([services[0].id]), price: 80, discount: 0, status: "completed", payStatus: "paid", createdAt: iso(now) },
   ];
 
   const invoices: Invoice[] = [
@@ -132,21 +172,35 @@ function seed(): SalonState {
     },
   ];
 
-  return { services, staff, customers, bookings, invoices };
+  return { services, staff, customers, bookings, invoices, inventory };
 }
 
+const empty: SalonState = { services: [], staff: [], customers: [], bookings: [], invoices: [], inventory: [] };
+
 function load(): SalonState {
-  if (typeof window === "undefined") return { services: [], staff: [], customers: [], bookings: [], invoices: [] };
+  if (typeof window === "undefined") return empty;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as SalonState;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<SalonState>;
+      return {
+        services: (parsed.services ?? []).map((s: any) => ({
+          prepMin: 0, cleanupMin: 0, materials: [], ...s,
+        })),
+        staff: parsed.staff ?? [],
+        customers: parsed.customers ?? [],
+        bookings: parsed.bookings ?? [],
+        invoices: parsed.invoices ?? [],
+        inventory: parsed.inventory ?? [],
+      };
+    }
   } catch {}
   const s = seed();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
   return s;
 }
 
-let state: SalonState = { services: [], staff: [], customers: [], bookings: [], invoices: [] };
+let state: SalonState = empty;
 let initialized = false;
 const listeners = new Set<() => void>();
 
@@ -181,25 +235,79 @@ export function getState(): SalonState {
   return state;
 }
 
+// ============ Time helpers ============
+export function serviceTotalMin(s: Pick<Service, "durationMin" | "prepMin" | "cleanupMin">) {
+  return (s.prepMin || 0) + s.durationMin + (s.cleanupMin || 0);
+}
+
+export function totalDurationFor(serviceIds: string[], services: Service[]) {
+  return serviceIds.reduce((a, id) => {
+    const s = services.find((x) => x.id === id);
+    return s ? a + serviceTotalMin(s) : a;
+  }, 0);
+}
+
+// ============ Inventory helpers ============
+export function materialsForBooking(serviceIds: string[], services: Service[]): ServiceMaterial[] {
+  const map = new Map<string, number>();
+  for (const sid of serviceIds) {
+    const s = services.find((x) => x.id === sid);
+    if (!s) continue;
+    for (const m of s.materials ?? []) {
+      map.set(m.itemId, (map.get(m.itemId) ?? 0) + m.qty);
+    }
+  }
+  return Array.from(map.entries()).map(([itemId, qty]) => ({ itemId, qty }));
+}
+
 // Mutations
 export const actions = {
   reset() { state = seed(); persist(); },
+
+  // Services
   addService(s: Omit<Service, "id">) { state = { ...state, services: [...state.services, { ...s, id: uid() }] }; persist(); },
   updateService(id: string, patch: Partial<Service>) {
     state = { ...state, services: state.services.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeService(id: string) { state = { ...state, services: state.services.filter((x) => x.id !== id) }; persist(); },
+
+  // Inventory
+  addInventory(i: Omit<InventoryItem, "id">) { state = { ...state, inventory: [...state.inventory, { ...i, id: uid() }] }; persist(); },
+  updateInventory(id: string, patch: Partial<InventoryItem>) {
+    state = { ...state, inventory: state.inventory.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
+  },
+  removeInventory(id: string) {
+    state = {
+      ...state,
+      inventory: state.inventory.filter((x) => x.id !== id),
+      services: state.services.map((s) => ({ ...s, materials: (s.materials ?? []).filter((m) => m.itemId !== id) })),
+    };
+    persist();
+  },
+  adjustStock(id: string, delta: number) {
+    state = {
+      ...state,
+      inventory: state.inventory.map((x) => x.id === id ? { ...x, stock: Math.max(0, x.stock + delta) } : x),
+    };
+    persist();
+  },
+
+  // Staff
   addStaff(s: Omit<Staff, "id">) { state = { ...state, staff: [...state.staff, { ...s, id: uid() }] }; persist(); },
   updateStaff(id: string, patch: Partial<Staff>) {
     state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeStaff(id: string) { state = { ...state, staff: state.staff.filter((x) => x.id !== id) }; persist(); },
+
+  // Customers
   addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt">) {
     const newC: Customer = { ...c, id: uid(), visits: 0, totalSpent: 0, createdAt: new Date().toISOString() };
     state = { ...state, customers: [...state.customers, newC] }; persist();
     return newC;
   },
   removeCustomer(id: string) { state = { ...state, customers: state.customers.filter((x) => x.id !== id) }; persist(); },
+
+  // Bookings
   addBooking(b: Omit<Booking, "id" | "code" | "createdAt" | "status" | "payStatus">) {
     const year = new Date().getFullYear();
     const nextNum = state.bookings.length + 200;
@@ -218,6 +326,7 @@ export const actions = {
     state = { ...state, bookings: state.bookings.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeBooking(id: string) { state = { ...state, bookings: state.bookings.filter((x) => x.id !== id) }; persist(); },
+
   createInvoice(bookingId: string, method: Invoice["method"]) {
     const b = state.bookings.find((x) => x.id === bookingId);
     if (!b) return null;
@@ -231,9 +340,16 @@ export const actions = {
       id: uid(), number: num, bookingId, customerId: b.customerId,
       subtotal, discount, vat, total, paid: total, method, createdAt: new Date().toISOString(),
     };
+    // Deduct materials
+    const consumed = materialsForBooking(b.serviceIds, state.services);
+    const nextInv = state.inventory.map((it) => {
+      const used = consumed.find((c) => c.itemId === it.id);
+      return used ? { ...it, stock: Math.max(0, it.stock - used.qty) } : it;
+    });
     state = {
       ...state,
       invoices: [...state.invoices, inv],
+      inventory: nextInv,
       bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
       customers: state.customers.map((c) => c.id === b.customerId ? { ...c, visits: c.visits + 1, totalSpent: c.totalSpent + total } : c),
     };
