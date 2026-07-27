@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, actions, formatSAR, formatTime, formatDateShort, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
+import { checkBookingConflict } from "@/lib/booking-settings";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Trash2, CheckCircle2, X } from "lucide-react";
+import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/bookings")({
