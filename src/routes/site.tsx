@@ -41,19 +41,23 @@ function SitePage() {
 
   return (
     <div className="min-h-screen text-foreground" dir="rtl" style={settingsToCssVars(site)}>
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/70 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <Link to="/site" className="flex items-center gap-3">
+      {/* Header — Prominent logo & salon name */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
+          <Link to="/site" className="flex items-center gap-3 md:gap-4 min-w-0">
             <div
-              className={cn("size-9 rounded-xl grid place-items-center overflow-hidden", showGlow && "shadow-[var(--shadow-glow)]")}
+              className={cn("size-14 md:size-16 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-white/60", showGlow && "shadow-[var(--shadow-glow)]")}
               style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
             >
-              {site.logoUrl ? <img src={site.logoUrl} alt="logo" className="w-full h-full object-cover" /> : <Scissors className="size-5 text-white" />}
+              {site.logoUrl
+                ? <img src={site.logoUrl} alt={site.salonName} className="w-full h-full object-cover" />
+                : <Scissors className="size-7 text-white drop-shadow" />}
             </div>
-            <div>
-              <div className="font-bold text-base leading-none">{site.salonName}</div>
-              <div className="text-[11px] text-muted-foreground mt-1">{site.branchName}</div>
+            <div className="min-w-0">
+              <div className="font-black text-xl md:text-2xl leading-tight tracking-tight truncate" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                {site.salonName}
+              </div>
+              <div className="text-[11px] md:text-xs text-muted-foreground truncate">{site.branchName}</div>
             </div>
           </Link>
           <div className="flex items-center gap-2">
@@ -61,62 +65,115 @@ function SitePage() {
               <MessageCircle className="size-4" /> واتساب
             </a>
             <Link to="/login" className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted">
-              <LogIn className="size-4" /> تسجيل الدخول
+              <LogIn className="size-4" /> دخول
             </Link>
             <Link to="/login" className="inline-flex items-center gap-2 h-10 px-5 rounded-lg text-white text-sm font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }}>
-              <CalendarDays className="size-4" /> احجزي الآن
+              <CalendarDays className="size-4" /> احجزي
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero — split layout with big brand and image */}
       <section className="relative overflow-hidden">
-        {site.heroImage && (
-          <div className="absolute inset-0">
-            <img src={site.heroImage} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${site.background}CC, ${site.background}F5)` }} />
-          </div>
-        )}
         {showGlow && (
           <>
             <div className="absolute -top-20 -right-20 size-96 rounded-full blur-3xl opacity-40" style={{ background: site.primary }} />
             <div className="absolute -bottom-32 -left-20 size-96 rounded-full blur-3xl opacity-30" style={{ background: site.accent }} />
           </>
         )}
-        <div className={cn("relative max-w-6xl mx-auto px-4 md:px-8 text-center", heroPad)}>
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-xs font-semibold" style={{ color: site.primary }}>
-            <Sparkles className="size-3.5" /> {site.tagline}
-          </span>
-          <h1 className={cn("mt-6 font-black tracking-tight", heroTitleSize)}>
-            لمستك{" "}
-            <span style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-              الخاصة
+        <div className={cn("relative max-w-6xl mx-auto px-4 md:px-8 grid md:grid-cols-2 gap-10 items-center", heroPad)}>
+          <div className="text-center md:text-right order-2 md:order-1">
+            {/* Prominent brand block */}
+            <div className="inline-flex items-center gap-3 mb-5">
+              <div
+                className={cn("size-16 rounded-2xl grid place-items-center overflow-hidden ring-2 ring-white/60", showGlow && "shadow-[var(--shadow-glow)]")}
+                style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
+              >
+                {site.logoUrl
+                  ? <img src={site.logoUrl} alt={site.salonName} className="w-full h-full object-cover" />
+                  : <Scissors className="size-8 text-white" />}
+              </div>
+              <div className="text-right">
+                <div className="font-black text-2xl md:text-3xl leading-none" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                  {site.salonName}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">{site.branchName}</div>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-xs font-semibold" style={{ color: site.primary }}>
+              <Sparkles className="size-3.5" /> {site.tagline}
             </span>
-            <br />
-            بأيدي خبيرات
-          </h1>
-          <p className="mt-5 max-w-xl mx-auto text-muted-foreground">
-            احجزي خدمات الشعر والمكياج والعناية بالبشرة والأظافر في دقائق. أخصائيات معتمدات وأجواء راقية بانتظارك.
-          </p>
-          <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
-            <Link to="/login" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg text-white font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: showGlow ? `0 20px 60px -20px ${site.primary}80` : undefined }}>
-              احجزي موعد
-            </Link>
-            <a href="#services" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg border border-border font-semibold hover:bg-muted">
-              تصفحي الخدمات
-            </a>
-            <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg border border-success/40 text-success font-semibold hover:bg-success/10">
-              <MessageCircle className="size-4" /> تواصلي عبر واتساب
-            </a>
+            <h1 className={cn("mt-5 font-black tracking-tight", heroTitleSize)}>
+              لمستك{" "}
+              <span style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                الخاصة
+              </span>
+              <br />
+              بأيدي خبيرات
+            </h1>
+            <p className="mt-5 max-w-xl mx-auto md:mx-0 text-muted-foreground">
+              احجزي خدمات الشعر والمكياج والعناية بالبشرة والأظافر في دقائق. أخصائيات معتمدات وأجواء راقية بانتظارك.
+            </p>
+            <div className="mt-8 flex items-center justify-center md:justify-start gap-3 flex-wrap">
+              <Link to="/login" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg text-white font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: showGlow ? `0 20px 60px -20px ${site.primary}80` : undefined }}>
+                احجزي موعد
+              </Link>
+              <a href="#services" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg border border-border font-semibold hover:bg-muted">
+                تصفحي الخدمات
+              </a>
+              <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg border border-success/40 text-success font-semibold hover:bg-success/10">
+                <MessageCircle className="size-4" /> واتساب
+              </a>
+            </div>
+            <div className="mt-8 flex items-center justify-center md:justify-start gap-6 text-sm text-muted-foreground flex-wrap">
+              <div className="flex items-center gap-1.5"><Star className="size-4 fill-current" style={{ color: site.accent }} /> 4.9 تقييم</div>
+              <div className="flex items-center gap-1.5"><Sparkles className="size-4" style={{ color: site.accent }} /> +2000 عميلة</div>
+              <div className="flex items-center gap-1.5"><Clock className="size-4" style={{ color: site.primary }} /> {site.hours}</div>
+            </div>
           </div>
-          <div className="mt-10 flex items-center justify-center gap-6 text-sm text-muted-foreground flex-wrap">
-            <div className="flex items-center gap-1.5"><Star className="size-4 fill-current" style={{ color: site.accent }} /> 4.9 تقييم</div>
-            <div className="flex items-center gap-1.5"><Sparkles className="size-4" style={{ color: site.accent }} /> +2000 عميلة</div>
-            <div className="flex items-center gap-1.5"><Clock className="size-4" style={{ color: site.primary }} /> {site.hours}</div>
+
+          {/* Hero visual collage */}
+          <div className="order-1 md:order-2 relative">
+            <div className="grid grid-cols-6 grid-rows-6 gap-3 aspect-square max-w-md mx-auto">
+              {site.heroImage && (
+                <div className={cn("col-span-6 row-span-4 overflow-hidden ring-4 ring-white/50", cardRadius, showGlow && "shadow-[var(--shadow-glow)]")}>
+                  <img src={site.heroImage} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {site.showcase.slice(0, 2).map((it, i) => (
+                <div key={i} className={cn("col-span-3 row-span-2 overflow-hidden ring-2 ring-white/50", cardRadius)}>
+                  <img src={it.url} alt={it.label} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Showcase — beauty categories with images */}
+      {site.showcase.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 md:px-8 py-14">
+          <div className="text-center mb-10">
+            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: site.primary }}>Beauty Showcase</span>
+            <h2 className="text-3xl md:text-4xl font-black">لمسات من إبداعنا</h2>
+            <p className="text-muted-foreground mt-2">تصفيفات شعر، مكياج، وعناية شاملة بأيدي محترفات</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {site.showcase.map((it, i) => (
+              <div key={i} className={cn("group relative overflow-hidden border border-border aspect-[3/4]", cardRadius)}>
+                <img src={it.url} alt={it.label} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 right-0 left-0 p-4">
+                  <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-white backdrop-blur-md" style={{ background: `linear-gradient(90deg, ${site.primary}CC, ${site.accent}CC)` }}>
+                    <Sparkles className="size-3" /> {it.label}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Services */}
       <section id="services" className="max-w-6xl mx-auto px-4 md:px-8 py-12">
@@ -166,7 +223,7 @@ function SitePage() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {site.gallery.map((url, i) => (
               <div key={i} className={cn("overflow-hidden border border-border aspect-square", cardRadius)}>
-                <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition duration-500" />
+                <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy" />
               </div>
             ))}
           </div>
