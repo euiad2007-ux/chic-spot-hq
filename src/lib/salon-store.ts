@@ -353,6 +353,22 @@ export const actions = {
     state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeStaff(id: string) { state = { ...state, staff: state.staff.filter((x) => x.id !== id) }; persist(); },
+  setServiceStaff(serviceId: string, staffIds: string[]) {
+    const set = new Set(staffIds);
+    state = {
+      ...state,
+      staff: state.staff.map((st) => {
+        const has = st.services.includes(serviceId);
+        const should = set.has(st.id);
+        if (has === should) return st;
+        const services = should
+          ? [...st.services, serviceId]
+          : st.services.filter((x) => x !== serviceId);
+        return { ...st, services };
+      }),
+    };
+    persist();
+  },
 
   // Customers
   addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt">) {
