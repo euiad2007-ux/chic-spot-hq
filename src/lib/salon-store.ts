@@ -439,6 +439,29 @@ export const actions = {
     state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeStaff(id: string) { state = { ...state, staff: state.staff.filter((x) => x.id !== id) }; persist(); },
+  addStaffNote(id: string, text: string) {
+    const note: StaffNote = { id: uid(), text, at: new Date().toISOString() };
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, notes: [note, ...(x.notes ?? [])] } : x) };
+    persist();
+  },
+  removeStaffNote(id: string, noteId: string) {
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, notes: (x.notes ?? []).filter((n) => n.id !== noteId) } : x) };
+    persist();
+  },
+  addStaffPoints(id: string, delta: number, reason: string) {
+    const log: StaffPointLog = { id: uid(), delta, reason, at: new Date().toISOString() };
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, points: (x.points ?? 0) + delta, pointsLog: [log, ...(x.pointsLog ?? [])] } : x) };
+    persist();
+  },
+  addStaffAllowance(id: string, label: string, amount: number) {
+    const a: StaffAllowance = { id: uid(), label, amount };
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, allowances: [...(x.allowances ?? []), a] } : x) };
+    persist();
+  },
+  removeStaffAllowance(id: string, allowanceId: string) {
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, allowances: (x.allowances ?? []).filter((a) => a.id !== allowanceId) } : x) };
+    persist();
+  },
   setServiceStaff(serviceId: string, staffIds: string[]) {
     const set = new Set(staffIds);
     state = {
