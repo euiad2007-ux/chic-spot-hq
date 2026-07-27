@@ -8,6 +8,7 @@ import {
   type Shift, type OvertimeMode,
 } from "@/lib/payroll-store";
 import { WEEKDAYS, dayLabel, type Weekday } from "@/lib/booking-settings";
+import { useSiteSettings } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
