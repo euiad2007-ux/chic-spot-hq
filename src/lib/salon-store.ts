@@ -135,19 +135,21 @@ const STORAGE_KEY = "lamsa_salon_v2";
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function seed(): SalonState {
-  const mkItem = (name: string, unit: string, stock: number, minStock: number, costPerUnit: number): InventoryItem => ({
-    id: uid(), name, unit, stock, minStock, costPerUnit,
-  });
+  const mkItem = (
+    name: string, unit: string, stock: number, minStock: number, costPerUnit: number,
+    measure: string, sizePerUnit: number,
+  ): InventoryItem => ({ id: uid(), name, unit, stock, minStock, costPerUnit, measure, sizePerUnit });
   const inventory: InventoryItem[] = [
-    mkItem("صبغة شعر", "أنبوب", 30, 8, 25),
-    mkItem("شامبو احترافي", "مل", 5000, 1000, 0.08),
-    mkItem("بلسم", "مل", 4000, 800, 0.06),
-    mkItem("طلاء أظافر", "قنينة", 40, 10, 12),
-    mkItem("مزيل طلاء", "مل", 2000, 500, 0.04),
-    mkItem("قناع بشرة", "قطعة", 25, 6, 18),
-    mkItem("قفازات", "زوج", 200, 40, 1.2),
-    mkItem("مناديل", "علبة", 60, 15, 6),
+    mkItem("صبغة شعر", "أنبوب", 30, 8, 25, "ml", 60),
+    mkItem("شامبو احترافي", "قنينة", 10, 2, 40, "ml", 500),
+    mkItem("بلسم", "قنينة", 8, 2, 32, "ml", 500),
+    mkItem("طلاء أظافر", "قنينة", 40, 10, 12, "ml", 15),
+    mkItem("مزيل طلاء", "قنينة", 6, 2, 20, "ml", 500),
+    mkItem("قناع بشرة", "قطعة", 25, 6, 18, "count", 1),
+    mkItem("قفازات", "زوج", 200, 40, 1.2, "count", 1),
+    mkItem("مناديل", "علبة", 60, 15, 6, "count", 100),
   ];
+
   const [dye, shampoo, conditioner, polish, remover, mask, gloves, tissues] = inventory;
 
   const svc = (
