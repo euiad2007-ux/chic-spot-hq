@@ -14,6 +14,7 @@ import { Route as SpecialistRouteImport } from './routes/specialist'
 import { Route as SiteRouteImport } from './routes/site'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as PayrollRouteImport } from './routes/payroll'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -48,6 +49,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayrollRoute = PayrollRouteImport.update({
+  id: '/payroll',
+  path: '/payroll',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
+  '/payroll': typeof PayrollRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
+  '/payroll': typeof PayrollRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
+  '/payroll': typeof PayrollRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invoices'
     | '/login'
+    | '/payroll'
     | '/services'
     | '/settings'
     | '/site'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invoices'
     | '/login'
+    | '/payroll'
     | '/services'
     | '/settings'
     | '/site'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invoices'
     | '/login'
+    | '/payroll'
     | '/services'
     | '/settings'
     | '/site'
@@ -218,6 +230,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   InvoicesRoute: typeof InvoicesRoute
   LoginRoute: typeof LoginRoute
+  PayrollRoute: typeof PayrollRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
   SiteRoute: typeof SiteRoute
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payroll': {
+      id: '/payroll'
+      path: '/payroll'
+      fullPath: '/payroll'
+      preLoaderRoute: typeof PayrollRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -346,6 +366,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   InvoicesRoute: InvoicesRoute,
   LoginRoute: LoginRoute,
+  PayrollRoute: PayrollRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
   SiteRoute: SiteRoute,

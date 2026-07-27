@@ -414,7 +414,72 @@ function AttendanceSection({
           </div>
         )}
       </div>
+
+      <MyAttendanceHistory staffId={staffId} />
     </section>
+  );
+}
+
+function MyAttendanceHistory({ staffId }: { staffId: string }) {
+  const { records } = useAttendance((s) => s);
+  const mine = useMemo(() => records.filter((r) => r.staffId === staffId), [records, staffId]);
+
+  // Group by YYYY-MM-DD
+  const byDay = useMemo(() => {
+    const m = new Map<string, AttendanceRecord[]>();
+    for (const r of mine) {
+      const k = new Date(r.checkInAt).toISOString().slice(0, 10);
+      const arr = m.get(k) ?? [];
+      arr.push(r);
+      m.set(k, arr);
+    }
+    return Array.from(m.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  }, [mine]);
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const past = byDay.filter(([k]) => k !== todayKey);
+  const monthMinutes = useMemo(() => {
+    const now = new Date();
+    return mine.reduce((a, r) => {
+      const d = new Date(r.checkInAt);
+      if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) return a + workedMinutes(r);
+      return a;
+    }, 0);
+  }, [mine]);
+
+  return (
+    <div className="glass-card rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="font-bold text-sm">سجلي الشخصي</h3>
+        <span className="text-xs text-muted-foreground">
+          هذا الشهر: <b className="text-foreground">{Math.floor(monthMinutes / 60)}س {monthMinutes % 60}د</b>
+        </span>
+      </div>
+      {past.length === 0 ? (
+        <div className="text-sm text-muted-foreground text-center py-6">لا يوجد سجل سابق</div>
+      ) : (
+        <div className="space-y-2 max-h-72 overflow-y-auto">
+          {past.slice(0, 30).map(([k, recs]) => {
+            const total = recs.reduce((a, r) => a + workedMinutes(r), 0);
+            return (
+              <div key={k} className="rounded-xl border border-border bg-muted/10 p-3">
+                <div className="flex items-center justify-between text-xs font-bold mb-2">
+                  <span>{formatDate(k)}</span>
+                  <span className="text-muted-foreground">{Math.floor(total / 60)}س {total % 60}د</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {recs.map((r) => (
+                    <span key={r.id} className="text-[10px] rounded-md border border-border bg-background/40 px-2 py-1 font-mono">
+                      {formatTime(r.checkInAt)}{r.checkOutAt ? ` → ${formatTime(r.checkOutAt)}` : " (مفتوح)"}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
