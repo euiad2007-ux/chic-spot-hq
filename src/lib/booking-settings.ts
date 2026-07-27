@@ -21,9 +21,11 @@ export interface BreakWindow {
 export interface BookingSettings {
   workDays: Record<Weekday, DaySchedule>;
   breaks: BreakWindow[];
-  bufferMin: number;      // extra minutes reserved after each booking
-  slotStepMin: number;    // slot granularity (e.g. 15)
-  minLeadMin: number;     // minimum lead time in minutes for new bookings
+  bufferMin: number;
+  slotStepMin: number;
+  minLeadMin: number;
+  maxDailyBookings: number; // 0 = unlimited
+  foundingDate: string;     // "YYYY-MM-DD" — reference for sequential numbering
 }
 
 const STORAGE_KEY = "lamsa_booking_settings_v1";
