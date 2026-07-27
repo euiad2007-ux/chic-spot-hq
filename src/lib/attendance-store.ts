@@ -92,10 +92,10 @@ export const attendanceActions = {
     state = { ...state, settings: { ...state.settings, ...patch } };
     persist();
   },
-  checkIn(staffId: string, lat: number, lng: number) {
+  checkIn(staffId: string, lat: number, lng: number, via: "geo" | "manual" = "geo") {
     const rec: AttendanceRecord = {
       id: uid(), staffId, checkInAt: new Date().toISOString(),
-      checkInLat: lat, checkInLng: lng,
+      checkInLat: lat, checkInLng: lng, via,
     };
     state = { ...state, records: [rec, ...state.records] };
     persist();
@@ -108,6 +108,17 @@ export const attendanceActions = {
         ? { ...r, checkOutAt: new Date().toISOString(), checkOutLat: lat, checkOutLng: lng }
         : r),
     };
+    persist();
+  },
+  setNote(recordId: string, note: string) {
+    state = {
+      ...state,
+      records: state.records.map((r) => r.id === recordId ? { ...r, note } : r),
+    };
+    persist();
+  },
+  removeRecord(recordId: string) {
+    state = { ...state, records: state.records.filter((r) => r.id !== recordId) };
     persist();
   },
 };
