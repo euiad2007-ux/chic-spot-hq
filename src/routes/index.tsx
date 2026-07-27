@@ -70,13 +70,22 @@ function Dashboard() {
       title="مساءُ الخير 👋"
       subtitle="نظرة سريعة على أداء المشغل اليوم"
       action={
-        <Link
-          to="/bookings"
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90"
-        >
-          <CalendarDays className="size-4" />
-          حجز جديد
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="#attendance"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/20 transition"
+          >
+            <Fingerprint className="size-4" />
+            الحضور والانصراف
+          </a>
+          <Link
+            to="/bookings"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90"
+          >
+            <CalendarDays className="size-4" />
+            حجز جديد
+          </Link>
+        </div>
       }
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
