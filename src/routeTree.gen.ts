@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SpecialistRouteImport } from './routes/specialist'
 import { Route as SiteRouteImport } from './routes/site'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -34,6 +35,11 @@ const SpecialistRoute = SpecialistRouteImport.update({
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
   path: '/site',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
   '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
   '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/services': typeof ServicesRoute
+  '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
   '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/services'
+    | '/settings'
     | '/site'
     | '/specialist'
     | '/staff'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/services'
+    | '/settings'
     | '/site'
     | '/specialist'
     | '/staff'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/services'
+    | '/settings'
     | '/site'
     | '/specialist'
     | '/staff'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   InvoicesRoute: typeof InvoicesRoute
   LoginRoute: typeof LoginRoute
   ServicesRoute: typeof ServicesRoute
+  SettingsRoute: typeof SettingsRoute
   SiteRoute: typeof SiteRoute
   SpecialistRoute: typeof SpecialistRoute
   StaffRoute: typeof StaffRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/site'
       fullPath: '/site'
       preLoaderRoute: typeof SiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoicesRoute: InvoicesRoute,
   LoginRoute: LoginRoute,
   ServicesRoute: ServicesRoute,
+  SettingsRoute: SettingsRoute,
   SiteRoute: SiteRoute,
   SpecialistRoute: SpecialistRoute,
   StaffRoute: StaffRoute,
@@ -271,13 +292,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
