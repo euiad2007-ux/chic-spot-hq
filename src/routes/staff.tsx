@@ -245,8 +245,11 @@ function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
               <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">تاريخ التعيين</label>
-              <input type="date" value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+                تاريخ التعيين <span className="text-destructive">*</span>
+                <span className="text-[10px] text-muted-foreground/70 mr-1">(يُستخدم لاحتساب الراتب)</span>
+              </label>
+              <input type="date" required value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">الراتب الأساسي</label>
