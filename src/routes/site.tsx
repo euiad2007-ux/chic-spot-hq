@@ -1,9 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
-import { useSiteSettings, settingsToCssVars, waLink } from "@/lib/site-settings";
+import { useSiteSettings, settingsToCssVars, waLink, googleFontsHref } from "@/lib/site-settings";
 import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+
+function useGoogleFonts(href: string) {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const id = "lamsa-google-fonts";
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  }, [href]);
+}
 
 export const Route = createFileRoute("/site")({
   head: () => ({
