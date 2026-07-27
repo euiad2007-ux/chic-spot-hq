@@ -197,6 +197,12 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
   const toggle = (id: string) => setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
 
+  const startsAt = useMemo(() => new Date(`${date}T${time}:00`).toISOString(), [date, time]);
+  const conflict = useMemo(() => {
+    if (selectedServices.length === 0 || !staffId) return null;
+    return checkBookingConflict({ staffId, startsAt, durationMin: totals.durationMin });
+  }, [staffId, startsAt, totals.durationMin, selectedServices.length]);
+
   const submit = () => {
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     let cid = customerId;
@@ -205,7 +211,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       cid = c.id;
     }
     if (!cid) return toast.error("اختر عميلاً");
-    const startsAt = new Date(`${date}T${time}:00`).toISOString();
+    if (conflict) return toast.error(conflict.message);
     const nb = actions.addBooking({
       customerId: cid,
       staffId,
