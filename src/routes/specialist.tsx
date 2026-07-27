@@ -9,7 +9,9 @@ import { useBookingSettings, WEEKDAYS, dayLabel } from "@/lib/booking-settings";
 import {
   useAttendance, attendanceActions, getCurrentPosition, distanceMeters,
   openAttendanceRecord, todayRecordsFor, workedMinutes,
+  type AttendanceSettings, type AttendanceRecord,
 } from "@/lib/attendance-store";
+
 import {
   CalendarDays, LogOut, Scissors, TrendingUp, Users2, CheckCircle2, Phone,
   MapPin, LogIn, LogOut as LogOutIcon, Clock, User2, History, AlertTriangle,
