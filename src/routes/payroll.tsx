@@ -35,6 +35,8 @@ function PayrollPage() {
   const [tab, setTab] = useState<"ledger" | "settings">("ledger");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [payslipId, setPayslipId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const activeStaff = useMemo(() => staff.filter((s) => s.active), [staff]);
 
