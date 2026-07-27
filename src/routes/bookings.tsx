@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { SlotPicker } from "@/components/salon/slot-picker";
 import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, eligibleStaffFor, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
-import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
+import { checkBookingConflict, getDaySlots, useBookingSettings } from "@/lib/booking-settings";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle } from "lucide-react";
@@ -46,7 +46,7 @@ function BookingsPage() {
           c?.name.includes(search) ||
           c?.phone.includes(search);
       })
-      .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }, [bookings, customers, filter, search]);
 
   return (
@@ -95,9 +95,10 @@ function BookingsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/30 text-xs text-muted-foreground">
               <tr>
+                <th className="text-right p-3 font-medium">أولوية</th>
                 <th className="text-right p-3 font-medium">رقم الحجز</th>
                 <th className="text-right p-3 font-medium">العميل</th>
-                <th className="text-right p-3 font-medium">الخدمة</th>
+                <th className="text-right p-3 font-medium">الخدمات (رقم الدور)</th>
                 <th className="text-right p-3 font-medium">الموظف</th>
                 <th className="text-right p-3 font-medium">التاريخ</th>
                 <th className="text-right p-3 font-medium">المبلغ</th>
@@ -108,20 +109,46 @@ function BookingsPage() {
             </thead>
             <tbody>
               {rows.length === 0 && (
-                <tr><td colSpan={9} className="p-12 text-center text-muted-foreground">لا توجد حجوزات مطابقة</td></tr>
+                <tr><td colSpan={10} className="p-12 text-center text-muted-foreground">لا توجد حجوزات مطابقة</td></tr>
               )}
-              {rows.map((b) => {
+              {rows.map((b, idx) => {
                 const c = customers.find((x) => x.id === b.customerId);
                 const st = staff.find((x) => x.id === b.staffId);
-                const svcs = b.serviceIds.map((sid) => services.find((s) => s.id === sid)?.name).filter(Boolean).join("، ");
+                const parts = b.code.split("-");
                 return (
                   <tr key={b.id} className="border-t border-border hover:bg-muted/20">
-                    <td className="p-3 font-mono text-xs text-primary">{b.code}</td>
+                    <td className="p-3">
+                      <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/15 text-primary font-bold text-xs border border-primary/30">
+                        {idx + 1}
+                      </span>
+                    </td>
+                    <td className="p-3 font-mono text-[11px]">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-muted-foreground" title="رقم عام">{parts[0]}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="text-accent" title="رقم الفرع">{parts[1]}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="text-primary font-bold" title="رقم اليوم">{parts[2]}</span>
+                      </div>
+                    </td>
                     <td className="p-3">
                       <div className="font-semibold">{c?.name}</div>
                       <div className="text-xs text-muted-foreground">{c?.phone}</div>
                     </td>
-                    <td className="p-3 max-w-[200px] truncate">{svcs}</td>
+                    <td className="p-3 max-w-[260px]">
+                      <div className="flex flex-wrap gap-1">
+                        {b.serviceIds.map((sid) => {
+                          const svc = services.find((s) => s.id === sid);
+                          const q = b.serviceQueue?.[sid];
+                          return (
+                            <span key={sid} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px]">
+                              <span className="font-bold text-primary">#{String(q ?? 0).padStart(3, "0")}</span>
+                              <span>{svc?.name}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </td>
                     <td className="p-3">{st?.name}</td>
                     <td className="p-3 whitespace-nowrap">
                       <div>{formatDateShort(b.startsAt)}</div>
@@ -177,7 +204,8 @@ function BookingsPage() {
 }
 
 function NewBookingDialog({ onClose }: { onClose: () => void }) {
-  const { customers, staff, services } = useSalon((s) => s);
+  const { customers, staff, services, bookings } = useSalon((s) => s);
+  const settings = useBookingSettings((s) => s);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [newCustName, setNewCustName] = useState("");
   const [newCustPhone, setNewCustPhone] = useState("");
@@ -211,6 +239,12 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     return checkBookingConflict({ staffId, startsAt, durationMin: totals.durationMin });
   }, [staffId, startsAt, totals.durationMin, selectedServices.length]);
 
+  const dayBookingsCount = useMemo(
+    () => bookings.filter((b) => b.bookingDate === date && b.status !== "cancelled").length,
+    [bookings, date],
+  );
+  const dayLimitReached = settings.maxDailyBookings > 0 && dayBookingsCount >= settings.maxDailyBookings;
+
   const submit = () => {
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     let cid = customerId;
@@ -221,6 +255,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     if (!cid) return toast.error("اختر عميلاً");
     if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
     if (conflict) return toast.error(conflict.message);
+    if (dayLimitReached) return toast.error(`تم بلوغ الحد الأقصى للحجوزات اليومية (${settings.maxDailyBookings})`);
     const nb = actions.addBooking({
       customerId: cid,
       staffId,
@@ -344,6 +379,17 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
+          <div className={cn(
+            "rounded-xl border p-3 text-xs flex items-center justify-between",
+            dayLimitReached ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-primary/30 bg-primary/5",
+          )}>
+            <span className="font-semibold">
+              حجوزات هذا اليوم: {dayBookingsCount}
+              {settings.maxDailyBookings > 0 && ` / ${settings.maxDailyBookings}`}
+            </span>
+            <span className="text-muted-foreground">الدور التالي: <b className="text-primary">#{String(dayBookingsCount + 1).padStart(4, "0")}</b></span>
+          </div>
+
           {conflict && (
             <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive p-3 flex items-start gap-2 text-sm">
               <AlertTriangle className="size-4 mt-0.5 shrink-0" />
@@ -359,7 +405,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
           <button
             onClick={submit}
-            disabled={!!conflict || selectedServices.length === 0 || !time}
+            disabled={!!conflict || selectedServices.length === 0 || !time || dayLimitReached}
             className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             تأكيد الحجز

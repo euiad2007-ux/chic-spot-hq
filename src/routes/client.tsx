@@ -104,13 +104,24 @@ function ClientPage() {
                   <div key={b.id} className="glass-card rounded-2xl p-5">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="text-xs font-mono text-muted-foreground">{b.code}</div>
-                        <div className="mt-1 font-bold">{svcs}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground tracking-wider">{b.code}</div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {b.serviceIds.map((sid) => {
+                            const svc = services.find((s) => s.id === sid);
+                            const q = b.serviceQueue?.[sid];
+                            return (
+                              <span key={sid} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px]">
+                                <span className="font-bold text-primary">#{String(q ?? 0).padStart(3, "0")}</span>
+                                <span>{svc?.name}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
                         <div className="text-xs text-muted-foreground mt-1">مع {st?.name}</div>
                       </div>
                       <div className="text-left">
-                        <div className="text-sm font-bold gradient-text">{formatTime(b.startsAt)}</div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">{formatDate(b.startsAt)}</div>
+                        <div className="inline-flex items-center rounded-lg bg-primary text-primary-foreground px-2 py-1 text-xs font-bold">دور #{String(b.dailyNo ?? 0).padStart(4, "0")}</div>
+                        <div className="text-[10px] text-muted-foreground mt-1">{formatDate(b.startsAt)}</div>
                       </div>
                     </div>
                     <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
