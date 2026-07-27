@@ -217,6 +217,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       cid = c.id;
     }
     if (!cid) return toast.error("اختر عميلاً");
+    if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
     if (conflict) return toast.error(conflict.message);
     const nb = actions.addBooking({
       customerId: cid,
