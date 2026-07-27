@@ -252,10 +252,21 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
               <span className="font-bold gradient-text">{formatSAR(svc.price)}</span>
             </div>
           )}
+          {conflict && (
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive p-3 text-xs">
+              {conflict.message}
+            </div>
+          )}
         </div>
         <div className="p-5 border-t border-border flex items-center justify-end gap-2">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
-          <button onClick={submit} className={cn("px-6 h-10 rounded-lg text-sm font-semibold text-primary-foreground bg-gradient-to-l from-primary to-accent")}>تأكيد الحجز</button>
+          <button
+            onClick={submit}
+            disabled={!!conflict}
+            className={cn("px-6 h-10 rounded-lg text-sm font-semibold text-primary-foreground bg-gradient-to-l from-primary to-accent disabled:opacity-50 disabled:cursor-not-allowed")}
+          >
+            تأكيد الحجز
+          </button>
         </div>
       </div>
     </div>
