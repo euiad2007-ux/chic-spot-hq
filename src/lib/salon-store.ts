@@ -297,6 +297,11 @@ export function materialsForBooking(serviceIds: string[], services: Service[]): 
   return Array.from(map.entries()).map(([itemId, qty]) => ({ itemId, qty }));
 }
 
+export function eligibleStaffFor(serviceIds: string[], staff: Staff[]): Staff[] {
+  if (!serviceIds.length) return staff.filter((s) => s.active);
+  return staff.filter((s) => s.active && serviceIds.every((sid) => s.services.includes(sid)));
+}
+
 export function costPerBase(item: Pick<InventoryItem, "costPerUnit" | "sizePerUnit">): number {
   const size = item.sizePerUnit || 1;
   return item.costPerUnit / size;
