@@ -248,19 +248,6 @@ function formatDuration(start: string, end: string) {
   return `${hours} ساعة و${minutes} دقيقة`;
 }
 
-/* removed legacy weekly-hours list */
-
-function LegacyRemoved() {
-  return null;
-}
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
-function _OldWorkHoursSnippet() {
-  return null;
-}
-
-/* eslint-enable @typescript-eslint/no-unused-vars */
-
 function Numeric({ icon, label, suffix, value, onChange, hint }: {
   icon?: React.ReactNode;
   label: string;
