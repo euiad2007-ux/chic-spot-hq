@@ -77,6 +77,7 @@ function StaffPage() {
 
   const submit = () => {
     if (!form.name || !form.phone) return toast.error("أكمل البيانات");
+    if (!form.hireDate) return toast.error("تاريخ التعيين مطلوب لاحتساب الراتب");
     const patch = {
       name: form.name,
       role: form.role,
