@@ -29,17 +29,17 @@ export interface SiteSettings {
   waTemplatePromo: string;
 }
 
-const KEY = "lamsa_site_settings_v1";
+const KEY = "lamsa_site_settings_v2";
 
 const defaults: SiteSettings = {
   salonName: "صالون لمسة",
   branchName: "فرع الروضة — الرياض",
   tagline: "جمالك يبدأ من هنا",
   logoUrl: "",
-  primary: "#A78BFA",
+  primary: "#A855F7",
   accent: "#F0ABFC",
-  background: "#0F0B1F",
-  surface: "#1E1533",
+  background: "#FAF5FF",
+  surface: "#FFFFFF",
   layout: "elegant",
   heroImage: "",
   gallery: [],
