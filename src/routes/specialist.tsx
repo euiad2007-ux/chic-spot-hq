@@ -292,7 +292,7 @@ function AttendanceSection({
           toast.error("لم يحدد المدير موقع الصالون بعد");
           return;
         }
-        const d = distanceMeters(lat, lng, settings.shopLat, settings.shopLng);
+        const d = distanceMeters(lat, lng, settings.shopLat!, settings.shopLng!);
         setLastDist(d);
         if (d > settings.radiusMeters) {
           toast.error(`أنتِ خارج نطاق الصالون (${Math.round(d)}م / حد ${settings.radiusMeters}م)`);
