@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { SlotPicker } from "@/components/salon/slot-picker";
 import { useEffect, useMemo, useState } from "react";
-import { useSalon, actions, formatSAR, formatTime, formatDate } from "@/lib/salon-store";
+import { useSalon, actions, formatSAR, formatTime, formatDate, serviceTotalMin } from "@/lib/salon-store";
 import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
 import { useSession, auth } from "@/lib/auth-store";
 import { CalendarDays, Sparkles, Clock, LogOut, Plus, X, Scissors, Star, Receipt } from "lucide-react";
@@ -201,15 +201,16 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
   const [time, setTime] = useState<string>("");
 
   const svc = services.find((s) => s.id === serviceId);
+  const svcTotal = svc ? serviceTotalMin(svc) : 0;
 
   const slots = useMemo(() => {
     if (!svc || !staffId) return [];
-    return getDaySlots({ date, staffId, durationMin: svc.durationMin });
-  }, [date, staffId, svc?.durationMin, svc]);
+    return getDaySlots({ date, staffId, durationMin: svcTotal });
+  }, [date, staffId, svcTotal, svc]);
 
   const selectedSlot = slots.find((s) => s.time === time);
   const startsAt = selectedSlot?.startsAt ?? "";
-  const conflict = svc && startsAt ? checkBookingConflict({ staffId, startsAt, durationMin: svc.durationMin }) : null;
+  const conflict = svc && startsAt ? checkBookingConflict({ staffId, startsAt, durationMin: svcTotal }) : null;
 
   const submit = () => {
     if (!svc) return;
@@ -220,7 +221,7 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
       staffId,
       serviceIds: [serviceId],
       startsAt,
-      durationMin: svc.durationMin,
+      durationMin: svcTotal,
       price: svc.price,
       discount: 0,
     });

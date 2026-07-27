@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { SlotPicker } from "@/components/salon/slot-picker";
-import { useSalon, actions, formatSAR, formatTime, formatDateShort, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
+import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
 import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -192,8 +192,9 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   const totals = useMemo(() => {
     const chosen = services.filter((s) => selectedServices.includes(s.id));
     const price = chosen.reduce((a, s) => a + s.price, 0);
-    const durationMin = chosen.reduce((a, s) => a + s.durationMin, 0);
-    return { price, durationMin };
+    const serviceMin = chosen.reduce((a, s) => a + s.durationMin, 0);
+    const durationMin = chosen.reduce((a, s) => a + serviceTotalMin(s), 0);
+    return { price, durationMin, serviceMin };
   }, [selectedServices, services]);
 
   const toggle = (id: string) => setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
@@ -318,8 +319,8 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
           <div className="glass-card rounded-xl p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs text-muted-foreground">المدة الإجمالية</div>
-              <div className="font-bold">{totals.durationMin} دقيقة</div>
+              <div className="text-xs text-muted-foreground">المدة المحجوزة</div>
+              <div className="font-bold">{totals.durationMin} دقيقة <span className="text-xs font-normal text-muted-foreground">(خدمة {totals.serviceMin} د)</span></div>
             </div>
             <div className="text-left">
               <div className="text-xs text-muted-foreground">الإجمالي</div>
