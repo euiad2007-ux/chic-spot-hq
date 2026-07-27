@@ -29,7 +29,7 @@ export interface SiteSettings {
   waTemplatePromo: string;
 }
 
-const KEY = "lamsa_site_settings_v1";
+const KEY = "lamsa_site_settings_v2";
 
 const defaults: SiteSettings = {
   salonName: "صالون لمسة",
