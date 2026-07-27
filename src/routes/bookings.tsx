@@ -204,7 +204,8 @@ function BookingsPage() {
 }
 
 function NewBookingDialog({ onClose }: { onClose: () => void }) {
-  const { customers, staff, services } = useSalon((s) => s);
+  const { customers, staff, services, bookings } = useSalon((s) => s);
+  const settings = require("@/lib/booking-settings").getBookingSettings() as import("@/lib/booking-settings").BookingSettings;
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [newCustName, setNewCustName] = useState("");
   const [newCustPhone, setNewCustPhone] = useState("");
