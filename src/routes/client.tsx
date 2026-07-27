@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useSalon, actions, formatSAR, formatTime, formatDate } from "@/lib/salon-store";
+import { checkBookingConflict } from "@/lib/booking-settings";
 import { useSession, auth } from "@/lib/auth-store";
 import { CalendarDays, Sparkles, Clock, LogOut, Plus, X, Scissors, Star, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
