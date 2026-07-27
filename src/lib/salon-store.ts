@@ -320,7 +320,11 @@ export const actions = {
   reset() { state = seed(); persist(); },
 
   // Services
-  addService(s: Omit<Service, "id">) { state = { ...state, services: [...state.services, { ...s, id: uid() }] }; persist(); },
+  addService(s: Omit<Service, "id">) {
+    const id = uid();
+    state = { ...state, services: [...state.services, { ...s, id }] }; persist();
+    return id;
+  },
   updateService(id: string, patch: Partial<Service>) {
     state = { ...state, services: state.services.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
