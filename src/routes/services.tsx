@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSalon, actions, formatSAR, serviceTotalMin, type Service, type ServiceMaterial } from "@/lib/salon-store";
-import { useState } from "react";
-import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer } from "lucide-react";
+import {
+  useSalon, actions, formatSAR, serviceTotalMin,
+  costPerBase, measureLabel, serviceMaterialsCost,
+  type Service, type ServiceMaterial,
+} from "@/lib/salon-store";
+import { useState, useMemo } from "react";
+import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -34,30 +38,37 @@ const empty: FormState = {
 
 function ServicesPage() {
   const services = useSalon((s) => s.services);
+  const staff = useSalon((s) => s.staff);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+  const [staffIds, setStaffIds] = useState<string[]>([]);
 
-  const openNew = () => { setEditing(null); setForm(empty); setOpen(true); };
+  const openNew = () => {
+    setEditing(null); setForm(empty); setStaffIds([]); setOpen(true);
+  };
   const openEdit = (s: Service) => {
     setEditing(s);
     setForm({
       name: s.name, category: s.category, price: s.price, durationMin: s.durationMin,
       prepMin: s.prepMin ?? 0, cleanupMin: s.cleanupMin ?? 0, materials: s.materials ?? [],
     });
+    setStaffIds(staff.filter((st) => st.services.includes(s.id)).map((st) => st.id));
     setOpen(true);
   };
 
   const submit = () => {
     if (!form.name.trim()) return toast.error("اكتب اسم الخدمة");
     if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
+    let serviceId = editing?.id;
     if (editing) {
       actions.updateService(editing.id, form);
       toast.success("تم تحديث الخدمة");
     } else {
-      actions.addService({ ...form, active: true });
+      serviceId = actions.addService({ ...form, active: true });
       toast.success("تمت إضافة الخدمة");
     }
+    if (serviceId) actions.setServiceStaff(serviceId, staffIds);
     setOpen(false);
   };
 
@@ -95,6 +106,8 @@ function ServicesPage() {
         <ServiceDialog
           form={form}
           setForm={setForm}
+          staffIds={staffIds}
+          setStaffIds={setStaffIds}
           onClose={() => setOpen(false)}
           onSubmit={submit}
           isEdit={!!editing}
@@ -106,7 +119,10 @@ function ServicesPage() {
 
 function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
   const inventory = useSalon((st) => st.inventory);
+  const staff = useSalon((st) => st.staff);
   const total = serviceTotalMin(s);
+  const matCost = serviceMaterialsCost(s.materials, inventory);
+  const eligible = staff.filter((st) => st.services.includes(s.id));
   return (
     <div className="glass-card rounded-2xl p-4 group relative">
       <div className="flex items-start justify-between gap-3">
@@ -154,6 +170,34 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
         </div>
       )}
 
+      <div className="mt-3 pt-3 border-t border-border/60">
+        <div className="text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+          <Users className="size-3" /> الموظفون المؤهلون
+        </div>
+        {eligible.length === 0 ? (
+          <div className="text-[11px] text-warning">لا يوجد موظف مربوط — اضبطي التعيين من زر التعديل.</div>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {eligible.map((st) => (
+              <span key={st.id} className="text-[11px] px-2 py-0.5 rounded-full bg-accent/10 border border-accent/30 text-accent">
+                {st.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+        <div className="rounded-lg bg-muted/40 border border-border p-2">
+          <div className="text-muted-foreground">تكلفة المواد</div>
+          <div className="font-bold">{formatSAR(matCost)}</div>
+        </div>
+        <div className="rounded-lg bg-success/10 border border-success/30 p-2">
+          <div className="text-muted-foreground">صافي الربح</div>
+          <div className="font-bold text-success">{formatSAR(Math.max(0, s.price - matCost))}</div>
+        </div>
+      </div>
+
       <div className="mt-4 flex items-end justify-between">
         <div className="text-2xl font-bold gradient-text">{formatSAR(s.price)}</div>
         <button
@@ -167,21 +211,29 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
   );
 }
 
-function ServiceDialog({ form, setForm, onClose, onSubmit, isEdit }: {
+function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
   form: FormState;
   setForm: (f: FormState) => void;
+  staffIds: string[];
+  setStaffIds: (ids: string[] | ((prev: string[]) => string[])) => void;
   onClose: () => void;
   onSubmit: () => void;
   isEdit: boolean;
 }) {
   const inventory = useSalon((s) => s.inventory);
+  const staff = useSalon((s) => s.staff);
   const total = form.prepMin + form.durationMin + form.cleanupMin;
+
+  const matCost = useMemo(() => serviceMaterialsCost(form.materials, inventory), [form.materials, inventory]);
 
   const setMaterial = (itemId: string, qty: number) => {
     const others = form.materials.filter((m) => m.itemId !== itemId);
     setForm({ ...form, materials: qty > 0 ? [...others, { itemId, qty }] : others });
   };
   const currentQty = (id: string) => form.materials.find((m) => m.itemId === id)?.qty ?? 0;
+  const toggleStaff = (id: string) => {
+    setStaffIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
@@ -232,6 +284,42 @@ function ServiceDialog({ form, setForm, onClose, onSubmit, isEdit }: {
 
           <div>
             <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+              <Users className="size-3" /> الموظفون المؤهلون لتقديم الخدمة
+            </div>
+            {staff.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                لا يوجد موظفون. أضيفي موظفين من صفحة الموظفين.
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {staff.map((st) => {
+                  const on = staffIds.includes(st.id);
+                  return (
+                    <button
+                      type="button"
+                      key={st.id}
+                      onClick={() => toggleStaff(st.id)}
+                      className={cn(
+                        "text-xs px-3 py-1.5 rounded-full border transition",
+                        on
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:border-primary/50 hover:text-primary",
+                      )}
+                    >
+                      {st.name}
+                      <span className="opacity-70 mr-1">· {st.role}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-2">
+              في الحجز يظهر فقط الموظفون المؤهلون لهذه الخدمة.
+            </p>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
               <Package className="size-3" /> المواد المستهلكة لكل جلسة
             </div>
             {inventory.length === 0 ? (
@@ -239,14 +327,19 @@ function ServiceDialog({ form, setForm, onClose, onSubmit, isEdit }: {
                 لا توجد مواد في المخزون بعد. أضيفي عناصر من صفحة المخزون أولاً.
               </div>
             ) : (
-              <div className="rounded-xl border border-border divide-y divide-border max-h-56 overflow-y-auto">
+              <div className="rounded-xl border border-border divide-y divide-border max-h-64 overflow-y-auto">
                 {inventory.map((it) => {
                   const qty = currentQty(it.id);
+                  const perBase = costPerBase(it);
+                  const mLabel = measureLabel(it.measure ?? "count");
+                  const lineCost = qty * perBase;
                   return (
                     <div key={it.id} className="flex items-center gap-3 p-2.5 text-sm">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{it.name}</div>
-                        <div className="text-[11px] text-muted-foreground">المتوفر: {it.stock} {it.unit}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {perBase.toFixed(3)} ر.س / {mLabel} · متوفر {it.stock} {it.unit}
+                        </div>
                       </div>
                       <input
                         type="number"
@@ -257,13 +350,32 @@ function ServiceDialog({ form, setForm, onClose, onSubmit, isEdit }: {
                         className="h-8 w-20 rounded-md bg-muted/40 border border-border px-2 text-xs text-center"
                         placeholder="0"
                       />
-                      <span className="text-[11px] text-muted-foreground w-12">{it.unit}</span>
+                      <span className="text-[11px] text-muted-foreground w-10">{mLabel}</span>
+                      <span className="text-[11px] w-16 text-left font-semibold text-primary">
+                        {lineCost > 0 ? formatSAR(lineCost) : "—"}
+                      </span>
                     </div>
                   );
                 })}
               </div>
             )}
+            <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+              <div className="rounded-lg bg-muted/40 border border-border p-2 flex items-center gap-1">
+                <Coins className="size-3 text-muted-foreground" />
+                <span className="text-muted-foreground">تكلفة المواد:</span>
+                <span className="font-bold mr-auto">{formatSAR(matCost)}</span>
+              </div>
+              <div className="rounded-lg bg-muted/40 border border-border p-2">
+                <span className="text-muted-foreground">السعر:</span>
+                <span className="font-bold mr-1">{formatSAR(form.price)}</span>
+              </div>
+              <div className="rounded-lg bg-success/10 border border-success/30 p-2">
+                <span className="text-muted-foreground">الربح:</span>
+                <span className="font-bold text-success mr-1">{formatSAR(Math.max(0, form.price - matCost))}</span>
+              </div>
+            </div>
           </div>
+
         </div>
 
         <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">

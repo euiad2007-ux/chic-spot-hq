@@ -31,11 +31,44 @@ export interface Service {
 export interface InventoryItem {
   id: string;
   name: string;
-  unit: string; // مل، جم، قطعة...
-  stock: number;
+  unit: string;          // package label (e.g. "قنينة", "علبة", "أنبوب")
+  stock: number;         // number of packages available
   minStock: number;
-  costPerUnit: number;
+  costPerUnit: number;   // price per package
+  measure: string;       // base measure code: "count" | "g" | "mg" | "ml" | "l" | custom
+  sizePerUnit: number;   // how many base units per one package
 }
+
+export const DEFAULT_MEASURES: { code: string; label: string }[] = [
+  { code: "count", label: "عدد" },
+  { code: "g", label: "جرام" },
+  { code: "mg", label: "ملي جرام" },
+  { code: "ml", label: "ملليلتر" },
+  { code: "l", label: "لتر" },
+  { code: "cm", label: "سنتيمتر" },
+];
+
+const MEASURES_KEY = "lamsa_custom_measures_v1";
+export function loadMeasures(): { code: string; label: string }[] {
+  if (typeof window === "undefined") return DEFAULT_MEASURES;
+  try {
+    const raw = localStorage.getItem(MEASURES_KEY);
+    const custom = raw ? (JSON.parse(raw) as { code: string; label: string }[]) : [];
+    const seen = new Set(DEFAULT_MEASURES.map((m) => m.code));
+    return [...DEFAULT_MEASURES, ...custom.filter((c) => c.code && !seen.has(c.code))];
+  } catch { return DEFAULT_MEASURES; }
+}
+export function addCustomMeasure(m: { code: string; label: string }) {
+  if (typeof window === "undefined") return;
+  const cur = loadMeasures();
+  if (cur.find((x) => x.code === m.code)) return;
+  const custom = cur.filter((x) => !DEFAULT_MEASURES.find((d) => d.code === x.code));
+  localStorage.setItem(MEASURES_KEY, JSON.stringify([...custom, m]));
+}
+export function measureLabel(code: string) {
+  return loadMeasures().find((m) => m.code === code)?.label ?? code;
+}
+
 
 export interface Staff {
   id: string;
@@ -102,19 +135,21 @@ const STORAGE_KEY = "lamsa_salon_v2";
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function seed(): SalonState {
-  const mkItem = (name: string, unit: string, stock: number, minStock: number, costPerUnit: number): InventoryItem => ({
-    id: uid(), name, unit, stock, minStock, costPerUnit,
-  });
+  const mkItem = (
+    name: string, unit: string, stock: number, minStock: number, costPerUnit: number,
+    measure: string, sizePerUnit: number,
+  ): InventoryItem => ({ id: uid(), name, unit, stock, minStock, costPerUnit, measure, sizePerUnit });
   const inventory: InventoryItem[] = [
-    mkItem("صبغة شعر", "أنبوب", 30, 8, 25),
-    mkItem("شامبو احترافي", "مل", 5000, 1000, 0.08),
-    mkItem("بلسم", "مل", 4000, 800, 0.06),
-    mkItem("طلاء أظافر", "قنينة", 40, 10, 12),
-    mkItem("مزيل طلاء", "مل", 2000, 500, 0.04),
-    mkItem("قناع بشرة", "قطعة", 25, 6, 18),
-    mkItem("قفازات", "زوج", 200, 40, 1.2),
-    mkItem("مناديل", "علبة", 60, 15, 6),
+    mkItem("صبغة شعر", "أنبوب", 30, 8, 25, "ml", 60),
+    mkItem("شامبو احترافي", "قنينة", 10, 2, 40, "ml", 500),
+    mkItem("بلسم", "قنينة", 8, 2, 32, "ml", 500),
+    mkItem("طلاء أظافر", "قنينة", 40, 10, 12, "ml", 15),
+    mkItem("مزيل طلاء", "قنينة", 6, 2, 20, "ml", 500),
+    mkItem("قناع بشرة", "قطعة", 25, 6, 18, "count", 1),
+    mkItem("قفازات", "زوج", 200, 40, 1.2, "count", 1),
+    mkItem("مناديل", "علبة", 60, 15, 6, "count", 100),
   ];
+
   const [dye, shampoo, conditioner, polish, remover, mask, gloves, tissues] = inventory;
 
   const svc = (
@@ -191,7 +226,9 @@ function load(): SalonState {
         customers: parsed.customers ?? [],
         bookings: parsed.bookings ?? [],
         invoices: parsed.invoices ?? [],
-        inventory: parsed.inventory ?? [],
+        inventory: (parsed.inventory ?? []).map((i: any) => ({
+          measure: i.measure ?? "count", sizePerUnit: i.sizePerUnit ?? 1, ...i,
+        })),
       };
     }
   } catch {}
@@ -260,12 +297,34 @@ export function materialsForBooking(serviceIds: string[], services: Service[]): 
   return Array.from(map.entries()).map(([itemId, qty]) => ({ itemId, qty }));
 }
 
+export function eligibleStaffFor(serviceIds: string[], staff: Staff[]): Staff[] {
+  if (!serviceIds.length) return staff.filter((s) => s.active);
+  return staff.filter((s) => s.active && serviceIds.every((sid) => s.services.includes(sid)));
+}
+
+export function costPerBase(item: Pick<InventoryItem, "costPerUnit" | "sizePerUnit">): number {
+  const size = item.sizePerUnit || 1;
+  return item.costPerUnit / size;
+}
+
+export function serviceMaterialsCost(materials: ServiceMaterial[] | undefined, inventory: InventoryItem[]): number {
+  if (!materials) return 0;
+  return materials.reduce((a, m) => {
+    const it = inventory.find((x) => x.id === m.itemId);
+    return it ? a + costPerBase(it) * m.qty : a;
+  }, 0);
+}
+
 // Mutations
 export const actions = {
   reset() { state = seed(); persist(); },
 
   // Services
-  addService(s: Omit<Service, "id">) { state = { ...state, services: [...state.services, { ...s, id: uid() }] }; persist(); },
+  addService(s: Omit<Service, "id">) {
+    const id = uid();
+    state = { ...state, services: [...state.services, { ...s, id }] }; persist();
+    return id;
+  },
   updateService(id: string, patch: Partial<Service>) {
     state = { ...state, services: state.services.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
@@ -298,6 +357,22 @@ export const actions = {
     state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeStaff(id: string) { state = { ...state, staff: state.staff.filter((x) => x.id !== id) }; persist(); },
+  setServiceStaff(serviceId: string, staffIds: string[]) {
+    const set = new Set(staffIds);
+    state = {
+      ...state,
+      staff: state.staff.map((st) => {
+        const has = st.services.includes(serviceId);
+        const should = set.has(st.id);
+        if (has === should) return st;
+        const services = should
+          ? [...st.services, serviceId]
+          : st.services.filter((x) => x !== serviceId);
+        return { ...st, services };
+      }),
+    };
+    persist();
+  },
 
   // Customers
   addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt">) {
