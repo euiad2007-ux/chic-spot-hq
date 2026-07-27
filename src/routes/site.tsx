@@ -82,7 +82,7 @@ function SitePage() {
             <div className="absolute -bottom-32 -left-20 size-96 rounded-full blur-3xl opacity-30" style={{ background: site.accent }} />
           </>
         )}
-        <div className={cn("relative max-w-6xl mx-auto px-4 md:px-8 grid md:grid-cols-2 gap-10 items-center", heroPad)}>
+        <div className={cn("relative max-w-7xl mx-auto px-4 md:px-8 grid md:grid-cols-[1fr_1.15fr] gap-10 items-center", heroPad)}>
           <div className="text-center md:text-right order-2 md:order-1">
             {/* Prominent brand block */}
             <div className="inline-flex items-center gap-3 mb-5">
