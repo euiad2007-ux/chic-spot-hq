@@ -143,3 +143,16 @@
   @page { margin: 8mm; size: 80mm auto; }
 }
 
+@media print {
+  body.printing-payslip * { visibility: hidden !important; }
+  body.printing-payslip .payslip-print,
+  body.printing-payslip .payslip-print * { visibility: visible !important; }
+  body.printing-payslip .payslip-print {
+    position: absolute !important; inset: 0 !important; margin: 0 !important;
+    background: white !important; color: #111 !important; box-shadow: none !important;
+  }
+  body.printing-payslip { background: white !important; }
+  body.printing-payslip @page { margin: 12mm; size: A4; }
+}
+
+
