@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { SlotPicker } from "@/components/salon/slot-picker";
-import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
+import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, eligibleStaffFor, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
 import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
