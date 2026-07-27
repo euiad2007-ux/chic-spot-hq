@@ -200,9 +200,12 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
 
   const svc = services.find((s) => s.id === serviceId);
 
+  const startsAt = new Date(`${date}T${time}:00`).toISOString();
+  const conflict = svc ? checkBookingConflict({ staffId, startsAt, durationMin: svc.durationMin }) : null;
+
   const submit = () => {
     if (!svc) return;
-    const startsAt = new Date(`${date}T${time}:00`).toISOString();
+    if (conflict) return toast.error(conflict.message);
     actions.addBooking({
       customerId,
       staffId,
