@@ -3,6 +3,7 @@ import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, formatSAR, formatTime, STATUS_LABEL, STATUS_TONE, isToday } from "@/lib/salon-store";
 import { CalendarDays, TrendingUp, Users2, Sparkles, ArrowLeft, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AttendancePanel } from "@/components/salon/attendance-panel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
