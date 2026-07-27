@@ -210,3 +210,50 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   }
   return null;
 }
+
+// ============== Slot generation ==============
+
+export interface SlotQuery {
+  date: string;          // "YYYY-MM-DD"
+  staffId: string;
+  durationMin: number;
+  ignoreBookingId?: string;
+}
+
+export interface Slot {
+  time: string;          // "HH:MM"
+  startsAt: string;      // ISO
+  available: boolean;
+  reason?: ConflictReason["type"];
+}
+
+function pad(n: number) { return n.toString().padStart(2, "0"); }
+
+export function getDaySlots(q: SlotQuery): Slot[] {
+  const settings = getBookingSettings();
+  if (!q.date || !q.staffId || !q.durationMin) return [];
+  const [yy, mm, dd] = q.date.split("-").map(Number);
+  const base = new Date(yy, (mm || 1) - 1, dd || 1);
+  const day = base.getDay() as Weekday;
+  const sched = settings.workDays[day];
+  if (!sched?.open) return [];
+  const step = Math.max(5, settings.slotStepMin);
+  const openMin = toMin(sched.start);
+  const closeMin = toMin(sched.end);
+  const slots: Slot[] = [];
+  for (let m = openMin; m + q.durationMin <= closeMin; m += step) {
+    const h = Math.floor(m / 60);
+    const mn = m % 60;
+    const time = `${pad(h)}:${pad(mn)}`;
+    const dt = new Date(yy, (mm || 1) - 1, dd || 1, h, mn, 0, 0);
+    const startsAt = dt.toISOString();
+    const c = checkBookingConflict({
+      staffId: q.staffId,
+      startsAt,
+      durationMin: q.durationMin,
+      ignoreBookingId: q.ignoreBookingId,
+    });
+    slots.push({ time, startsAt, available: !c, reason: c?.type });
+  }
+  return slots;
+}

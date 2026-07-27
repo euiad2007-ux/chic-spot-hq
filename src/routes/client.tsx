@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useSalon, actions, formatSAR, formatTime, formatDate } from "@/lib/salon-store";
-import { checkBookingConflict } from "@/lib/booking-settings";
+import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
 import { useSession, auth } from "@/lib/auth-store";
 import { CalendarDays, Sparkles, Clock, LogOut, Plus, X, Scissors, Star, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -197,15 +197,22 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
   const [staffId, setStaffId] = useState(staff[0]?.id ?? "");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [time, setTime] = useState("10:00");
+  const [time, setTime] = useState<string>("");
 
   const svc = services.find((s) => s.id === serviceId);
 
-  const startsAt = new Date(`${date}T${time}:00`).toISOString();
-  const conflict = svc ? checkBookingConflict({ staffId, startsAt, durationMin: svc.durationMin }) : null;
+  const slots = useMemo(() => {
+    if (!svc || !staffId) return [];
+    return getDaySlots({ date, staffId, durationMin: svc.durationMin });
+  }, [date, staffId, svc?.durationMin, svc]);
+
+  const selectedSlot = slots.find((s) => s.time === time);
+  const startsAt = selectedSlot?.startsAt ?? "";
+  const conflict = svc && startsAt ? checkBookingConflict({ staffId, startsAt, durationMin: svc.durationMin }) : null;
 
   const submit = () => {
     if (!svc) return;
+    if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
     if (conflict) return toast.error(conflict.message);
     actions.addBooking({
       customerId,
@@ -222,30 +229,51 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
 
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card rounded-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 border-b border-border flex items-center justify-between">
+      <div className="glass-card rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur">
           <h3 className="font-bold text-lg flex items-center gap-2"><Sparkles className="size-5 text-primary" /> حجز جديد</h3>
           <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
         </div>
         <div className="p-5 space-y-4">
           <Field label="الخدمة">
-            <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
+            <select value={serviceId} onChange={(e) => { setServiceId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
               {services.filter((s) => s.active).map((s) => <option key={s.id} value={s.id}>{s.name} — {formatSAR(s.price)}</option>)}
             </select>
           </Field>
           <Field label="الأخصائية">
-            <select value={staffId} onChange={(e) => setStaffId(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
+            <select value={staffId} onChange={(e) => { setStaffId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
               {staff.filter((s) => s.active).map((s) => <option key={s.id} value={s.id}>{s.name} — {s.role}</option>)}
             </select>
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="التاريخ">
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </Field>
-            <Field label="الوقت">
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </Field>
-          </div>
+          <Field label="التاريخ">
+            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+          </Field>
+          <Field label={`الأوقات المتاحة${svc ? ` (مدة ${svc.durationMin} دقيقة)` : ""}`}>
+            {slots.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                لا توجد أوقات متاحة في هذا اليوم
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1">
+                {slots.map((s) => (
+                  <button
+                    key={s.time}
+                    type="button"
+                    disabled={!s.available}
+                    onClick={() => setTime(s.time)}
+                    className={cn(
+                      "h-9 rounded-lg text-xs font-semibold border transition",
+                      time === s.time && s.available && "bg-primary text-primary-foreground border-primary shadow-[var(--shadow-glow)]",
+                      time !== s.time && s.available && "bg-muted/40 border-border hover:border-primary/50 hover:bg-primary/10",
+                      !s.available && "bg-muted/10 border-border/40 text-muted-foreground/40 line-through cursor-not-allowed",
+                    )}
+                  >
+                    {s.time}
+                  </button>
+                ))}
+              </div>
+            )}
+          </Field>
           {svc && (
             <div className="rounded-xl bg-muted/40 border border-border p-3 flex items-center justify-between text-sm">
               <span className="flex items-center gap-1 text-muted-foreground"><Clock className="size-3.5" /> {svc.durationMin} دقيقة</span>
@@ -258,11 +286,11 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
             </div>
           )}
         </div>
-        <div className="p-5 border-t border-border flex items-center justify-end gap-2">
+        <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
           <button
             onClick={submit}
-            disabled={!!conflict}
+            disabled={!!conflict || !time}
             className={cn("px-6 h-10 rounded-lg text-sm font-semibold text-primary-foreground bg-gradient-to-l from-primary to-accent disabled:opacity-50 disabled:cursor-not-allowed")}
           >
             تأكيد الحجز
