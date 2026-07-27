@@ -87,12 +87,47 @@ function PayrollPage() {
 
       {tab === "ledger" && (
         <div className="space-y-3">
+          {/* Toolbar */}
+          <div className="glass-card rounded-2xl p-3 flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="ابحث عن موظف..."
+                className="w-full h-10 rounded-lg bg-muted/40 border border-border pr-9 pl-3 text-sm"
+              />
+            </div>
+            <button
+              onClick={() => exportPayrollCSV(activeStaff, records, payments, settings)}
+              className="h-10 px-3 rounded-lg border border-border text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-muted/50"
+            >
+              <FileDown className="size-4" /> تصدير CSV
+            </button>
+            <button
+              onClick={() => printFullLedger()}
+              className="h-10 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold inline-flex items-center gap-1.5"
+            >
+              <Printer className="size-4" /> طباعة القائمة الكاملة
+            </button>
+          </div>
+
           {activeStaff.length === 0 ? (
             <div className="glass-card rounded-2xl p-10 text-center text-muted-foreground">لا يوجد موظفون نشطون</div>
-          ) : activeStaff.map((s) => {
+          ) : activeStaff
+              .filter((s) => !query || s.name.includes(query) || s.role.includes(query))
+              .map((s) => {
             const rep = computeStaffPayroll(s, records, payments, settings);
             const isOpen = expanded === s.id;
-            const myPayments = payments.filter((p) => p.staffId === s.id);
+            const myPayments = payments.filter((p) => p.staffId === s.id)
+              .sort((a, b) => a.paidAt.localeCompare(b.paidAt));
+            // Running balance oldest -> newest based on earned per month cumulative
+            let runningPaid = 0;
+            const paymentsWithBalance = myPayments.map((p) => {
+              runningPaid += p.amount;
+              return { ...p, cumulativePaid: runningPaid };
+            }).reverse();
+            const missingHire = !s.hireDate;
             return (
               <div key={s.id} className="glass-card rounded-2xl overflow-hidden">
                 <div className="p-4 md:p-5 flex items-center gap-4 flex-wrap">
@@ -100,9 +135,16 @@ function PayrollPage() {
                     {s.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-[180px]">
-                    <div className="font-bold">{s.name}</div>
+                    <div className="font-bold flex items-center gap-2">
+                      {s.name}
+                      {missingHire && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/30">
+                          <AlertCircle className="size-3" /> تاريخ التعيين غير محدد
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground mt-0.5">
-                      {s.role} • تعيين: {s.hireDate ? formatDate(s.hireDate) : "غير محدد"}
+                      {s.role} • تعيين: {s.hireDate ? formatDate(s.hireDate) : "—"}
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1">
                       قيمة الساعة: <b className="text-foreground">{formatSAR(rep.rate)}</b>
@@ -113,12 +155,18 @@ function PayrollPage() {
                   <MiniStat label="مستحق" value={formatSAR(rep.totalEarned)} />
                   <MiniStat label="مدفوع" value={formatSAR(rep.totalPaid)} />
                   <MiniStat label="الرصيد" value={formatSAR(rep.balance)} highlight />
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => setPayingId(s.id)}
                       className="h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold inline-flex items-center gap-1.5"
                     >
                       <Plus className="size-3.5" /> صرف
+                    </button>
+                    <button
+                      onClick={() => setPayslipId(s.id)}
+                      className="h-9 px-3 rounded-lg border border-primary/40 text-primary text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-primary/10"
+                    >
+                      <Printer className="size-3.5" /> كشف
                     </button>
                     <button
                       onClick={() => setExpanded(isOpen ? null : s.id)}
@@ -171,31 +219,71 @@ function PayrollPage() {
                             </tr>
                           ))}
                         </tbody>
+                        <tfoot className="bg-muted/20 text-xs">
+                          <tr className="border-t border-border font-bold">
+                            <td className="py-2 px-3">الإجمالي</td>
+                            <td className="py-2 px-3 font-mono">{fmtHours(rep.totalMinutes)}</td>
+                            <td className="py-2 px-3" colSpan={2}></td>
+                            <td className="py-2 px-3">{formatSAR(rep.totalEarned)}</td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
 
                     {/* Payments log */}
-                    {myPayments.length > 0 && (
-                      <div>
-                        <div className="text-xs font-semibold text-muted-foreground mb-2">المدفوعات</div>
-                        <div className="space-y-1.5">
-                          {myPayments.map((p) => (
-                            <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border bg-background/40 px-3 py-2 text-xs">
-                              <CheckCircle2 className="size-4 text-success" />
-                              <b className="font-bold">{formatSAR(p.amount)}</b>
-                              <span className="text-muted-foreground">{formatDate(p.paidAt)}</span>
-                              {p.note && <span className="text-muted-foreground">— {p.note}</span>}
-                              <button
-                                onClick={() => { if (confirm("حذف الدفعة؟")) { payrollActions.removePayment(p.id); toast.success("تم الحذف"); } }}
-                                className="ms-auto size-7 rounded-md hover:bg-destructive/10 hover:text-destructive grid place-items-center"
-                              >
-                                <Trash2 className="size-3.5" />
-                              </button>
-                            </div>
-                          ))}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs font-semibold text-muted-foreground">سجل المدفوعات ({myPayments.length})</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          مستحق: <b className="text-foreground">{formatSAR(rep.totalEarned)}</b> ·
+                          مدفوع: <b className="text-foreground">{formatSAR(rep.totalPaid)}</b> ·
+                          الرصيد: <b className={cn(rep.balance > 0 ? "text-accent" : "text-success")}>{formatSAR(rep.balance)}</b>
                         </div>
                       </div>
-                    )}
+                      {paymentsWithBalance.length === 0 ? (
+                        <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                          لا توجد دفعات مسجلة بعد
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-border overflow-hidden">
+                          <table className="w-full text-xs">
+                            <thead className="bg-muted/40 text-muted-foreground">
+                              <tr>
+                                <th className="text-right py-2 px-3 font-semibold">#</th>
+                                <th className="text-right py-2 px-3 font-semibold">التاريخ</th>
+                                <th className="text-right py-2 px-3 font-semibold">الفترة</th>
+                                <th className="text-right py-2 px-3 font-semibold">المبلغ</th>
+                                <th className="text-right py-2 px-3 font-semibold">تراكمي</th>
+                                <th className="text-right py-2 px-3 font-semibold">ملاحظة</th>
+                                <th></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paymentsWithBalance.map((p, i) => (
+                                <tr key={p.id} className="border-t border-border">
+                                  <td className="py-2 px-3 font-mono text-muted-foreground">{String(paymentsWithBalance.length - i).padStart(3, "0")}</td>
+                                  <td className="py-2 px-3">{formatDate(p.paidAt)}</td>
+                                  <td className="py-2 px-3 text-muted-foreground">
+                                    {p.periodFrom || p.periodTo ? `${p.periodFrom ?? "—"} → ${p.periodTo ?? "—"}` : "—"}
+                                  </td>
+                                  <td className="py-2 px-3 font-bold text-success">{formatSAR(p.amount)}</td>
+                                  <td className="py-2 px-3 font-mono">{formatSAR(p.cumulativePaid)}</td>
+                                  <td className="py-2 px-3 text-muted-foreground max-w-[200px] truncate">{p.note ?? "—"}</td>
+                                  <td className="py-2 px-2 text-left">
+                                    <button
+                                      onClick={() => { if (confirm("حذف الدفعة؟")) { payrollActions.removePayment(p.id); toast.success("تم الحذف"); } }}
+                                      className="size-7 rounded-md hover:bg-destructive/10 hover:text-destructive grid place-items-center inline-flex"
+                                    >
+                                      <Trash2 className="size-3.5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -203,6 +291,8 @@ function PayrollPage() {
           })}
         </div>
       )}
+
+
 
       {payingId && (
         <PaymentDialog
