@@ -272,10 +272,11 @@ function AttendanceSection({
   staffId, openRec, todayRecs, settings,
 }: {
   staffId: string;
-  openRec?: { id: string; checkInAt: string };
-  todayRecs: ReturnType<typeof todayRecordsFor>;
-  settings: ReturnType<typeof useAttendance<any>>;
+  openRec?: AttendanceRecord;
+  todayRecs: AttendanceRecord[];
+  settings: AttendanceSettings;
 }) {
+
   const [busy, setBusy] = useState(false);
   const [lastDist, setLastDist] = useState<number | null>(null);
   const locConfigured = settings.shopLat !== null && settings.shopLng !== null;
