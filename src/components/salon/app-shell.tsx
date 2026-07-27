@@ -12,6 +12,7 @@ import {
   Search,
   Bell,
   Scissors,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ const nav = [
   { to: "/bookings", label: "الحجوزات", icon: CalendarDays },
   { to: "/calendar", label: "التقويم", icon: CalendarDays },
   { to: "/services", label: "الخدمات", icon: Sparkles },
+  { to: "/inventory", label: "المخزون", icon: Package },
   { to: "/staff", label: "الموظفون", icon: Users2 },
   { to: "/customers", label: "العملاء", icon: UserCircle },
   { to: "/invoices", label: "الفواتير", icon: Receipt },
