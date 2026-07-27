@@ -46,7 +46,7 @@ function BookingsPage() {
           c?.name.includes(search) ||
           c?.phone.includes(search);
       })
-      .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }, [bookings, customers, filter, search]);
 
   return (
@@ -95,9 +95,10 @@ function BookingsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/30 text-xs text-muted-foreground">
               <tr>
+                <th className="text-right p-3 font-medium">أولوية</th>
                 <th className="text-right p-3 font-medium">رقم الحجز</th>
                 <th className="text-right p-3 font-medium">العميل</th>
-                <th className="text-right p-3 font-medium">الخدمة</th>
+                <th className="text-right p-3 font-medium">الخدمات (رقم الدور)</th>
                 <th className="text-right p-3 font-medium">الموظف</th>
                 <th className="text-right p-3 font-medium">التاريخ</th>
                 <th className="text-right p-3 font-medium">المبلغ</th>
@@ -108,20 +109,46 @@ function BookingsPage() {
             </thead>
             <tbody>
               {rows.length === 0 && (
-                <tr><td colSpan={9} className="p-12 text-center text-muted-foreground">لا توجد حجوزات مطابقة</td></tr>
+                <tr><td colSpan={10} className="p-12 text-center text-muted-foreground">لا توجد حجوزات مطابقة</td></tr>
               )}
-              {rows.map((b) => {
+              {rows.map((b, idx) => {
                 const c = customers.find((x) => x.id === b.customerId);
                 const st = staff.find((x) => x.id === b.staffId);
-                const svcs = b.serviceIds.map((sid) => services.find((s) => s.id === sid)?.name).filter(Boolean).join("، ");
+                const parts = b.code.split("-");
                 return (
                   <tr key={b.id} className="border-t border-border hover:bg-muted/20">
-                    <td className="p-3 font-mono text-xs text-primary">{b.code}</td>
+                    <td className="p-3">
+                      <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/15 text-primary font-bold text-xs border border-primary/30">
+                        {idx + 1}
+                      </span>
+                    </td>
+                    <td className="p-3 font-mono text-[11px]">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-muted-foreground" title="رقم عام">{parts[0]}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="text-accent" title="رقم الفرع">{parts[1]}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="text-primary font-bold" title="رقم اليوم">{parts[2]}</span>
+                      </div>
+                    </td>
                     <td className="p-3">
                       <div className="font-semibold">{c?.name}</div>
                       <div className="text-xs text-muted-foreground">{c?.phone}</div>
                     </td>
-                    <td className="p-3 max-w-[200px] truncate">{svcs}</td>
+                    <td className="p-3 max-w-[260px]">
+                      <div className="flex flex-wrap gap-1">
+                        {b.serviceIds.map((sid) => {
+                          const svc = services.find((s) => s.id === sid);
+                          const q = b.serviceQueue?.[sid];
+                          return (
+                            <span key={sid} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px]">
+                              <span className="font-bold text-primary">#{String(q ?? 0).padStart(3, "0")}</span>
+                              <span>{svc?.name}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </td>
                     <td className="p-3">{st?.name}</td>
                     <td className="p-3 whitespace-nowrap">
                       <div>{formatDateShort(b.startsAt)}</div>
