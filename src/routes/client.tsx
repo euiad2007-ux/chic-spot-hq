@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { SlotPicker } from "@/components/salon/slot-picker";
 import { useEffect, useMemo, useState } from "react";
 import { useSalon, actions, formatSAR, formatTime, formatDate } from "@/lib/salon-store";
 import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
@@ -254,24 +255,7 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
                 لا توجد أوقات متاحة في هذا اليوم
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1">
-                {slots.map((s) => (
-                  <button
-                    key={s.time}
-                    type="button"
-                    disabled={!s.available}
-                    onClick={() => setTime(s.time)}
-                    className={cn(
-                      "h-9 rounded-lg text-xs font-semibold border transition",
-                      time === s.time && s.available && "bg-primary text-primary-foreground border-primary shadow-[var(--shadow-glow)]",
-                      time !== s.time && s.available && "bg-muted/40 border-border hover:border-primary/50 hover:bg-primary/10",
-                      !s.available && "bg-muted/10 border-border/40 text-muted-foreground/40 line-through cursor-not-allowed",
-                    )}
-                  >
-                    {s.time}
-                  </button>
-                ))}
-              </div>
+              <SlotPicker slots={slots} selectedTime={time} onSelect={setTime} />
             )}
           </Field>
           {svc && (
