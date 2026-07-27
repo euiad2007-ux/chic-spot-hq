@@ -11,6 +11,7 @@ export interface Session {
 const KEY = "lamsa_session_v1";
 let session: Session | null = null;
 let initialized = false;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensure() {
@@ -31,14 +32,18 @@ function emit() {
 }
 
 export function useSession(): Session | null {
-  ensure();
   return useSyncExternalStore(
     (l) => {
+      ensure();
       listeners.add(l);
+      if (!hydrated) {
+        hydrated = true;
+        queueMicrotask(() => listeners.forEach((x) => x()));
+      }
       return () => listeners.delete(l);
     },
-    () => session,
-    () => session,
+    () => (hydrated ? session : null),
+    () => null,
   );
 }
 
