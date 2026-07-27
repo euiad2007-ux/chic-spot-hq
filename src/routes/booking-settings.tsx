@@ -90,6 +90,26 @@ function BookingSettingsPage() {
             onChange={(v) => bookingSettingsActions.setMinLead(v)}
             hint="0 يعني السماح بالحجز الفوري"
           />
+          <Numeric
+            icon={<CalendarClock className="size-3.5" />}
+            label="الحد الأقصى للحجوزات في اليوم"
+            suffix="حجز"
+            value={settings.maxDailyBookings}
+            onChange={(v) => bookingSettingsActions.setMaxDaily(v)}
+            hint="0 يعني بدون حد. يوقف قبول حجوزات جديدة عند الوصول للحد."
+          />
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+              <CalendarClock className="size-3.5" /> تاريخ تأسيس الفرع
+            </label>
+            <input
+              type="date"
+              value={settings.foundingDate}
+              onChange={(e) => bookingSettingsActions.setFoundingDate(e.target.value)}
+              className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-semibold"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1.5">يُستخدم مرجعاً لترقيم الحجوزات التسلسلي.</p>
+          </div>
 
           <button
             onClick={() => { bookingSettingsActions.reset(); toast.success("تمت الاستعادة"); }}
