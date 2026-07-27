@@ -243,9 +243,20 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
             </select>
           </Field>
           <Field label="الأخصائية">
-            <select value={staffId} onChange={(e) => { setStaffId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
-              {staff.filter((s) => s.active).map((s) => <option key={s.id} value={s.id}>{s.name} — {s.role}</option>)}
-            </select>
+            {(() => {
+              const eligible = eligibleStaffFor(serviceId ? [serviceId] : [], staff);
+              return (
+                <select
+                  value={eligible.find((s) => s.id === staffId) ? staffId : ""}
+                  onChange={(e) => { setStaffId(e.target.value); setTime(""); }}
+                  className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                  disabled={eligible.length === 0}
+                >
+                  <option value="">-- اختر الأخصائية --</option>
+                  {eligible.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.role}</option>)}
+                </select>
+              );
+            })()}
           </Field>
           <Field label="التاريخ">
             <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
