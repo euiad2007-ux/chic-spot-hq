@@ -14,6 +14,7 @@ import {
   Scissors,
   Package,
   Fingerprint,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const nav = [
   { to: "/services", label: "الخدمات", icon: Sparkles },
   { to: "/inventory", label: "المخزون", icon: Package },
   { to: "/staff", label: "الموظفون", icon: Users2 },
+  { to: "/payroll", label: "الرواتب", icon: Wallet },
   { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint },
   { to: "/customers", label: "العملاء", icon: UserCircle },
   { to: "/invoices", label: "الفواتير", icon: Receipt },
