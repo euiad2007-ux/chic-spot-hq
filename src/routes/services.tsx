@@ -170,6 +170,34 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
         </div>
       )}
 
+      <div className="mt-3 pt-3 border-t border-border/60">
+        <div className="text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+          <Users className="size-3" /> الموظفون المؤهلون
+        </div>
+        {eligible.length === 0 ? (
+          <div className="text-[11px] text-warning">لا يوجد موظف مربوط — اضبطي التعيين من زر التعديل.</div>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {eligible.map((st) => (
+              <span key={st.id} className="text-[11px] px-2 py-0.5 rounded-full bg-accent/10 border border-accent/30 text-accent">
+                {st.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+        <div className="rounded-lg bg-muted/40 border border-border p-2">
+          <div className="text-muted-foreground">تكلفة المواد</div>
+          <div className="font-bold">{formatSAR(matCost)}</div>
+        </div>
+        <div className="rounded-lg bg-success/10 border border-success/30 p-2">
+          <div className="text-muted-foreground">صافي الربح</div>
+          <div className="font-bold text-success">{formatSAR(Math.max(0, s.price - matCost))}</div>
+        </div>
+      </div>
+
       <div className="mt-4 flex items-end justify-between">
         <div className="text-2xl font-bold gradient-text">{formatSAR(s.price)}</div>
         <button
