@@ -1,9 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
-import { useSiteSettings, settingsToCssVars, waLink } from "@/lib/site-settings";
+import { useSiteSettings, settingsToCssVars, waLink, googleFontsHref } from "@/lib/site-settings";
 import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+
+function useGoogleFonts(href: string) {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const id = "lamsa-google-fonts";
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  }, [href]);
+}
 
 export const Route = createFileRoute("/site")({
   head: () => ({
@@ -38,9 +53,11 @@ function SitePage() {
   const showGlow = layout !== "minimal";
 
   const waHref = waLink(site.waNumber, `مرحبًا، أرغب في الاستفسار عن خدمات ${site.salonName}`, site.waCountryCode);
+  useGoogleFonts(googleFontsHref(site));
 
   return (
-    <div className="min-h-screen text-foreground" dir="rtl" style={settingsToCssVars(site)}>
+    <div className="lamsa-site min-h-screen" dir="rtl" style={settingsToCssVars(site)}>
+      <style>{`.lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:-0.01em;}`}</style>
       {/* Header — Prominent logo & salon name */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
