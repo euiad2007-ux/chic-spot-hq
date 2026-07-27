@@ -278,7 +278,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">الموظف</label>
-              <select value={staffId} onChange={(e) => setStaffId(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
+              <select value={staffId} onChange={(e) => { setStaffId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
                 {staff.filter((s) => s.active).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
@@ -286,15 +286,47 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">الخصم</label>
               <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">التاريخ</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الوقت</label>
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+              <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
             </div>
           </div>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+              الأوقات المتاحة {selectedServices.length > 0 && `(مدة ${totals.durationMin} دقيقة)`}
+            </label>
+            {selectedServices.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                اختر خدمة أولاً لعرض الأوقات المتاحة
+              </div>
+            ) : slots.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                الصالون مغلق في هذا اليوم أو لا تتسع فتحات مناسبة
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-56 overflow-y-auto p-1">
+                {slots.map((s) => (
+                  <button
+                    key={s.time}
+                    type="button"
+                    disabled={!s.available}
+                    onClick={() => setTime(s.time)}
+                    className={cn(
+                      "h-9 rounded-lg text-xs font-semibold border transition",
+                      time === s.time && s.available && "bg-primary text-primary-foreground border-primary shadow-[var(--shadow-glow)]",
+                      time !== s.time && s.available && "bg-muted/40 border-border hover:border-primary/50 hover:bg-primary/10",
+                      !s.available && "bg-muted/10 border-border/40 text-muted-foreground/40 line-through cursor-not-allowed",
+                    )}
+                    title={s.available ? "متاح" : "غير متاح"}
+                  >
+                    {s.time}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
 
           <div>
             <label className="text-xs font-semibold text-muted-foreground mb-2 block">ملاحظات</label>
