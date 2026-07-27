@@ -379,6 +379,17 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
+          <div className={cn(
+            "rounded-xl border p-3 text-xs flex items-center justify-between",
+            dayLimitReached ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-primary/30 bg-primary/5",
+          )}>
+            <span className="font-semibold">
+              حجوزات هذا اليوم: {dayBookingsCount}
+              {settings.maxDailyBookings > 0 && ` / ${settings.maxDailyBookings}`}
+            </span>
+            <span className="text-muted-foreground">الدور التالي: <b className="text-primary">#{String(dayBookingsCount + 1).padStart(4, "0")}</b></span>
+          </div>
+
           {conflict && (
             <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive p-3 flex items-start gap-2 text-sm">
               <AlertTriangle className="size-4 mt-0.5 shrink-0" />
@@ -394,7 +405,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
           <button
             onClick={submit}
-            disabled={!!conflict || selectedServices.length === 0 || !time}
+            disabled={!!conflict || selectedServices.length === 0 || !time || dayLimitReached}
             className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             تأكيد الحجز
