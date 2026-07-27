@@ -133,21 +133,15 @@ function SitePage() {
             </div>
           </div>
 
-          {/* Hero visual collage */}
-          <div className="order-1 md:order-2 relative">
-            <div className="grid grid-cols-6 grid-rows-6 gap-3 aspect-square max-w-md mx-auto">
-              {site.heroImage && (
-                <div className={cn("col-span-6 row-span-4 overflow-hidden ring-4 ring-white/50", cardRadius, showGlow && "shadow-[var(--shadow-glow)]")}>
-                  <img src={site.heroImage} alt="" className="w-full h-full object-cover" />
-                </div>
-              )}
-              {site.showcase.slice(0, 2).map((it, i) => (
-                <div key={i} className={cn("col-span-3 row-span-2 overflow-hidden ring-2 ring-white/50", cardRadius)}>
-                  <img src={it.url} alt={it.label} className="w-full h-full object-cover" loading="lazy" />
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Hero fading slideshow */}
+          <HeroSlideshow
+            images={[site.heroImage, ...site.showcase.map((s) => s.url)].filter(Boolean) as string[]}
+            labels={["", ...site.showcase.map((s) => s.label)]}
+            primary={site.primary}
+            accent={site.accent}
+            radius={cardRadius}
+            showGlow={showGlow}
+          />
         </div>
       </section>
 
