@@ -93,12 +93,17 @@ export interface Customer {
 
 export interface Booking {
   id: string;
-  code: string;
+  code: string;              // "GLOBAL-BRANCH-DAILY" e.g. "000125-000042-0001"
+  globalNo: number;
+  branchNo: number;
+  dailyNo: number;
+  bookingDate: string;       // "YYYY-MM-DD"
+  serviceQueue: Record<string, number>; // per-service daily queue number
   customerId: string;
   staffId: string;
   serviceIds: string[];
   startsAt: string;
-  durationMin: number; // total (prep + service + cleanup) used for scheduling
+  durationMin: number;
   price: number;
   discount: number;
   status: BookingStatus;
@@ -121,6 +126,13 @@ export interface Invoice {
   createdAt: string;
 }
 
+export interface BookingCounters {
+  global: number;
+  branch: number;
+  byDay: Record<string, number>;
+  byServiceDay: Record<string, number>;
+}
+
 export interface SalonState {
   services: Service[];
   staff: Staff[];
@@ -128,6 +140,7 @@ export interface SalonState {
   bookings: Booking[];
   invoices: Invoice[];
   inventory: InventoryItem[];
+  counters: BookingCounters;
 }
 
 const STORAGE_KEY = "lamsa_salon_v2";
