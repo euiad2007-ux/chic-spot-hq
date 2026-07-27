@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, formatSAR, formatTime, STATUS_LABEL, STATUS_TONE, isToday } from "@/lib/salon-store";
-import { CalendarDays, TrendingUp, Users2, Sparkles, ArrowLeft, Clock } from "lucide-react";
+import { CalendarDays, TrendingUp, Users2, Sparkles, ArrowLeft, Clock, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AttendancePanel } from "@/components/salon/attendance-panel";
 
@@ -70,13 +70,22 @@ function Dashboard() {
       title="مساءُ الخير 👋"
       subtitle="نظرة سريعة على أداء المشغل اليوم"
       action={
-        <Link
-          to="/bookings"
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90"
-        >
-          <CalendarDays className="size-4" />
-          حجز جديد
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="#attendance"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/20 transition"
+          >
+            <Fingerprint className="size-4" />
+            الحضور والانصراف
+          </a>
+          <Link
+            to="/bookings"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90"
+          >
+            <CalendarDays className="size-4" />
+            حجز جديد
+          </Link>
+        </div>
       }
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -164,7 +173,9 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <AttendancePanel />
+      <div id="attendance" className="scroll-mt-24">
+        <AttendancePanel />
+      </div>
     </AppShell>
   );
 }
