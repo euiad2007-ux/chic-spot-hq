@@ -211,21 +211,29 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
   );
 }
 
-function ServiceDialog({ form, setForm, onClose, onSubmit, isEdit }: {
+function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
   form: FormState;
   setForm: (f: FormState) => void;
+  staffIds: string[];
+  setStaffIds: (ids: string[] | ((prev: string[]) => string[])) => void;
   onClose: () => void;
   onSubmit: () => void;
   isEdit: boolean;
 }) {
   const inventory = useSalon((s) => s.inventory);
+  const staff = useSalon((s) => s.staff);
   const total = form.prepMin + form.durationMin + form.cleanupMin;
+
+  const matCost = useMemo(() => serviceMaterialsCost(form.materials, inventory), [form.materials, inventory]);
 
   const setMaterial = (itemId: string, qty: number) => {
     const others = form.materials.filter((m) => m.itemId !== itemId);
     setForm({ ...form, materials: qty > 0 ? [...others, { itemId, qty }] : others });
   };
   const currentQty = (id: string) => form.materials.find((m) => m.itemId === id)?.qty ?? 0;
+  const toggleStaff = (id: string) => {
+    setStaffIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
