@@ -106,6 +106,8 @@ function ServicesPage() {
         <ServiceDialog
           form={form}
           setForm={setForm}
+          staffIds={staffIds}
+          setStaffIds={setStaffIds}
           onClose={() => setOpen(false)}
           onSubmit={submit}
           isEdit={!!editing}
