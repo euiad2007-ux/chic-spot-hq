@@ -184,7 +184,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   const [staffId, setStaffId] = useState(staff[0]?.id ?? "");
   const today = new Date();
   const [date, setDate] = useState(today.toISOString().slice(0, 10));
-  const [time, setTime] = useState("10:00");
+  const [time, setTime] = useState<string>("");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
 
@@ -197,9 +197,15 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
   const toggle = (id: string) => setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
 
-  const startsAt = useMemo(() => new Date(`${date}T${time}:00`).toISOString(), [date, time]);
+  const slots = useMemo(() => {
+    if (!staffId || totals.durationMin === 0) return [];
+    return getDaySlots({ date, staffId, durationMin: totals.durationMin });
+  }, [date, staffId, totals.durationMin]);
+
+  const selectedSlot = slots.find((s) => s.time === time);
+  const startsAt = selectedSlot?.startsAt ?? "";
   const conflict = useMemo(() => {
-    if (selectedServices.length === 0 || !staffId) return null;
+    if (selectedServices.length === 0 || !staffId || !startsAt) return null;
     return checkBookingConflict({ staffId, startsAt, durationMin: totals.durationMin });
   }, [staffId, startsAt, totals.durationMin, selectedServices.length]);
 
