@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import { useSiteSettings, settingsToCssVars, waLink } from "@/lib/site-settings";
 import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/site")({
