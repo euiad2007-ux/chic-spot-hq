@@ -153,13 +153,24 @@ function SitePage() {
             <h2 className="text-3xl md:text-4xl font-black">لمسات من إبداعنا</h2>
             <p className="text-muted-foreground mt-2">تصفيفات شعر، مكياج، وعناية شاملة بأيدي محترفات</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {site.showcase.map((it, i) => (
-              <div key={i} className={cn("group relative overflow-hidden border border-border aspect-[3/4]", cardRadius)}>
-                <img src={it.url} alt={it.label} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 right-0 left-0 p-4">
-                  <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-white backdrop-blur-md" style={{ background: `linear-gradient(90deg, ${site.primary}CC, ${site.accent}CC)` }}>
+              <div key={i} className={cn("group relative overflow-hidden border border-white/40 aspect-[4/5] shadow-xl", cardRadius)}>
+                <img src={it.url} alt={it.label} className="w-full h-full object-cover group-hover:scale-110 transition duration-[1200ms] ease-out" loading="lazy" />
+                {/* color-tinted fade */}
+                <div
+                  className="absolute inset-0 mix-blend-soft-light opacity-70"
+                  style={{ background: `linear-gradient(135deg, ${site.primary}55, transparent 45%, ${site.accent}66)` }}
+                />
+                {/* bottom fade */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: `linear-gradient(to top, ${site.primary}E6 0%, ${site.primary}55 25%, transparent 55%)` }}
+                />
+                {/* top vignette */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent" />
+                <div className="absolute bottom-0 right-0 left-0 p-5">
+                  <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/30" style={{ background: `linear-gradient(90deg, ${site.primary}CC, ${site.accent}CC)` }}>
                     <Sparkles className="size-3" /> {it.label}
                   </div>
                 </div>
