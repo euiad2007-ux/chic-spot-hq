@@ -20,12 +20,12 @@ export const Route = createFileRoute("/settings")({
 });
 
 const PALETTES: { name: string; primary: string; accent: string; background: string; surface: string }[] = [
-  { name: "بنفسجي عصري", primary: "#A78BFA", accent: "#F0ABFC", background: "#0F0B1F", surface: "#1E1533" },
-  { name: "ذهبي فاخر", primary: "#D4AF37", accent: "#F5E6A8", background: "#141010", surface: "#25201A" },
-  { name: "وردي ناعم", primary: "#EC4899", accent: "#F9A8D4", background: "#1A0F1A", surface: "#2A1826" },
-  { name: "زمردي راقٍ", primary: "#34D399", accent: "#A7F3D0", background: "#0A1512", surface: "#152820" },
-  { name: "أزرق ملكي", primary: "#60A5FA", accent: "#93C5FD", background: "#0B1220", surface: "#152238" },
-  { name: "نيود دافئ", primary: "#C08457", accent: "#E8C4A0", background: "#1A140F", surface: "#2A2018" },
+  { name: "بنفسجي زاهي", primary: "#A855F7", accent: "#F0ABFC", background: "#FAF5FF", surface: "#FFFFFF" },
+  { name: "ذهبي فاتح", primary: "#D4AF37", accent: "#FDE68A", background: "#FFFBEB", surface: "#FFFFFF" },
+  { name: "وردي ناعم", primary: "#EC4899", accent: "#FBCFE8", background: "#FDF2F8", surface: "#FFFFFF" },
+  { name: "زمردي منعش", primary: "#10B981", accent: "#A7F3D0", background: "#ECFDF5", surface: "#FFFFFF" },
+  { name: "أزرق سماوي", primary: "#3B82F6", accent: "#BAE6FD", background: "#EFF6FF", surface: "#FFFFFF" },
+  { name: "نيود دافئ", primary: "#C08457", accent: "#F5DEB3", background: "#FFF8F0", surface: "#FFFFFF" },
 ];
 
 const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
