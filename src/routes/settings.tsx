@@ -95,6 +95,23 @@ function SettingsPage() {
 
 /* ---------------- Design ---------------- */
 function DesignTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
+  // Load Google Fonts for font preview thumbnails
+  useEffect(() => {
+    const id = "lamsa-settings-fonts";
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    const families = FONT_OPTIONS.map((f) => `family=${f.google}`).join("&");
+    link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+  }, []);
+
+  const headingFamily = fontById(s.headingFont).family;
+  const bodyFamily = fontById(s.bodyFont).family;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
@@ -110,38 +127,87 @@ function DesignTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
           </div>
         </section>
 
+        {/* Theme presets — full look with colors + fonts + layout */}
         <section className="glass-card rounded-2xl p-5">
-          <SectionHeader icon={Palette} title="لوحة الألوان" />
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
-            {PALETTES.map((p) => {
-              const active = s.primary.toLowerCase() === p.primary.toLowerCase();
+          <SectionHeader icon={Sparkles} title="استايلات جاهزة للموقع" />
+          <p className="text-xs text-muted-foreground mb-4">اختاري استايلاً كاملاً (ألوان + خطوط + شكل) بضغطة واحدة، ثم عدّلي أي تفصيل بحرية.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {THEME_PRESETS.map((p) => {
+              const active = s.themePreset === p.id;
               return (
                 <button
-                  key={p.name}
-                  onClick={() => siteActions.update(p)}
+                  key={p.id}
+                  onClick={() => { siteActions.applyPreset(p.id); toast.success(`تم تطبيق استايل: ${p.name}`); }}
                   className={cn(
-                    "text-right rounded-xl p-3 border transition",
-                    active ? "border-primary/50 bg-primary/10" : "border-border hover:border-primary/30",
+                    "relative text-right rounded-xl p-4 border transition overflow-hidden",
+                    active ? "border-primary/70 ring-2 ring-primary/40 shadow-[var(--shadow-glow)]" : "border-border hover:border-primary/30",
                   )}
+                  style={{ background: `linear-gradient(135deg, ${p.background}, ${p.surface})` }}
                 >
-                  <div className="flex gap-1.5 mb-2">
-                    {[p.background, p.surface, p.primary, p.accent].map((c) => (
-                      <span key={c} className="size-6 rounded-md border border-white/10" style={{ background: c }} />
-                    ))}
+                  {active && (
+                    <span className="absolute top-2 left-2 size-6 rounded-full bg-primary text-primary-foreground grid place-items-center shadow-lg">
+                      <Check className="size-3.5" />
+                    </span>
+                  )}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="size-8 rounded-lg" style={{ background: `linear-gradient(135deg, ${p.primary}, ${p.accent})` }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm" style={{ color: p.textColor, fontFamily: fontById(p.headingFont).family }}>{p.name}</div>
+                      <div className="text-[11px] leading-tight" style={{ color: p.mutedTextColor, fontFamily: fontById(p.bodyFont).family }}>{p.desc}</div>
+                    </div>
                   </div>
-                  <div className="text-xs font-semibold">{p.name}</div>
+                  <div className="flex items-center gap-1.5">
+                    {[p.background, p.surface, p.primary, p.accent, p.textColor].map((c, i) => (
+                      <span key={i} className="size-5 rounded-md border border-black/10" style={{ background: c }} />
+                    ))}
+                    <span className="mr-auto text-[10px] font-mono opacity-70" style={{ color: p.mutedTextColor }}>{p.layout}</span>
+                  </div>
                 </button>
               );
             })}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        </section>
+
+        {/* Fonts */}
+        <section className="glass-card rounded-2xl p-5">
+          <SectionHeader icon={Type} title="الخطوط" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FontPicker
+              title="خط العناوين"
+              value={s.headingFont}
+              onChange={(v) => siteActions.update({ headingFont: v })}
+              sample={s.salonName || "جمالك يبدأ من هنا"}
+              big
+            />
+            <FontPicker
+              title="خط النصوص"
+              value={s.bodyFont}
+              onChange={(v) => siteActions.update({ bodyFont: v })}
+              sample="نصوص الموقع والفقرات ستظهر بهذا الخط الأنيق."
+            />
+          </div>
+          <div className="mt-4 rounded-xl border border-border p-4" style={{ background: s.background, color: s.textColor }}>
+            <div className="text-2xl font-black" style={{ fontFamily: headingFamily }}>{s.salonName}</div>
+            <p className="text-sm mt-1 opacity-90" style={{ fontFamily: bodyFamily }}>
+              معاينة سريعة للنص باستخدام الخطوط المختارة — كيف يبدو العنوان والفقرة في موقعك.
+            </p>
+          </div>
+        </section>
+
+        {/* Colors */}
+        <section className="glass-card rounded-2xl p-5">
+          <SectionHeader icon={Palette} title="الألوان" />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <ColorField label="اللون الأساسي" value={s.primary} onChange={(v) => siteActions.update({ primary: v })} />
             <ColorField label="اللون المميّز" value={s.accent} onChange={(v) => siteActions.update({ accent: v })} />
             <ColorField label="الخلفية" value={s.background} onChange={(v) => siteActions.update({ background: v })} />
             <ColorField label="الأسطح" value={s.surface} onChange={(v) => siteActions.update({ surface: v })} />
+            <ColorField label="لون النص" value={s.textColor} onChange={(v) => siteActions.update({ textColor: v })} />
+            <ColorField label="لون النص الثانوي" value={s.mutedTextColor} onChange={(v) => siteActions.update({ mutedTextColor: v })} />
           </div>
         </section>
 
+        {/* Layout */}
         <section className="glass-card rounded-2xl p-5">
           <SectionHeader icon={Layout} title="شكل الموقع" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -169,8 +235,8 @@ function DesignTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
         <div className="glass-card rounded-2xl p-4 sticky top-20">
           <SectionHeader icon={Sparkles} title="معاينة مباشرة" />
           <div
-            className="rounded-xl p-5 border border-white/10 overflow-hidden relative"
-            style={{ background: `linear-gradient(135deg, ${s.background}, ${s.surface})` }}
+            className="rounded-xl p-5 border border-black/5 overflow-hidden relative"
+            style={{ background: `linear-gradient(135deg, ${s.background}, ${s.surface})`, color: s.textColor }}
           >
             <div className="absolute -top-8 -right-8 size-32 rounded-full blur-3xl opacity-40" style={{ background: s.primary }} />
             <div className="absolute -bottom-10 -left-8 size-32 rounded-full blur-3xl opacity-30" style={{ background: s.accent }} />
@@ -178,8 +244,11 @@ function DesignTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
               <div className="size-10 rounded-xl grid place-items-center text-white font-bold mb-3" style={{ background: `linear-gradient(135deg, ${s.primary}, ${s.accent})` }}>
                 ل
               </div>
-              <div className="text-white font-bold text-lg">{s.salonName}</div>
-              <div className="text-white/60 text-xs mt-1">{s.tagline}</div>
+              <div className="font-black text-xl" style={{ fontFamily: headingFamily }}>{s.salonName}</div>
+              <div className="text-xs mt-1" style={{ color: s.mutedTextColor, fontFamily: bodyFamily }}>{s.tagline}</div>
+              <p className="text-xs mt-3 leading-relaxed" style={{ fontFamily: bodyFamily }}>
+                احجزي خدمات الشعر والمكياج والعناية بأيدي خبيرات.
+              </p>
               <div className="mt-4 inline-flex h-9 px-4 rounded-lg items-center text-white text-xs font-semibold" style={{ background: `linear-gradient(90deg, ${s.primary}, ${s.accent})` }}>
                 احجزي الآن
               </div>
@@ -187,6 +256,34 @@ function DesignTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
           </div>
           <div className="mt-3 text-[11px] text-muted-foreground text-center">التغييرات تنطبق فورًا على /site</div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FontPicker({ title, value, onChange, sample, big }: { title: string; value: string; onChange: (v: string) => void; sample: string; big?: boolean }) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-muted-foreground mb-2 block">{title}</label>
+      <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+        {FONT_OPTIONS.map((f) => {
+          const active = value === f.id;
+          return (
+            <button
+              key={f.id}
+              onClick={() => onChange(f.id)}
+              className={cn(
+                "text-right rounded-lg p-3 border transition",
+                active ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40" : "border-border hover:border-primary/30",
+              )}
+            >
+              <div className="text-[10px] text-muted-foreground mb-1">{f.name}</div>
+              <div className={cn("truncate", big ? "text-lg font-bold" : "text-sm")} style={{ fontFamily: f.family }}>
+                {sample}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
