@@ -227,6 +227,18 @@ export interface Slot {
   reason?: ConflictReason["type"];
 }
 
+export function getSlotReasonLabel(reason?: Slot["reason"]) {
+  const labels: Record<ConflictReason["type"], string> = {
+    closed: "اليوم مغلق",
+    past: "وقت مضى",
+    lead: "قبل الحد الأدنى للحجز",
+    outside_hours: "خارج ساعات الدوام",
+    break: "وقت استراحة",
+    overlap: "محجوز مسبقاً",
+  };
+  return reason ? labels[reason] : "غير متاح";
+}
+
 function pad(n: number) { return n.toString().padStart(2, "0"); }
 
 export function getDaySlots(q: SlotQuery): Slot[] {
@@ -241,7 +253,8 @@ export function getDaySlots(q: SlotQuery): Slot[] {
   const openMin = toMin(sched.start);
   const closeMin = toMin(sched.end);
   const slots: Slot[] = [];
-  for (let m = openMin; m + q.durationMin <= closeMin; m += step) {
+  const durationWithBuffer = q.durationMin + settings.bufferMin;
+  for (let m = openMin; m + durationWithBuffer <= closeMin; m += step) {
     const h = Math.floor(m / 60);
     const mn = m % 60;
     const time = `${pad(h)}:${pad(mn)}`;
@@ -256,4 +269,19 @@ export function getDaySlots(q: SlotQuery): Slot[] {
     slots.push({ time, startsAt, available: !c, reason: c?.type });
   }
   return slots;
+}
+
+export function getDayAvailabilitySummary(q: SlotQuery) {
+  const slots = getDaySlots(q);
+  const unavailableByReason = slots.reduce<Record<string, number>>((acc, slot) => {
+    if (!slot.available) acc[slot.reason ?? "unavailable"] = (acc[slot.reason ?? "unavailable"] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return {
+    total: slots.length,
+    available: slots.filter((slot) => slot.available).length,
+    unavailable: slots.filter((slot) => !slot.available).length,
+    unavailableByReason,
+  };
 }
