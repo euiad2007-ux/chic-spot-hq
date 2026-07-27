@@ -226,7 +226,9 @@ function load(): SalonState {
         customers: parsed.customers ?? [],
         bookings: parsed.bookings ?? [],
         invoices: parsed.invoices ?? [],
-        inventory: parsed.inventory ?? [],
+        inventory: (parsed.inventory ?? []).map((i: any) => ({
+          measure: i.measure ?? "count", sizePerUnit: i.sizePerUnit ?? 1, ...i,
+        })),
       };
     }
   } catch {}
