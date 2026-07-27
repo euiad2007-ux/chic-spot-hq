@@ -436,18 +436,38 @@ export const actions = {
   removeCustomer(id: string) { state = { ...state, customers: state.customers.filter((x) => x.id !== id) }; persist(); },
 
   // Bookings
-  addBooking(b: Omit<Booking, "id" | "code" | "createdAt" | "status" | "payStatus">) {
-    const year = new Date().getFullYear();
-    const nextNum = state.bookings.length + 200;
+  addBooking(b: Omit<Booking, "id" | "code" | "createdAt" | "status" | "payStatus" | "globalNo" | "branchNo" | "dailyNo" | "bookingDate" | "serviceQueue">) {
+    const startsAt = b.startsAt ? new Date(b.startsAt) : new Date();
+    const dateKey = `${startsAt.getFullYear()}-${String(startsAt.getMonth() + 1).padStart(2, "0")}-${String(startsAt.getDate()).padStart(2, "0")}`;
+    const c = state.counters ?? { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
+    const nextCounters: BookingCounters = {
+      global: c.global + 1,
+      branch: c.branch + 1,
+      byDay: { ...c.byDay, [dateKey]: (c.byDay[dateKey] ?? 0) + 1 },
+      byServiceDay: { ...c.byServiceDay },
+    };
+    const serviceQueue: Record<string, number> = {};
+    for (const sid of b.serviceIds) {
+      const k = `${dateKey}|${sid}`;
+      nextCounters.byServiceDay[k] = (nextCounters.byServiceDay[k] ?? 0) + 1;
+      serviceQueue[sid] = nextCounters.byServiceDay[k];
+    }
+    const code = `${String(nextCounters.global).padStart(6, "0")}-${String(nextCounters.branch).padStart(6, "0")}-${String(nextCounters.byDay[dateKey]).padStart(4, "0")}`;
     const nb: Booking = {
       ...b,
       id: uid(),
-      code: `BK-${year}-${String(nextNum).padStart(6, "0")}`,
+      code,
+      globalNo: nextCounters.global,
+      branchNo: nextCounters.branch,
+      dailyNo: nextCounters.byDay[dateKey],
+      bookingDate: dateKey,
+      serviceQueue,
       status: "confirmed",
       payStatus: "unpaid",
       createdAt: new Date().toISOString(),
     };
-    state = { ...state, bookings: [...state.bookings, nb] }; persist();
+    state = { ...state, bookings: [...state.bookings, nb], counters: nextCounters };
+    persist();
     return nb;
   },
   updateBooking(id: string, patch: Partial<Booking>) {
