@@ -304,6 +304,23 @@ function PayrollPage() {
           onClose={() => setPayingId(null)}
         />
       )}
+
+      {payslipId && (() => {
+        const s = staff.find((x) => x.id === payslipId);
+        if (!s) return null;
+        const rep = computeStaffPayroll(s, records, payments, settings);
+        const myPayments = payments.filter((p) => p.staffId === s.id)
+          .sort((a, b) => b.paidAt.localeCompare(a.paidAt));
+        return (
+          <PayslipDialog
+            staff={s}
+            rep={rep}
+            payments={myPayments}
+            onClose={() => setPayslipId(null)}
+          />
+        );
+      })()}
+
     </AppShell>
   );
 }
