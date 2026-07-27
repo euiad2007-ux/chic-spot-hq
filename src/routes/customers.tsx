@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, actions, formatSAR, formatDate } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
-import { Plus, Search, Phone, Trash2, X } from "lucide-react";
+import { Plus, Search, Phone, Trash2, X, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/customers")({
   head: () => ({
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/customers")({
 
 function CustomersPage() {
   const customers = useSalon((s) => s.customers);
+  const site = useSiteSettings();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "" });
@@ -62,6 +64,15 @@ function CustomersPage() {
                 <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1"><Phone className="size-3" /> {c.phone}</div>
                 <div className="text-[10px] text-muted-foreground mt-1">مسجل منذ {formatDate(c.createdAt)}</div>
               </div>
+              <a
+                href={waLink(c.phone, fillTemplate(site.waTemplatePromo, { name: c.name, salon: site.salonName }), site.waCountryCode)}
+                target="_blank"
+                rel="noreferrer"
+                title="إرسال واتساب"
+                className="size-8 rounded-lg hover:bg-success/10 text-success grid place-items-center"
+              >
+                <MessageCircle className="size-4" />
+              </a>
               <button onClick={() => { if (confirm("حذف العميل؟")) { actions.removeCustomer(c.id); toast.success("تم الحذف"); } }} className="size-8 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive grid place-items-center">
                 <Trash2 className="size-4" />
               </button>
