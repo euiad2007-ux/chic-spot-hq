@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard,
   CalendarDays,
+  CalendarCog,
   Sparkles,
   Users2,
   UserCircle,
@@ -22,6 +23,7 @@ const nav = [
   { to: "/staff", label: "الموظفون", icon: Users2 },
   { to: "/customers", label: "العملاء", icon: UserCircle },
   { to: "/invoices", label: "الفواتير", icon: Receipt },
+  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog },
 ] as const;
 
 export function AppShell({ children, title, subtitle, action }: {

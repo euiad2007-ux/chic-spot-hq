@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, actions, formatSAR, formatTime, formatDateShort, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
+import { checkBookingConflict } from "@/lib/booking-settings";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Trash2, CheckCircle2, X } from "lucide-react";
+import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/bookings")({
@@ -196,6 +197,12 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
   const toggle = (id: string) => setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
 
+  const startsAt = useMemo(() => new Date(`${date}T${time}:00`).toISOString(), [date, time]);
+  const conflict = useMemo(() => {
+    if (selectedServices.length === 0 || !staffId) return null;
+    return checkBookingConflict({ staffId, startsAt, durationMin: totals.durationMin });
+  }, [staffId, startsAt, totals.durationMin, selectedServices.length]);
+
   const submit = () => {
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     let cid = customerId;
@@ -204,7 +211,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       cid = c.id;
     }
     if (!cid) return toast.error("اختر عميلاً");
-    const startsAt = new Date(`${date}T${time}:00`).toISOString();
+    if (conflict) return toast.error(conflict.message);
     const nb = actions.addBooking({
       customerId: cid,
       staffId,
@@ -297,11 +304,25 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
               <div className="text-2xl font-bold gradient-text">{formatSAR(totals.price - discount)}</div>
             </div>
           </div>
+
+          {conflict && (
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive p-3 flex items-start gap-2 text-sm">
+              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+              <div>
+                <div className="font-semibold">لا يمكن الحجز في هذا الوقت</div>
+                <div className="text-xs mt-0.5 opacity-90">{conflict.message}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
-          <button onClick={submit} className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)]">
+          <button
+            onClick={submit}
+            disabled={!!conflict || selectedServices.length === 0}
+            className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             تأكيد الحجز
           </button>
         </div>
