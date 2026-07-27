@@ -1,8 +1,19 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
-import { useSalon, actions, formatSAR, formatTime, formatDate, STATUS_LABEL, STATUS_TONE, isToday } from "@/lib/salon-store";
+import { useEffect, useMemo, useState } from "react";
+import {
+  useSalon, actions, formatSAR, formatTime, formatDate,
+  STATUS_LABEL, STATUS_TONE, isToday,
+} from "@/lib/salon-store";
 import { useSession, auth } from "@/lib/auth-store";
-import { CalendarDays, LogOut, Scissors, TrendingUp, Users2, CheckCircle2, Phone } from "lucide-react";
+import { useBookingSettings, WEEKDAYS, dayLabel } from "@/lib/booking-settings";
+import {
+  useAttendance, attendanceActions, getCurrentPosition, distanceMeters,
+  openAttendanceRecord, todayRecordsFor, workedMinutes,
+} from "@/lib/attendance-store";
+import {
+  CalendarDays, LogOut, Scissors, TrendingUp, Users2, CheckCircle2, Phone,
+  MapPin, LogIn, LogOut as LogOutIcon, Clock, User2, History, AlertTriangle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { BookingStatus } from "@/lib/salon-store";
@@ -17,10 +28,15 @@ export const Route = createFileRoute("/specialist")({
   component: SpecialistPage,
 });
 
+type Tab = "today" | "profile" | "schedule" | "history" | "attendance";
+
 function SpecialistPage() {
   const session = useSession();
   const navigate = useNavigate();
   const { bookings, services, customers, staff } = useSalon((s) => s);
+  const bookingSettings = useBookingSettings((s) => s);
+  const attendance = useAttendance((s) => s);
+  const [tab, setTab] = useState<Tab>("today");
 
   useEffect(() => {
     if (session === null) navigate({ to: "/login" });
@@ -35,6 +51,7 @@ function SpecialistPage() {
   );
   const today = mine.filter((b) => isToday(b.startsAt) && b.status !== "cancelled");
   const upcoming = mine.filter((b) => !isToday(b.startsAt) && new Date(b.startsAt) > new Date() && b.status !== "cancelled");
+  const past = mine.filter((b) => new Date(b.startsAt) < new Date() && !isToday(b.startsAt)).reverse();
   const completed = mine.filter((b) => b.status === "completed");
   const revenue = completed.reduce((sum, b) => sum + (b.price - b.discount), 0);
   const commission = me ? (revenue * me.commissionPct) / 100 : 0;
@@ -46,6 +63,17 @@ function SpecialistPage() {
     actions.updateBooking(id, { status });
     toast.success("تم التحديث");
   };
+
+  const openRec = openAttendanceRecord(attendance.records, me.id);
+  const myTodayRecs = todayRecordsFor(attendance.records, me.id);
+
+  const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
+    { key: "today", label: "اليوم", icon: <CalendarDays className="size-4" /> },
+    { key: "attendance", label: "الحضور", icon: <MapPin className="size-4" /> },
+    { key: "profile", label: "بياناتي", icon: <User2 className="size-4" /> },
+    { key: "schedule", label: "الدوام", icon: <Clock className="size-4" /> },
+    { key: "history", label: "السجل", icon: <History className="size-4" /> },
+  ];
 
   return (
     <div className="min-h-screen" dir="rtl">
@@ -70,7 +98,7 @@ function SpecialistPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-6">
-        {/* Profile */}
+        {/* Profile hero */}
         <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
           <div className="absolute -top-16 -left-16 size-56 rounded-full bg-accent/20 blur-3xl" />
           <div className="relative flex items-center gap-4 flex-wrap">
@@ -82,6 +110,7 @@ function SpecialistPage() {
               <div className="text-2xl font-bold">{me.name}</div>
               <div className="text-xs text-muted-foreground mt-1">{me.role} • عمولة {me.commissionPct}%</div>
             </div>
+            <AttendanceBadge openRec={openRec} />
           </div>
         </div>
 
@@ -93,85 +122,432 @@ function SpecialistPage() {
           <StatCard icon={<TrendingUp className="size-5" />} label="عمولتك" value={formatSAR(commission)} tone="gradient" />
         </div>
 
-        {/* Today */}
-        <section>
-          <h2 className="text-xl font-bold mb-4">مواعيد اليوم</h2>
-          {today.length === 0 ? (
-            <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground">لا مواعيد اليوم</div>
-          ) : (
-            <div className="space-y-3">
-              {today.map((b) => {
-                const c = customers.find((x) => x.id === b.customerId);
-                const svcs = b.serviceIds.map((id) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
-                return (
-                  <div key={b.id} className="glass-card rounded-2xl p-4 flex items-center gap-4 flex-wrap">
-                    <div className="text-center min-w-[70px]">
-                      <div className="text-lg font-bold gradient-text">{formatTime(b.startsAt)}</div>
-                      <div className="text-[10px] text-muted-foreground">{b.durationMin} د</div>
-                    </div>
-                    <div className="flex-1 min-w-[180px]">
-                      <div className="font-bold">{c?.name}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{svcs}</div>
-                      <a href={`tel:${c?.phone}`} className="text-[11px] text-primary mt-1 inline-flex items-center gap-1"><Phone className="size-3" /> {c?.phone}</a>
-                    </div>
-                    <div className="text-sm font-bold">{formatSAR(b.price - b.discount)}</div>
-                    <span className={cn("text-[10px] px-2 py-1 rounded-md border font-semibold", STATUS_TONE[b.status])}>
-                      {STATUS_LABEL[b.status]}
-                    </span>
-                    <div className="flex gap-2">
-                      {b.status !== "in_progress" && b.status !== "completed" && (
-                        <button onClick={() => setStatus(b.id, "in_progress")} className="text-xs px-3 h-8 rounded-lg bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25">
-                          بدء
-                        </button>
-                      )}
-                      {b.status !== "completed" && (
-                        <button onClick={() => setStatus(b.id, "completed")} className="text-xs px-3 h-8 rounded-lg bg-success/15 text-success border border-success/30 hover:bg-success/25">
-                          إتمام
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        {/* Tabs */}
+        <div className="glass-card rounded-2xl p-1.5 flex gap-1 overflow-x-auto">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={cn(
+                "px-3 h-10 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap transition",
+                tab === t.key
+                  ? "bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-[var(--shadow-glow)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              )}
+            >
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
 
-        {/* Upcoming */}
-        {upcoming.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold mb-4">قادمة</h2>
-            <div className="glass-card rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-xs text-muted-foreground">
-                  <tr>
-                    <th className="text-right py-3 px-4 font-semibold">التاريخ</th>
-                    <th className="text-right py-3 px-4 font-semibold">الوقت</th>
-                    <th className="text-right py-3 px-4 font-semibold">العميلة</th>
-                    <th className="text-right py-3 px-4 font-semibold">الخدمة</th>
-                    <th className="text-right py-3 px-4 font-semibold">المبلغ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcoming.map((b) => {
-                    const c = customers.find((x) => x.id === b.customerId);
-                    const svcs = b.serviceIds.map((id) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
-                    return (
-                      <tr key={b.id} className="border-t border-border">
-                        <td className="py-3 px-4 text-xs">{formatDate(b.startsAt)}</td>
-                        <td className="py-3 px-4 font-mono text-xs">{formatTime(b.startsAt)}</td>
-                        <td className="py-3 px-4 font-semibold">{c?.name}</td>
-                        <td className="py-3 px-4 text-muted-foreground">{svcs}</td>
-                        <td className="py-3 px-4 font-bold">{formatSAR(b.price - b.discount)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
+        {tab === "today" && (
+          <TodaySection today={today} upcoming={upcoming} services={services} customers={customers} setStatus={setStatus} />
         )}
+
+        {tab === "attendance" && (
+          <AttendanceSection
+            staffId={me.id}
+            openRec={openRec}
+            todayRecs={myTodayRecs}
+            settings={attendance.settings}
+          />
+        )}
+
+        {tab === "profile" && <ProfileSection staff={me} />}
+
+        {tab === "schedule" && <ScheduleSection settings={bookingSettings} staffId={me.id} />}
+
+        {tab === "history" && <HistorySection past={past} services={services} customers={customers} />}
       </main>
+    </div>
+  );
+}
+
+function AttendanceBadge({ openRec }: { openRec?: { checkInAt: string } }) {
+  if (!openRec) {
+    return (
+      <div className="rounded-full bg-muted/40 border border-border px-3 py-1 text-xs font-semibold text-muted-foreground inline-flex items-center gap-1.5">
+        <Clock className="size-3.5" /> خارج الدوام
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-full bg-success/15 text-success border border-success/35 px-3 py-1 text-xs font-bold inline-flex items-center gap-1.5">
+      <CheckCircle2 className="size-3.5" /> حاضر منذ {formatTime(openRec.checkInAt)}
+    </div>
+  );
+}
+
+function TodaySection({
+  today, upcoming, services, customers, setStatus,
+}: {
+  today: any[]; upcoming: any[]; services: any[]; customers: any[];
+  setStatus: (id: string, s: BookingStatus) => void;
+}) {
+  return (
+    <>
+      <section>
+        <h2 className="text-xl font-bold mb-4">مواعيد اليوم</h2>
+        {today.length === 0 ? (
+          <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground">لا مواعيد اليوم</div>
+        ) : (
+          <div className="space-y-3">
+            {today.map((b) => {
+              const c = customers.find((x) => x.id === b.customerId);
+              const svcs = b.serviceIds.map((id: string) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
+              return (
+                <div key={b.id} className="glass-card rounded-2xl p-4 flex items-center gap-4 flex-wrap">
+                  <div className="text-center min-w-[70px]">
+                    <div className="text-lg font-bold gradient-text">{formatTime(b.startsAt)}</div>
+                    <div className="text-[10px] text-muted-foreground">{b.durationMin} د</div>
+                  </div>
+                  <div className="flex-1 min-w-[180px]">
+                    <div className="font-bold">{c?.name}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{svcs}</div>
+                    <a href={`tel:${c?.phone}`} className="text-[11px] text-primary mt-1 inline-flex items-center gap-1"><Phone className="size-3" /> {c?.phone}</a>
+                  </div>
+                  <div className="text-sm font-bold">{formatSAR(b.price - b.discount)}</div>
+                  <span className={cn("text-[10px] px-2 py-1 rounded-md border font-semibold", STATUS_TONE[b.status as BookingStatus])}>
+                    {STATUS_LABEL[b.status as BookingStatus]}
+                  </span>
+                  <div className="flex gap-2">
+                    {b.status !== "in_progress" && b.status !== "completed" && (
+                      <button onClick={() => setStatus(b.id, "in_progress")} className="text-xs px-3 h-8 rounded-lg bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25">
+                        بدء
+                      </button>
+                    )}
+                    {b.status !== "completed" && (
+                      <button onClick={() => setStatus(b.id, "completed")} className="text-xs px-3 h-8 rounded-lg bg-success/15 text-success border border-success/30 hover:bg-success/25">
+                        إتمام
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {upcoming.length > 0 && (
+        <section>
+          <h2 className="text-xl font-bold mb-4">قادمة</h2>
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-xs text-muted-foreground">
+                <tr>
+                  <th className="text-right py-3 px-4 font-semibold">التاريخ</th>
+                  <th className="text-right py-3 px-4 font-semibold">الوقت</th>
+                  <th className="text-right py-3 px-4 font-semibold">العميلة</th>
+                  <th className="text-right py-3 px-4 font-semibold">الخدمة</th>
+                  <th className="text-right py-3 px-4 font-semibold">المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {upcoming.map((b) => {
+                  const c = customers.find((x) => x.id === b.customerId);
+                  const svcs = b.serviceIds.map((id: string) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
+                  return (
+                    <tr key={b.id} className="border-t border-border">
+                      <td className="py-3 px-4 text-xs">{formatDate(b.startsAt)}</td>
+                      <td className="py-3 px-4 font-mono text-xs">{formatTime(b.startsAt)}</td>
+                      <td className="py-3 px-4 font-semibold">{c?.name}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{svcs}</td>
+                      <td className="py-3 px-4 font-bold">{formatSAR(b.price - b.discount)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
+function AttendanceSection({
+  staffId, openRec, todayRecs, settings,
+}: {
+  staffId: string;
+  openRec?: { id: string; checkInAt: string };
+  todayRecs: ReturnType<typeof todayRecordsFor>;
+  settings: ReturnType<typeof useAttendance<any>>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [lastDist, setLastDist] = useState<number | null>(null);
+  const locConfigured = settings.shopLat !== null && settings.shopLng !== null;
+  const totalToday = todayRecs.reduce((a, r) => a + workedMinutes(r), 0);
+
+  const doAction = async (mode: "in" | "out") => {
+    setBusy(true);
+    try {
+      const pos = await getCurrentPosition();
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      if (settings.enforceLocation) {
+        if (!locConfigured) {
+          toast.error("لم يحدد المدير موقع الصالون بعد");
+          return;
+        }
+        const d = distanceMeters(lat, lng, settings.shopLat, settings.shopLng);
+        setLastDist(d);
+        if (d > settings.radiusMeters) {
+          toast.error(`أنتِ خارج نطاق الصالون (${Math.round(d)}م / حد ${settings.radiusMeters}م)`);
+          return;
+        }
+      }
+      if (mode === "in") {
+        if (openRec) { toast.info("لديكِ حضور مفتوح مسبقاً"); return; }
+        attendanceActions.checkIn(staffId, lat, lng);
+        toast.success("تم تسجيل الحضور");
+      } else {
+        if (!openRec) { toast.info("لا يوجد حضور مفتوح"); return; }
+        attendanceActions.checkOut(openRec.id, lat, lng);
+        toast.success("تم تسجيل الانصراف");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر تحديد موقعك");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <section className="space-y-4">
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center gap-3 flex-wrap mb-4">
+          <div className="size-11 rounded-xl bg-primary/15 border border-primary/30 text-primary grid place-items-center">
+            <MapPin className="size-5" />
+          </div>
+          <div className="flex-1 min-w-[180px]">
+            <div className="font-bold">تسجيل الحضور والانصراف</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {settings.enforceLocation
+                ? locConfigured
+                  ? `يجب أن تكوني داخل نطاق ${settings.radiusMeters}م من موقع الصالون`
+                  : "التحقق مفعّل لكن المدير لم يحدد موقع الصالون بعد"
+                : "التحقق من الموقع غير مفعّل"}
+            </div>
+          </div>
+        </div>
+
+        {settings.enforceLocation && !locConfigured && (
+          <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 text-warning text-xs p-3 flex items-center gap-2">
+            <AlertTriangle className="size-4" /> يرجى مراجعة المدير لتحديد موقع الصالون.
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => doAction("in")}
+            disabled={busy || !!openRec || (settings.enforceLocation && !locConfigured)}
+            className={cn(
+              "h-14 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2 border transition",
+              openRec
+                ? "bg-muted/40 text-muted-foreground border-border cursor-not-allowed"
+                : "bg-gradient-to-l from-success to-emerald-500 text-white border-success shadow-[var(--shadow-glow)] hover:opacity-95",
+              "disabled:opacity-60",
+            )}
+          >
+            <LogIn className="size-5" /> {busy ? "..." : "حضور"}
+          </button>
+          <button
+            onClick={() => doAction("out")}
+            disabled={busy || !openRec}
+            className={cn(
+              "h-14 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2 border transition",
+              !openRec
+                ? "bg-muted/40 text-muted-foreground border-border cursor-not-allowed"
+                : "bg-gradient-to-l from-destructive to-rose-500 text-white border-destructive hover:opacity-95",
+              "disabled:opacity-60",
+            )}
+          >
+            <LogOutIcon className="size-5" /> {busy ? "..." : "انصراف"}
+          </button>
+        </div>
+
+        {lastDist !== null && (
+          <div className="mt-3 text-[11px] text-muted-foreground">
+            آخر مسافة تم قياسها من الصالون: <b>{Math.round(lastDist)}م</b>
+          </div>
+        )}
+      </div>
+
+      <div className="glass-card rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-sm">سجل حضور اليوم</h3>
+          <span className="text-xs text-muted-foreground">
+            إجمالي: <b>{Math.floor(totalToday / 60)}س {totalToday % 60}د</b>
+          </span>
+        </div>
+        {todayRecs.length === 0 ? (
+          <div className="text-sm text-muted-foreground text-center py-6">لم يتم تسجيل حضور اليوم</div>
+        ) : (
+          <div className="space-y-2">
+            {todayRecs.map((r) => (
+              <div key={r.id} className="rounded-xl border border-border bg-muted/20 p-3 flex items-center gap-3 flex-wrap text-xs">
+                <span className="rounded-md bg-success/15 text-success border border-success/30 px-2 py-1 font-bold">
+                  حضور {formatTime(r.checkInAt)}
+                </span>
+                {r.checkOutAt ? (
+                  <span className="rounded-md bg-destructive/15 text-destructive border border-destructive/30 px-2 py-1 font-bold">
+                    انصراف {formatTime(r.checkOutAt)}
+                  </span>
+                ) : (
+                  <span className="rounded-md bg-warning/15 text-warning border border-warning/30 px-2 py-1 font-bold">
+                    مفتوح
+                  </span>
+                )}
+                <span className="text-muted-foreground">
+                  {Math.floor(workedMinutes(r) / 60)}س {workedMinutes(r) % 60}د
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ProfileSection({ staff }: { staff: any }) {
+  const totalAllowances = (staff.allowances ?? []).reduce((a: number, x: any) => a + x.amount, 0);
+  return (
+    <section className="grid gap-4 md:grid-cols-2">
+      <div className="glass-card rounded-2xl p-5 space-y-3">
+        <h3 className="font-bold text-sm mb-1">البيانات الشخصية</h3>
+        <Field label="الاسم" value={staff.name} />
+        <Field label="الدور" value={staff.role} />
+        <Field label="الجوال" value={staff.phone} />
+        {staff.email && <Field label="البريد" value={staff.email} />}
+        {staff.hireDate && <Field label="تاريخ التعيين" value={formatDate(staff.hireDate)} />}
+      </div>
+      <div className="glass-card rounded-2xl p-5 space-y-3">
+        <h3 className="font-bold text-sm mb-1">الراتب والحوافز</h3>
+        <Field label="الراتب الأساسي" value={formatSAR(staff.salary ?? 0)} />
+        <Field label="نسبة العمولة" value={`${staff.commissionPct}%`} />
+        <Field label="إجمالي البدلات" value={formatSAR(totalAllowances)} />
+        <Field label="النقاط" value={String(staff.points ?? 0)} />
+        {staff.allowances && staff.allowances.length > 0 && (
+          <div className="mt-2 space-y-1">
+            <div className="text-[11px] font-semibold text-muted-foreground">تفاصيل البدلات</div>
+            {staff.allowances.map((a: any) => (
+              <div key={a.id} className="flex items-center justify-between text-xs rounded-md bg-muted/30 px-2 py-1.5">
+                <span>{a.label}</span>
+                <b>{formatSAR(a.amount)}</b>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {staff.notes && staff.notes.length > 0 && (
+        <div className="glass-card rounded-2xl p-5 md:col-span-2">
+          <h3 className="font-bold text-sm mb-3">ملاحظات الإدارة</h3>
+          <div className="space-y-2">
+            {staff.notes.map((n: any) => (
+              <div key={n.id} className="text-xs rounded-lg bg-muted/30 border border-border p-3">
+                <div>{n.text}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">{formatDate(n.at)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm border-b border-border/50 pb-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <b className="font-semibold">{value}</b>
+    </div>
+  );
+}
+
+function ScheduleSection({ settings, staffId }: { settings: any; staffId: string }) {
+  const staffBreaks = settings.breaks.filter((b: any) => !b.staffId || b.staffId === staffId);
+  return (
+    <section className="space-y-4">
+      <div className="glass-card rounded-2xl p-5">
+        <h3 className="font-bold text-sm mb-3">ساعات الدوام الأسبوعية</h3>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {WEEKDAYS.map((d) => {
+            const s = settings.workDays[d];
+            return (
+              <div key={d} className={cn(
+                "rounded-xl border p-3 flex items-center justify-between text-sm",
+                s.open ? "border-success/35 bg-success/5" : "border-border bg-muted/20 opacity-70",
+              )}>
+                <span className="font-bold">{dayLabel(d)}</span>
+                {s.open ? (
+                  <span className="font-mono text-xs">{s.start} — {s.end}</span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">مغلق</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {staffBreaks.length > 0 && (
+        <div className="glass-card rounded-2xl p-5">
+          <h3 className="font-bold text-sm mb-3">الاستراحات</h3>
+          <div className="space-y-2">
+            {staffBreaks.map((b: any) => (
+              <div key={b.id} className="rounded-xl border border-border bg-muted/20 p-3 flex items-center justify-between text-xs flex-wrap gap-2">
+                <span className="font-bold">{b.label}</span>
+                <span className="font-mono">{b.start} — {b.end}</span>
+                <span className="text-muted-foreground">{b.days.map((x: any) => dayLabel(x)).join("، ")}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function HistorySection({ past, services, customers }: { past: any[]; services: any[]; customers: any[] }) {
+  if (past.length === 0) {
+    return (
+      <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground">لا توجد حجوزات سابقة</div>
+    );
+  }
+  return (
+    <div className="glass-card rounded-2xl overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 text-xs text-muted-foreground">
+          <tr>
+            <th className="text-right py-3 px-4 font-semibold">التاريخ</th>
+            <th className="text-right py-3 px-4 font-semibold">الوقت</th>
+            <th className="text-right py-3 px-4 font-semibold">العميلة</th>
+            <th className="text-right py-3 px-4 font-semibold">الخدمة</th>
+            <th className="text-right py-3 px-4 font-semibold">الحالة</th>
+            <th className="text-right py-3 px-4 font-semibold">المبلغ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {past.map((b) => {
+            const c = customers.find((x) => x.id === b.customerId);
+            const svcs = b.serviceIds.map((id: string) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
+            return (
+              <tr key={b.id} className="border-t border-border">
+                <td className="py-3 px-4 text-xs">{formatDate(b.startsAt)}</td>
+                <td className="py-3 px-4 font-mono text-xs">{formatTime(b.startsAt)}</td>
+                <td className="py-3 px-4 font-semibold">{c?.name}</td>
+                <td className="py-3 px-4 text-muted-foreground">{svcs}</td>
+                <td className="py-3 px-4">
+                  <span className={cn("text-[10px] px-2 py-1 rounded-md border font-semibold", STATUS_TONE[b.status as BookingStatus])}>
+                    {STATUS_LABEL[b.status as BookingStatus]}
+                  </span>
+                </td>
+                <td className="py-3 px-4 font-bold">{formatSAR(b.price - b.discount)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
