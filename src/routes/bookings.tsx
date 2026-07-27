@@ -280,9 +280,25 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">الموظف</label>
-              <select value={staffId} onChange={(e) => { setStaffId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
-                {staff.filter((s) => s.active).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              {(() => {
+                const eligible = eligibleStaffFor(selectedServices, staff);
+                return (
+                  <>
+                    <select
+                      value={eligible.find((s) => s.id === staffId) ? staffId : ""}
+                      onChange={(e) => { setStaffId(e.target.value); setTime(""); }}
+                      className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                      disabled={eligible.length === 0}
+                    >
+                      <option value="">-- اختر الموظف --</option>
+                      {eligible.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.role}</option>)}
+                    </select>
+                    {selectedServices.length > 0 && eligible.length === 0 && (
+                      <p className="text-[11px] text-warning mt-1">لا يوجد موظف مؤهل لجميع الخدمات المختارة.</p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">الخصم</label>
