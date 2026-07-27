@@ -284,6 +284,42 @@ function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit
 
           <div>
             <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+              <Users className="size-3" /> الموظفون المؤهلون لتقديم الخدمة
+            </div>
+            {staff.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                لا يوجد موظفون. أضيفي موظفين من صفحة الموظفين.
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {staff.map((st) => {
+                  const on = staffIds.includes(st.id);
+                  return (
+                    <button
+                      type="button"
+                      key={st.id}
+                      onClick={() => toggleStaff(st.id)}
+                      className={cn(
+                        "text-xs px-3 py-1.5 rounded-full border transition",
+                        on
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:border-primary/50 hover:text-primary",
+                      )}
+                    >
+                      {st.name}
+                      <span className="opacity-70 mr-1">· {st.role}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-2">
+              في الحجز يظهر فقط الموظفون المؤهلون لهذه الخدمة.
+            </p>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
               <Package className="size-3" /> المواد المستهلكة لكل جلسة
             </div>
             {inventory.length === 0 ? (
@@ -291,14 +327,19 @@ function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit
                 لا توجد مواد في المخزون بعد. أضيفي عناصر من صفحة المخزون أولاً.
               </div>
             ) : (
-              <div className="rounded-xl border border-border divide-y divide-border max-h-56 overflow-y-auto">
+              <div className="rounded-xl border border-border divide-y divide-border max-h-64 overflow-y-auto">
                 {inventory.map((it) => {
                   const qty = currentQty(it.id);
+                  const perBase = costPerBase(it);
+                  const mLabel = measureLabel(it.measure ?? "count");
+                  const lineCost = qty * perBase;
                   return (
                     <div key={it.id} className="flex items-center gap-3 p-2.5 text-sm">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{it.name}</div>
-                        <div className="text-[11px] text-muted-foreground">المتوفر: {it.stock} {it.unit}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {perBase.toFixed(3)} ر.س / {mLabel} · متوفر {it.stock} {it.unit}
+                        </div>
                       </div>
                       <input
                         type="number"
@@ -309,13 +350,32 @@ function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit
                         className="h-8 w-20 rounded-md bg-muted/40 border border-border px-2 text-xs text-center"
                         placeholder="0"
                       />
-                      <span className="text-[11px] text-muted-foreground w-12">{it.unit}</span>
+                      <span className="text-[11px] text-muted-foreground w-10">{mLabel}</span>
+                      <span className="text-[11px] w-16 text-left font-semibold text-primary">
+                        {lineCost > 0 ? formatSAR(lineCost) : "—"}
+                      </span>
                     </div>
                   );
                 })}
               </div>
             )}
+            <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+              <div className="rounded-lg bg-muted/40 border border-border p-2 flex items-center gap-1">
+                <Coins className="size-3 text-muted-foreground" />
+                <span className="text-muted-foreground">تكلفة المواد:</span>
+                <span className="font-bold mr-auto">{formatSAR(matCost)}</span>
+              </div>
+              <div className="rounded-lg bg-muted/40 border border-border p-2">
+                <span className="text-muted-foreground">السعر:</span>
+                <span className="font-bold mr-1">{formatSAR(form.price)}</span>
+              </div>
+              <div className="rounded-lg bg-success/10 border border-success/30 p-2">
+                <span className="text-muted-foreground">الربح:</span>
+                <span className="font-bold text-success mr-1">{formatSAR(Math.max(0, form.price - matCost))}</span>
+              </div>
+            </div>
           </div>
+
         </div>
 
         <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
