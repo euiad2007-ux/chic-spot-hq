@@ -119,7 +119,10 @@ function ServicesPage() {
 
 function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
   const inventory = useSalon((st) => st.inventory);
+  const staff = useSalon((st) => st.staff);
   const total = serviceTotalMin(s);
+  const matCost = serviceMaterialsCost(s.materials, inventory);
+  const eligible = staff.filter((st) => st.services.includes(s.id));
   return (
     <div className="glass-card rounded-2xl p-4 group relative">
       <div className="flex items-start justify-between gap-3">
