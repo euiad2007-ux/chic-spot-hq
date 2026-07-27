@@ -70,12 +70,35 @@ export function measureLabel(code: string) {
 }
 
 
+export interface StaffAllowance {
+  id: string;
+  label: string;
+  amount: number;
+}
+export interface StaffNote {
+  id: string;
+  text: string;
+  at: string;
+}
+export interface StaffPointLog {
+  id: string;
+  delta: number;
+  reason: string;
+  at: string;
+}
 export interface Staff {
   id: string;
   name: string;
   role: string;
   phone: string;
+  email?: string;
+  hireDate?: string;
   commissionPct: number;
+  salary?: number;
+  allowances?: StaffAllowance[];
+  notes?: StaffNote[];
+  points?: number;
+  pointsLog?: StaffPointLog[];
   services: string[];
   active: boolean;
 }
