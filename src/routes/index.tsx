@@ -164,6 +164,7 @@ function Dashboard() {
           </div>
         </div>
       </div>
+      <AttendancePanel />
     </AppShell>
   );
 }
