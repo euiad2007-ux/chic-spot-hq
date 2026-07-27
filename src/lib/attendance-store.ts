@@ -9,6 +9,8 @@ export interface AttendanceRecord {
   checkOutAt?: string;
   checkOutLat?: number;
   checkOutLng?: number;
+  via?: "geo" | "manual";
+  note?: string;
 }
 
 export interface AttendanceSettings {
