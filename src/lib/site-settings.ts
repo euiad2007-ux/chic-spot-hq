@@ -213,6 +213,7 @@ const defaults: SiteSettings = {
 
 let state: SiteSettings = defaults;
 let initialized = false;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensure() {
@@ -230,13 +231,21 @@ function persist() {
 }
 
 export function useSiteSettings(): SiteSettings {
-  ensure();
   return useSyncExternalStore(
-    (l) => { listeners.add(l); return () => listeners.delete(l); },
-    () => state,
-    () => state,
+    (l) => {
+      ensure();
+      listeners.add(l);
+      if (!hydrated) {
+        hydrated = true;
+        queueMicrotask(() => listeners.forEach((x) => x()));
+      }
+      return () => listeners.delete(l);
+    },
+    () => (hydrated ? state : defaults),
+    () => defaults,
   );
 }
+
 
 export const siteActions = {
   update(patch: Partial<SiteSettings>) { state = { ...state, ...patch, themePreset: patch.themePreset ?? "custom" }; persist(); },
