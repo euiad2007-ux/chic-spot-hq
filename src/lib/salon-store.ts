@@ -297,6 +297,19 @@ export function materialsForBooking(serviceIds: string[], services: Service[]): 
   return Array.from(map.entries()).map(([itemId, qty]) => ({ itemId, qty }));
 }
 
+export function costPerBase(item: Pick<InventoryItem, "costPerUnit" | "sizePerUnit">): number {
+  const size = item.sizePerUnit || 1;
+  return item.costPerUnit / size;
+}
+
+export function serviceMaterialsCost(materials: ServiceMaterial[] | undefined, inventory: InventoryItem[]): number {
+  if (!materials) return 0;
+  return materials.reduce((a, m) => {
+    const it = inventory.find((x) => x.id === m.itemId);
+    return it ? a + costPerBase(it) * m.qty : a;
+  }, 0);
+}
+
 // Mutations
 export const actions = {
   reset() { state = seed(); persist(); },
