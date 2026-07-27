@@ -198,20 +198,45 @@ function seed(): SalonState {
 
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const at = (h: number, m: number = 0) => new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m).toISOString();
-  let counter = 125;
-  const mkCode = () => `BK-${now.getFullYear()}-${String(counter++).padStart(6, "0")}`;
+  const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const total = (ids: string[]) => ids.reduce((a, id) => {
     const s = services.find((x) => x.id === id)!;
     return a + s.prepMin + s.durationMin + s.cleanupMin;
   }, 0);
 
-  const bookings: Booking[] = [
-    { id: uid(), code: mkCode(), customerId: customers[0].id, staffId: staff[0].id, serviceIds: [services[1].id, services[2].id], startsAt: at(11), durationMin: total([services[1].id, services[2].id]), price: 550, discount: 50, status: "confirmed", payStatus: "partial", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[1].id, staffId: staff[1].id, serviceIds: [services[3].id], startsAt: at(13, 30), durationMin: total([services[3].id]), price: 400, discount: 0, status: "checked_in", payStatus: "unpaid", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[2].id, staffId: staff[2].id, serviceIds: [services[4].id], startsAt: at(16), durationMin: total([services[4].id]), price: 250, discount: 0, status: "new", payStatus: "unpaid", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[3].id, staffId: staff[3].id, serviceIds: [services[5].id, services[6].id], startsAt: at(18, 30), durationMin: total([services[5].id, services[6].id]), price: 200, discount: 0, status: "new", payStatus: "unpaid", createdAt: iso(now) },
-    { id: uid(), code: mkCode(), customerId: customers[0].id, staffId: staff[0].id, serviceIds: [services[0].id], startsAt: at(9), durationMin: total([services[0].id]), price: 80, discount: 0, status: "completed", payStatus: "paid", createdAt: iso(now) },
-  ];
+  const counters: BookingCounters = { global: 120, branch: 40, byDay: {}, byServiceDay: {} };
+  const bookings: Booking[] = [];
+  const mkBooking = (
+    customerId: string, staffId: string, serviceIds: string[],
+    startsAt: string, price: number, discount: number,
+    status: BookingStatus, payStatus: PayStatus,
+  ): Booking => {
+    counters.global += 1;
+    counters.branch += 1;
+    counters.byDay[dateKey] = (counters.byDay[dateKey] ?? 0) + 1;
+    const serviceQueue: Record<string, number> = {};
+    for (const sid of serviceIds) {
+      const k = `${dateKey}|${sid}`;
+      counters.byServiceDay[k] = (counters.byServiceDay[k] ?? 0) + 1;
+      serviceQueue[sid] = counters.byServiceDay[k];
+    }
+    const code = `${String(counters.global).padStart(6, "0")}-${String(counters.branch).padStart(6, "0")}-${String(counters.byDay[dateKey]).padStart(4, "0")}`;
+    return {
+      id: uid(), code,
+      globalNo: counters.global, branchNo: counters.branch, dailyNo: counters.byDay[dateKey],
+      bookingDate: dateKey, serviceQueue,
+      customerId, staffId, serviceIds, startsAt,
+      durationMin: total(serviceIds), price, discount,
+      status, payStatus, createdAt: iso(now),
+    };
+  };
+  bookings.push(
+    mkBooking(customers[0].id, staff[0].id, [services[1].id, services[2].id], at(11), 550, 50, "confirmed", "partial"),
+    mkBooking(customers[1].id, staff[1].id, [services[3].id], at(13, 30), 400, 0, "checked_in", "unpaid"),
+    mkBooking(customers[2].id, staff[2].id, [services[4].id], at(16), 250, 0, "new", "unpaid"),
+    mkBooking(customers[3].id, staff[3].id, [services[5].id, services[6].id], at(18, 30), 200, 0, "new", "unpaid"),
+    mkBooking(customers[0].id, staff[0].id, [services[0].id], at(9), 80, 0, "completed", "paid"),
+  );
 
   const invoices: Invoice[] = [
     {
@@ -220,10 +245,11 @@ function seed(): SalonState {
     },
   ];
 
-  return { services, staff, customers, bookings, invoices, inventory };
+  return { services, staff, customers, bookings, invoices, inventory, counters };
 }
 
-const empty: SalonState = { services: [], staff: [], customers: [], bookings: [], invoices: [], inventory: [] };
+const emptyCounters: BookingCounters = { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
+const empty: SalonState = { services: [], staff: [], customers: [], bookings: [], invoices: [], inventory: [], counters: emptyCounters };
 
 function load(): SalonState {
   if (typeof window === "undefined") return empty;
