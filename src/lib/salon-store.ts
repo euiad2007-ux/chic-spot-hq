@@ -292,6 +292,7 @@ function load(): SalonState {
 
 let state: SalonState = empty;
 let initialized = false;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensureInit() {
@@ -309,14 +310,19 @@ function persist() {
 }
 
 export function useSalon<T>(selector: (s: SalonState) => T): T {
-  ensureInit();
   return useSyncExternalStore(
     (l) => {
+      ensureInit();
       listeners.add(l);
+      if (!hydrated) {
+        hydrated = true;
+        // notify all subscribers after mount so first paint matches SSR (empty)
+        queueMicrotask(() => listeners.forEach((x) => x()));
+      }
       return () => listeners.delete(l);
     },
-    () => selector(state),
-    () => selector(state),
+    () => selector(hydrated ? state : empty),
+    () => selector(empty),
   );
 }
 
