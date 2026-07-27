@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSalon, actions, formatSAR, serviceTotalMin, type Service, type ServiceMaterial } from "@/lib/salon-store";
-import { useState } from "react";
-import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer } from "lucide-react";
+import {
+  useSalon, actions, formatSAR, serviceTotalMin,
+  costPerBase, measureLabel, serviceMaterialsCost,
+  type Service, type ServiceMaterial,
+} from "@/lib/salon-store";
+import { useState, useMemo } from "react";
+import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
