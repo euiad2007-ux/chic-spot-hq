@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import {
   Settings2, Wallet, Plus, Trash2, Clock, TrendingUp,
   Calendar, DollarSign, CheckCircle2, AlertCircle, X, Timer, ChevronDown, ChevronUp,
+  Printer, FileDown, Search,
 } from "lucide-react";
 
 export const Route = createFileRoute("/payroll")({
