@@ -1,6 +1,18 @@
 import { useSyncExternalStore } from "react";
+import heroImg from "@/assets/showcase/hero.jpg";
+import hair1 from "@/assets/showcase/hair-1.jpg";
+import hair2 from "@/assets/showcase/hair-2.jpg";
+import makeup1 from "@/assets/showcase/makeup-1.jpg";
+import makeup2 from "@/assets/showcase/makeup-2.jpg";
+import nails1 from "@/assets/showcase/nails-1.jpg";
+import spa1 from "@/assets/showcase/spa-1.jpg";
 
 export type LayoutStyle = "elegant" | "minimal" | "bold";
+
+export interface ShowcaseItem {
+  label: string;
+  url: string;
+}
 
 export interface SiteSettings {
   // Branding
@@ -17,19 +29,21 @@ export interface SiteSettings {
   layout: LayoutStyle;
   heroImage: string;
   gallery: string[];
+  // Showcase (beauty categories with images)
+  showcase: ShowcaseItem[];
   // Contact
   phone: string;
   address: string;
   hours: string;
   // WhatsApp
-  waCountryCode: string; // e.g. "966"
-  waNumber: string; // owner/broadcaster number without country code
+  waCountryCode: string;
+  waNumber: string;
   waTemplateBooking: string;
   waTemplateReminder: string;
   waTemplatePromo: string;
 }
 
-const KEY = "lamsa_site_settings_v2";
+const KEY = "lamsa_site_settings_v3";
 
 const defaults: SiteSettings = {
   salonName: "صالون لمسة",
@@ -41,8 +55,16 @@ const defaults: SiteSettings = {
   background: "#FAF5FF",
   surface: "#FFFFFF",
   layout: "elegant",
-  heroImage: "",
+  heroImage: heroImg,
   gallery: [],
+  showcase: [
+    { label: "تصفيف الشعر", url: hair1 },
+    { label: "تسريحات العرائس", url: hair2 },
+    { label: "المكياج", url: makeup1 },
+    { label: "مكياج عرائس", url: makeup2 },
+    { label: "العناية بالأظافر", url: nails1 },
+    { label: "العناية بالبشرة", url: spa1 },
+  ],
   phone: "0501234567",
   address: "حي الروضة، شارع الأمير سلطان، الرياض",
   hours: "السبت - الخميس: 9ص - 11م",
@@ -84,6 +106,12 @@ export const siteActions = {
   update(patch: Partial<SiteSettings>) { state = { ...state, ...patch }; persist(); },
   addGalleryImage(url: string) { state = { ...state, gallery: [...state.gallery, url] }; persist(); },
   removeGalleryImage(idx: number) { state = { ...state, gallery: state.gallery.filter((_, i) => i !== idx) }; persist(); },
+  updateShowcase(idx: number, patch: Partial<ShowcaseItem>) {
+    state = { ...state, showcase: state.showcase.map((it, i) => i === idx ? { ...it, ...patch } : it) };
+    persist();
+  },
+  addShowcase(item: ShowcaseItem) { state = { ...state, showcase: [...state.showcase, item] }; persist(); },
+  removeShowcase(idx: number) { state = { ...state, showcase: state.showcase.filter((_, i) => i !== idx) }; persist(); },
   reset() { state = defaults; persist(); },
 };
 
