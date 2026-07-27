@@ -57,6 +57,8 @@ function defaults(): BookingSettings {
     bufferMin: 10,
     slotStepMin: 15,
     minLeadMin: 0,
+    maxDailyBookings: 0,
+    foundingDate: new Date().toISOString().slice(0, 10),
   };
 }
 
@@ -109,6 +111,8 @@ export const bookingSettingsActions = {
   setBuffer(min: number) { state = { ...state, bufferMin: Math.max(0, min) }; persist(); },
   setSlotStep(min: number) { state = { ...state, slotStepMin: Math.max(5, min) }; persist(); },
   setMinLead(min: number) { state = { ...state, minLeadMin: Math.max(0, min) }; persist(); },
+  setMaxDaily(n: number) { state = { ...state, maxDailyBookings: Math.max(0, Math.floor(n)) }; persist(); },
+  setFoundingDate(d: string) { state = { ...state, foundingDate: d }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
     const id = "brk-" + Math.random().toString(36).slice(2, 8);
     state = { ...state, breaks: [...state.breaks, { ...b, id }] };
