@@ -257,17 +257,31 @@ function load(): SalonState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<SalonState>;
+      const bookings = (parsed.bookings ?? []).map((b: any) => ({
+        globalNo: 0, branchNo: 0, dailyNo: 0, bookingDate: (b.startsAt ?? "").slice(0, 10), serviceQueue: {},
+        ...b,
+      })) as Booking[];
+      let counters = parsed.counters as BookingCounters | undefined;
+      if (!counters) {
+        counters = { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
+        for (const b of bookings) {
+          counters.global = Math.max(counters.global, b.globalNo || 0);
+          counters.branch = Math.max(counters.branch, b.branchNo || 0);
+          if (b.bookingDate) counters.byDay[b.bookingDate] = Math.max(counters.byDay[b.bookingDate] ?? 0, b.dailyNo || 0);
+        }
+      }
       return {
         services: (parsed.services ?? []).map((s: any) => ({
           prepMin: 0, cleanupMin: 0, materials: [], ...s,
         })),
         staff: parsed.staff ?? [],
         customers: parsed.customers ?? [],
-        bookings: parsed.bookings ?? [],
+        bookings,
         invoices: parsed.invoices ?? [],
         inventory: (parsed.inventory ?? []).map((i: any) => ({
           measure: i.measure ?? "count", sizePerUnit: i.sizePerUnit ?? 1, ...i,
         })),
+        counters,
       };
     }
   } catch {}
