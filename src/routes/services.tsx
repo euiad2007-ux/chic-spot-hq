@@ -319,46 +319,109 @@ function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit
           </div>
 
           <div>
-            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-              <Package className="size-3" /> المواد المستهلكة لكل جلسة
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center justify-between gap-1">
+              <span className="flex items-center gap-1"><Package className="size-3" /> المواد المستهلكة لكل جلسة</span>
+              <span className="text-[11px] font-normal">{form.materials.length} مادة</span>
             </div>
+
             {inventory.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
                 لا توجد مواد في المخزون بعد. أضيفي عناصر من صفحة المخزون أولاً.
               </div>
             ) : (
-              <div className="rounded-xl border border-border divide-y divide-border max-h-64 overflow-y-auto">
-                {inventory.map((it) => {
-                  const qty = currentQty(it.id);
-                  const perBase = costPerBase(it);
-                  const mLabel = measureLabel(it.measure ?? "count");
-                  const lineCost = qty * perBase;
+              <>
+                {/* Add from inventory */}
+                {(() => {
+                  const available = inventory.filter((it) => !form.materials.some((m) => m.itemId === it.id));
                   return (
-                    <div key={it.id} className="flex items-center gap-3 p-2.5 text-sm">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{it.name}</div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {perBase.toFixed(3)} ر.س / {mLabel} · متوفر {it.stock} {it.unit}
-                        </div>
-                      </div>
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={qty}
-                        onChange={(e) => setMaterial(it.id, Number(e.target.value))}
-                        className="h-8 w-20 rounded-md bg-muted/40 border border-border px-2 text-xs text-center"
-                        placeholder="0"
-                      />
-                      <span className="text-[11px] text-muted-foreground w-10">{mLabel}</span>
-                      <span className="text-[11px] w-16 text-left font-semibold text-primary">
-                        {lineCost > 0 ? formatSAR(lineCost) : "—"}
-                      </span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          if (!id) return;
+                          const it = inventory.find((x) => x.id === id);
+                          if (!it) return;
+                          setForm({ ...form, materials: [...form.materials, { itemId: id, qty: 1 }] });
+                        }}
+                        disabled={available.length === 0}
+                        className="input flex-1"
+                      >
+                        <option value="">
+                          {available.length === 0 ? "أضفتِ جميع المواد المتوفرة" : "اختاري مادة من المخزون…"}
+                        </option>
+                        {available.map((it) => (
+                          <option key={it.id} value={it.id}>
+                            {it.name} — متوفر {it.stock} {it.unit}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   );
-                })}
-              </div>
+                })()}
+
+                {/* Added list */}
+                {form.materials.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                    لا توجد مواد مضافة. اختاري مادة من القائمة أعلاه لإضافتها.
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border divide-y divide-border">
+                    {form.materials.map((m) => {
+                      const it = inventory.find((x) => x.id === m.itemId);
+                      if (!it) {
+                        return (
+                          <div key={m.itemId} className="flex items-center gap-2 p-2.5 text-xs text-destructive">
+                            <span className="flex-1">مادة محذوفة من المخزون</span>
+                            <button
+                              type="button"
+                              onClick={() => setForm({ ...form, materials: form.materials.filter((x) => x.itemId !== m.itemId) })}
+                              className="size-7 rounded-md hover:bg-destructive/10 grid place-items-center"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        );
+                      }
+                      const perBase = costPerBase(it);
+                      const mLabel = measureLabel(it.measure ?? "count");
+                      const lineCost = m.qty * perBase;
+                      return (
+                        <div key={m.itemId} className="flex items-center gap-2 p-2.5 text-sm">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{it.name}</div>
+                            <div className="text-[11px] text-muted-foreground">
+                              {perBase.toFixed(3)} ر.س / {mLabel} · متوفر {it.stock} {it.unit}
+                            </div>
+                          </div>
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={m.qty}
+                            onChange={(e) => setMaterial(it.id, Number(e.target.value))}
+                            className="h-8 w-20 rounded-md bg-muted/40 border border-border px-2 text-xs text-center"
+                          />
+                          <span className="text-[11px] text-muted-foreground w-8">{mLabel}</span>
+                          <span className="text-[11px] w-16 text-left font-semibold text-primary">
+                            {lineCost > 0 ? formatSAR(lineCost) : "—"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setForm({ ...form, materials: form.materials.filter((x) => x.itemId !== m.itemId) })}
+                            className="size-7 rounded-md hover:bg-destructive/10 hover:text-destructive grid place-items-center"
+                            title="حذف"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
+
             <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
               <div className="rounded-lg bg-muted/40 border border-border p-2 flex items-center gap-1">
                 <Coins className="size-3 text-muted-foreground" />
