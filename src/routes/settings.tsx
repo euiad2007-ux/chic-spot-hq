@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById, googleFontsHref } from "@/lib/site-settings";
+import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
 import { useEffect, useRef, useState } from "react";
 import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check } from "lucide-react";
