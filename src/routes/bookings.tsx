@@ -239,6 +239,12 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     return checkBookingConflict({ staffId, startsAt, durationMin: totals.durationMin });
   }, [staffId, startsAt, totals.durationMin, selectedServices.length]);
 
+  const dayBookingsCount = useMemo(
+    () => bookings.filter((b) => b.bookingDate === date && b.status !== "cancelled").length,
+    [bookings, date],
+  );
+  const dayLimitReached = settings.maxDailyBookings > 0 && dayBookingsCount >= settings.maxDailyBookings;
+
   const submit = () => {
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     let cid = customerId;
@@ -249,6 +255,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     if (!cid) return toast.error("اختر عميلاً");
     if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
     if (conflict) return toast.error(conflict.message);
+    if (dayLimitReached) return toast.error(`تم بلوغ الحد الأقصى للحجوزات اليومية (${settings.maxDailyBookings})`);
     const nb = actions.addBooking({
       customerId: cid,
       staffId,
