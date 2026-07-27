@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { SlotPicker } from "@/components/salon/slot-picker";
 import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, eligibleStaffFor, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
-import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
+import { checkBookingConflict, getDaySlots, useBookingSettings } from "@/lib/booking-settings";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle } from "lucide-react";
@@ -205,7 +205,7 @@ function BookingsPage() {
 
 function NewBookingDialog({ onClose }: { onClose: () => void }) {
   const { customers, staff, services, bookings } = useSalon((s) => s);
-  const settings = require("@/lib/booking-settings").getBookingSettings() as import("@/lib/booking-settings").BookingSettings;
+  const settings = useBookingSettings((s) => s);
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [newCustName, setNewCustName] = useState("");
   const [newCustPhone, setNewCustPhone] = useState("");
