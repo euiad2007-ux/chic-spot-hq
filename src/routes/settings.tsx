@@ -275,6 +275,70 @@ function ImagesTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
           </div>
         )}
       </section>
+
+      {/* Showcase editor — beauty categories */}
+      <section className="glass-card rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <SectionHeader icon={Sparkles} title={`لمسات من إبداعنا (${s.showcase.length})`} />
+          <button
+            onClick={() => siteActions.addShowcase({ label: "خدمة جديدة", url: "" })}
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-semibold"
+          >
+            <Upload className="size-4" /> إضافة عنصر
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">صور تظهر في واجهة الموقع لعرض تصفيفات الشعر، المكياج، والعناية. اضغطي الصورة لتغييرها.</p>
+        {s.showcase.length === 0 ? (
+          <div className="text-center py-10 text-muted-foreground text-sm">لا توجد عناصر — أضيفي أول عنصر</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {s.showcase.map((item, i) => (
+              <ShowcaseRow key={i} item={item} idx={i} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ShowcaseRow({ item, idx }: { item: { label: string; url: string }; idx: number }) {
+  const inp = useRef<HTMLInputElement>(null);
+  const onFile = (files: FileList | null) => {
+    if (!files || !files[0]) return;
+    const r = new FileReader();
+    r.onload = () => siteActions.updateShowcase(idx, { url: String(r.result) });
+    r.readAsDataURL(files[0]);
+  };
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/20">
+      <button
+        onClick={() => inp.current?.click()}
+        className="size-20 rounded-lg overflow-hidden border border-border bg-muted grid place-items-center shrink-0 relative group"
+      >
+        {item.url
+          ? <img src={item.url} alt={item.label} className="w-full h-full object-cover" />
+          : <ImageIcon className="size-6 text-muted-foreground" />}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition grid place-items-center">
+          <Upload className="size-5 text-white" />
+        </div>
+      </button>
+      <input ref={inp} type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files)} />
+      <div className="flex-1 min-w-0">
+        <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">اسم القسم</label>
+        <input
+          value={item.label}
+          onChange={(e) => siteActions.updateShowcase(idx, { label: e.target.value })}
+          className="w-full h-9 rounded-lg bg-background border border-border px-3 text-sm outline-none focus:border-primary/50"
+        />
+      </div>
+      <button
+        onClick={() => siteActions.removeShowcase(idx)}
+        className="size-9 rounded-lg text-destructive hover:bg-destructive/10 grid place-items-center shrink-0"
+        title="حذف"
+      >
+        <Trash2 className="size-4" />
+      </button>
     </div>
   );
 }
