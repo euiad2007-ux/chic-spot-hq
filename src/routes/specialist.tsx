@@ -287,29 +287,36 @@ function AttendanceSection({
     try {
       const pos = await getCurrentPosition();
       const lat = pos.coords.latitude, lng = pos.coords.longitude;
-      if (settings.enforceLocation) {
-        if (!locConfigured) {
-          toast.error("لم يحدد المدير موقع الصالون بعد");
-          return;
-        }
+
+      // Verify range whenever the shop location is configured
+      if (locConfigured) {
         const d = distanceMeters(lat, lng, settings.shopLat!, settings.shopLng!);
         setLastDist(d);
         if (d > settings.radiusMeters) {
-          toast.error(`أنتِ خارج نطاق الصالون (${Math.round(d)}م / حد ${settings.radiusMeters}م)`);
+          toast.error(
+            mode === "in"
+              ? `❌ أنت خارج نطاق الصالون — لا يمكن تسجيل الحضور (تبعد ${Math.round(d)}م / الحد المسموح ${settings.radiusMeters}م)`
+              : `❌ أنت خارج نطاق الصالون — لا يمكن تسجيل الانصراف (تبعد ${Math.round(d)}م / الحد المسموح ${settings.radiusMeters}م)`,
+            { duration: 5000 }
+          );
           return;
         }
+      } else if (settings.enforceLocation) {
+        toast.error("لم يحدد المدير موقع الصالون بعد");
+        return;
       }
+
       if (mode === "in") {
-        if (openRec) { toast.info("لديكِ حضور مفتوح مسبقاً"); return; }
+        if (openRec) { toast.info("لديك حضور مفتوح مسبقاً"); return; }
         attendanceActions.checkIn(staffId, lat, lng);
-        toast.success("تم تسجيل الحضور");
+        toast.success("✅ تم تسجيل الحضور بنجاح — أنت داخل نطاق الصالون", { duration: 4000 });
       } else {
         if (!openRec) { toast.info("لا يوجد حضور مفتوح"); return; }
         attendanceActions.checkOut(openRec.id, lat, lng);
-        toast.success("تم تسجيل الانصراف");
+        toast.success("✅ تم تسجيل الانصراف بنجاح", { duration: 4000 });
       }
     } catch (e: any) {
-      toast.error(e?.message || "تعذّر تحديد موقعك");
+      toast.error(e?.message || "تعذّر تحديد موقعك — فعّل خدمة الموقع GPS");
     } finally { setBusy(false); }
   };
 
