@@ -173,7 +173,9 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <AttendancePanel />
+      <div id="attendance" className="scroll-mt-24">
+        <AttendancePanel />
+      </div>
     </AppShell>
   );
 }
