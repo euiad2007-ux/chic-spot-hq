@@ -575,7 +575,7 @@ function PayslipDialog({
   onClose: () => void;
 }) {
   const { settings } = usePayroll((s) => s);
-  const site = useSiteSettings((s) => s);
+  const site = useSiteSettings();
   const doPrint = () => {
     document.body.classList.add("printing-payslip");
     window.print();
