@@ -8,11 +8,13 @@ import {
   type Weekday,
   type BreakWindow,
 } from "@/lib/booking-settings";
+import { useAttendance, attendanceActions, getCurrentPosition } from "@/lib/attendance-store";
 import { useSalon } from "@/lib/salon-store";
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Plus, Trash2, Clock, Coffee, Timer, CalendarClock, RotateCcw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Plus, Trash2, Clock, Coffee, Timer, CalendarClock, RotateCcw, MapPin, Crosshair } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/booking-settings")({
   head: () => ({
@@ -228,10 +230,107 @@ function BookingSettingsPage() {
             </div>
           )}
         </section>
+
+        <AttendanceLocationSection />
       </div>
     </AppShell>
   );
 }
+
+function AttendanceLocationSection() {
+  const { settings } = useAttendance((s) => s);
+  const [busy, setBusy] = useState(false);
+
+  const captureHere = async () => {
+    setBusy(true);
+    try {
+      const pos = await getCurrentPosition();
+      attendanceActions.setSettings({
+        shopLat: pos.coords.latitude,
+        shopLng: pos.coords.longitude,
+      });
+      toast.success("تم حفظ موقع الصالون");
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر تحديد الموقع");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <section className="glass-card rounded-2xl p-5 lg:col-span-3 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <div className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center border border-primary/30">
+            <MapPin className="size-4" />
+          </div>
+          <div>
+            <h2 className="font-bold">موقع الحضور والانصراف</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">حدّد إحداثيات الصالون والنطاق المسموح به لتسجيل الموظفين حضورهم</p>
+          </div>
+        </div>
+        <label className="inline-flex items-center gap-2 text-xs font-semibold cursor-pointer">
+          <input
+            type="checkbox"
+            checked={settings.enforceLocation}
+            onChange={(e) => attendanceActions.setSettings({ enforceLocation: e.target.checked })}
+            className="size-4 accent-primary"
+          />
+          تفعيل التحقق من الموقع
+        </label>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-4">
+        <label className="space-y-1.5 md:col-span-1">
+          <span className="text-[11px] font-semibold text-muted-foreground">خط العرض (Lat)</span>
+          <input
+            type="number" step="any"
+            value={settings.shopLat ?? ""}
+            onChange={(e) => attendanceActions.setSettings({ shopLat: e.target.value === "" ? null : Number(e.target.value) })}
+            placeholder="24.7136"
+            className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-semibold"
+          />
+        </label>
+        <label className="space-y-1.5 md:col-span-1">
+          <span className="text-[11px] font-semibold text-muted-foreground">خط الطول (Lng)</span>
+          <input
+            type="number" step="any"
+            value={settings.shopLng ?? ""}
+            onChange={(e) => attendanceActions.setSettings({ shopLng: e.target.value === "" ? null : Number(e.target.value) })}
+            placeholder="46.6753"
+            className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-semibold"
+          />
+        </label>
+        <label className="space-y-1.5 md:col-span-1">
+          <span className="text-[11px] font-semibold text-muted-foreground">النطاق المسموح (متر)</span>
+          <input
+            type="number" min={10}
+            value={settings.radiusMeters}
+            onChange={(e) => attendanceActions.setSettings({ radiusMeters: Math.max(10, Number(e.target.value) || 0) })}
+            className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-semibold"
+          />
+        </label>
+        <button
+          onClick={captureHere}
+          disabled={busy}
+          className="h-10 mt-6 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold inline-flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          <Crosshair className="size-4" />
+          {busy ? "جارٍ التحديد..." : "استخدام موقعي الحالي"}
+        </button>
+      </div>
+      {settings.shopLat !== null && settings.shopLng !== null && (
+        <div className="text-[11px] text-muted-foreground">
+          الموقع المحفوظ: {settings.shopLat.toFixed(5)}, {settings.shopLng.toFixed(5)} — نطاق {settings.radiusMeters}م
+        </div>
+      )}
+      {settings.enforceLocation && (settings.shopLat === null || settings.shopLng === null) && (
+        <div className="rounded-lg border border-warning/40 bg-warning/10 text-warning text-xs p-3 flex items-center gap-2">
+          <AlertTriangle className="size-4" /> فعّلتَ التحقق من الموقع لكن لم يتم حفظ إحداثيات الصالون بعد.
+        </div>
+      )}
+    </section>
+  );
+}
+
 
 function SummaryStat({ label, value, icon, tone }: { label: string; value: string; icon: React.ReactNode; tone: "primary" | "success" | "warning" }) {
   const tones = {
