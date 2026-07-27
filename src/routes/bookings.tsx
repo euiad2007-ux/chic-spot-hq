@@ -359,7 +359,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
           <button
             onClick={submit}
-            disabled={!!conflict || selectedServices.length === 0}
+            disabled={!!conflict || selectedServices.length === 0 || !time}
             className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             تأكيد الحجز
