@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import { useSiteSettings, settingsToCssVars, waLink } from "@/lib/site-settings";
 import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/site")({
@@ -82,7 +82,7 @@ function SitePage() {
             <div className="absolute -bottom-32 -left-20 size-96 rounded-full blur-3xl opacity-30" style={{ background: site.accent }} />
           </>
         )}
-        <div className={cn("relative max-w-6xl mx-auto px-4 md:px-8 grid md:grid-cols-2 gap-10 items-center", heroPad)}>
+        <div className={cn("relative max-w-7xl mx-auto px-4 md:px-8 grid md:grid-cols-[1fr_1.15fr] gap-10 items-center", heroPad)}>
           <div className="text-center md:text-right order-2 md:order-1">
             {/* Prominent brand block */}
             <div className="inline-flex items-center gap-3 mb-5">
@@ -133,21 +133,15 @@ function SitePage() {
             </div>
           </div>
 
-          {/* Hero visual collage */}
-          <div className="order-1 md:order-2 relative">
-            <div className="grid grid-cols-6 grid-rows-6 gap-3 aspect-square max-w-md mx-auto">
-              {site.heroImage && (
-                <div className={cn("col-span-6 row-span-4 overflow-hidden ring-4 ring-white/50", cardRadius, showGlow && "shadow-[var(--shadow-glow)]")}>
-                  <img src={site.heroImage} alt="" className="w-full h-full object-cover" />
-                </div>
-              )}
-              {site.showcase.slice(0, 2).map((it, i) => (
-                <div key={i} className={cn("col-span-3 row-span-2 overflow-hidden ring-2 ring-white/50", cardRadius)}>
-                  <img src={it.url} alt={it.label} className="w-full h-full object-cover" loading="lazy" />
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Hero fading slideshow */}
+          <HeroSlideshow
+            images={[site.heroImage, ...site.showcase.map((s) => s.url)].filter(Boolean) as string[]}
+            labels={["", ...site.showcase.map((s) => s.label)]}
+            primary={site.primary}
+            accent={site.accent}
+            radius={cardRadius}
+            showGlow={showGlow}
+          />
         </div>
       </section>
 
@@ -159,13 +153,24 @@ function SitePage() {
             <h2 className="text-3xl md:text-4xl font-black">لمسات من إبداعنا</h2>
             <p className="text-muted-foreground mt-2">تصفيفات شعر، مكياج، وعناية شاملة بأيدي محترفات</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {site.showcase.map((it, i) => (
-              <div key={i} className={cn("group relative overflow-hidden border border-border aspect-[3/4]", cardRadius)}>
-                <img src={it.url} alt={it.label} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 right-0 left-0 p-4">
-                  <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-white backdrop-blur-md" style={{ background: `linear-gradient(90deg, ${site.primary}CC, ${site.accent}CC)` }}>
+              <div key={i} className={cn("group relative overflow-hidden border border-white/40 aspect-[4/5] shadow-xl", cardRadius)}>
+                <img src={it.url} alt={it.label} className="w-full h-full object-cover group-hover:scale-110 transition duration-[1200ms] ease-out" loading="lazy" />
+                {/* color-tinted fade */}
+                <div
+                  className="absolute inset-0 mix-blend-soft-light opacity-70"
+                  style={{ background: `linear-gradient(135deg, ${site.primary}55, transparent 45%, ${site.accent}66)` }}
+                />
+                {/* bottom fade */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: `linear-gradient(to top, ${site.primary}E6 0%, ${site.primary}55 25%, transparent 55%)` }}
+                />
+                {/* top vignette */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent" />
+                <div className="absolute bottom-0 right-0 left-0 p-5">
+                  <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/30" style={{ background: `linear-gradient(90deg, ${site.primary}CC, ${site.accent}CC)` }}>
                     <Sparkles className="size-3" /> {it.label}
                   </div>
                 </div>
@@ -284,6 +289,116 @@ function SitePage() {
           © 2026 {site.salonName} — جميع الحقوق محفوظة
         </div>
       </footer>
+    </div>
+  );
+}
+
+function HeroSlideshow({
+  images,
+  labels,
+  primary,
+  accent,
+  radius,
+  showGlow,
+}: {
+  images: string[];
+  labels: string[];
+  primary: string;
+  accent: string;
+  radius: string;
+  showGlow: boolean;
+}) {
+  const slides = images.length > 0 ? images : [];
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % slides.length), 4200);
+    return () => clearInterval(t);
+  }, [slides.length]);
+
+  if (slides.length === 0) {
+    return (
+      <div className="order-1 md:order-2 relative">
+        <div
+          className={cn("aspect-[4/5] w-full max-w-xl mx-auto overflow-hidden ring-4 ring-white/50", radius)}
+          style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="order-1 md:order-2 relative">
+      <div
+        className={cn(
+          "relative aspect-[4/5] w-full max-w-xl mx-auto overflow-hidden ring-4 ring-white/60",
+          radius,
+          showGlow && "shadow-[var(--shadow-glow)]"
+        )}
+      >
+        {slides.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt={labels[i] ?? ""}
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-[1600ms] ease-in-out",
+              i === idx ? "opacity-100 scale-100" : "opacity-0"
+            )}
+            style={{
+              transform: i === idx ? "scale(1.04)" : "scale(1)",
+              transitionProperty: "opacity, transform",
+              transitionDuration: "1600ms, 6000ms",
+            }}
+            loading={i === 0 ? "eager" : "lazy"}
+          />
+        ))}
+        {/* color gradient tint */}
+        <div
+          className="absolute inset-0 pointer-events-none mix-blend-soft-light"
+          style={{ background: `linear-gradient(135deg, ${primary}66, transparent 40%, ${accent}88)` }}
+        />
+        {/* edge fade */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(to top, ${primary}CC 0%, ${primary}33 22%, transparent 50%, ${accent}22 100%)`,
+          }}
+        />
+        {/* soft white vignette */}
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(255,255,255,0.35)_100%)]" />
+
+        {/* label chip */}
+        {labels[idx] && (
+          <div className="absolute bottom-5 right-5 left-5 flex items-center justify-between gap-2">
+            <div
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/30"
+              style={{ background: `linear-gradient(90deg, ${primary}CC, ${accent}CC)` }}
+            >
+              <Sparkles className="size-3" /> {labels[idx]}
+            </div>
+            <div className="flex items-center gap-1.5">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIdx(i)}
+                  aria-label={`slide ${i + 1}`}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all duration-500",
+                    i === idx ? "w-8 bg-white" : "w-3 bg-white/50 hover:bg-white/80"
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* colored glow behind image */}
+      <div
+        className="absolute -inset-6 -z-10 blur-3xl opacity-50 pointer-events-none"
+        style={{ background: `radial-gradient(60% 60% at 30% 30%, ${primary}55, transparent 70%), radial-gradient(50% 50% at 80% 80%, ${accent}66, transparent 70%)` }}
+      />
     </div>
   );
 }
