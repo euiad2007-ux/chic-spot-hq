@@ -892,3 +892,114 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
     </Modal>
   );
 }
+
+/* ============= Units management dialog ============= */
+function UnitsDialog({ onClose }: { onClose: () => void }) {
+  const { settings } = useInventory();
+  const [newLarge, setNewLarge] = useState("");
+  const [newSmall, setNewSmall] = useState("");
+
+  return (
+    <Modal title="إدارة الوحدات" onClose={onClose} wide>
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Large units */}
+        <div className="rounded-xl border border-border p-3">
+          <div className="text-sm font-bold mb-2">الوحدات الكبيرة</div>
+          <div className="flex gap-2 mb-3">
+            <input
+              className={inputCls}
+              value={newLarge}
+              onChange={(e) => setNewLarge(e.target.value)}
+              placeholder="مثال: علبة"
+            />
+            <button
+              onClick={() => {
+                if (!newLarge.trim()) return;
+                inventoryActions.addLargeUnit(newLarge);
+                setNewLarge("");
+                toast.success("تم الإضافة");
+              }}
+              className="h-10 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm inline-flex items-center gap-1"
+            >
+              <Plus className="size-4" /> إضافة
+            </button>
+          </div>
+          <div className="space-y-2 max-h-72 overflow-y-auto">
+            {settings.largeUnits.map((u) => (
+              <div key={u} className="flex items-center gap-2 rounded-lg border border-border p-2">
+                <input
+                  className={cn(inputCls, "h-9")}
+                  defaultValue={u}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v && v !== u) inventoryActions.updateLargeUnit(u, v);
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (confirm(`حذف ${u}؟`)) inventoryActions.removeLargeUnit(u);
+                  }}
+                  className="size-9 rounded-lg border border-border hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/40 inline-flex items-center justify-center"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+            {settings.largeUnits.length === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-3">لا توجد وحدات.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Small units */}
+        <div className="rounded-xl border border-border p-3">
+          <div className="text-sm font-bold mb-2">الوحدات الصغيرة</div>
+          <div className="flex gap-2 mb-3">
+            <input
+              className={inputCls}
+              value={newSmall}
+              onChange={(e) => setNewSmall(e.target.value)}
+              placeholder="مثال: مل"
+            />
+            <button
+              onClick={() => {
+                if (!newSmall.trim()) return;
+                inventoryActions.addSmallUnit(newSmall);
+                setNewSmall("");
+                toast.success("تم الإضافة");
+              }}
+              className="h-10 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm inline-flex items-center gap-1"
+            >
+              <Plus className="size-4" /> إضافة
+            </button>
+          </div>
+          <div className="space-y-2 max-h-72 overflow-y-auto">
+            {settings.smallUnits.map((u) => (
+              <div key={u} className="flex items-center gap-2 rounded-lg border border-border p-2">
+                <input
+                  className={cn(inputCls, "h-9")}
+                  defaultValue={u}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v && v !== u) inventoryActions.updateSmallUnit(u, v);
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (confirm(`حذف ${u}؟`)) inventoryActions.removeSmallUnit(u);
+                  }}
+                  className="size-9 rounded-lg border border-border hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/40 inline-flex items-center justify-center"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+            {settings.smallUnits.length === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-3">لا توجد وحدات.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
