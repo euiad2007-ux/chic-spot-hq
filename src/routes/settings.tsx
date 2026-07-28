@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSiteSettings, siteActions, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
+import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
+import { useSalon } from "@/lib/salon-store";
 import { useEffect, useRef, useState } from "react";
-import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Sparkles, Layout, Store, Type, Check } from "lucide-react";
+import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
 
 function SettingsPage() {
   const s = useSiteSettings();
+  const customers = useSalon((x) => x.customers);
   const [tab, setTab] = useState<"design" | "images" | "wa">("design");
 
   return (
@@ -34,22 +36,21 @@ function SettingsPage() {
       title="إعدادات الموقع"
       subtitle="خصّص الألوان، الشكل، الصور، ورسائل واتساب"
       action={
-        <button
-          onClick={() => {
-            if (confirm("استعادة الإعدادات الافتراضية؟")) {
-              try {
-                siteActions.reset();
-                toast.success("تمت الاستعادة");
-              } catch (err) {
-                console.error(err);
-                toast.error("تعذّرت الاستعادة");
-              }
-            }
-          }}
-          className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted"
-        >
-          <RotateCcw className="size-4" /> استعادة
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { if (confirm("استعادة الإعدادات الافتراضية؟")) { siteActions.reset(); toast.success("تمت الاستعادة"); } }}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted"
+          >
+            <RotateCcw className="size-4" /> استعادة
+          </button>
+          <a
+            href="/site"
+            target="_blank"
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)]"
+          >
+            <ExternalLink className="size-4" /> معاينة الموقع
+          </a>
+        </div>
       }
     >
       {/* Tabs */}
@@ -79,7 +80,7 @@ function SettingsPage() {
 
       {tab === "design" && <DesignTab s={s} />}
       {tab === "images" && <ImagesTab s={s} />}
-      {tab === "wa" && <WhatsAppTab s={s} />}
+      {tab === "wa" && <WhatsAppTab s={s} customers={customers} />}
     </AppShell>
   );
 }
@@ -432,36 +433,77 @@ function ShowcaseRow({ item, idx }: { item: { label: string; url: string }; idx:
 }
 
 /* ---------------- WhatsApp ---------------- */
-function WhatsAppTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
+function WhatsAppTab({ s, customers }: { s: ReturnType<typeof useSiteSettings>; customers: ReturnType<typeof useSalon<any>> }) {
+  const [broadcast, setBroadcast] = useState(s.waTemplatePromo);
+  const list = customers as Array<{ id: string; name: string; phone: string }>;
+
+  const send = (phone: string, name: string) => {
+    const msg = fillTemplate(broadcast, { name, salon: s.salonName, date: "", time: "" });
+    window.open(waLink(phone, msg, s.waCountryCode), "_blank");
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <section className="glass-card rounded-2xl p-5">
-        <SectionHeader icon={MessageCircle} title="إعدادات واتساب" />
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="مفتاح الدولة" value={s.waCountryCode} onChange={(v) => siteActions.update({ waCountryCode: v })} />
-          <Field label="رقم المرسل" value={s.waNumber} onChange={(v) => siteActions.update({ waNumber: v })} />
-        </div>
-        <p className="text-[11px] text-muted-foreground mt-3">
-          متغيرات متاحة: <code className="text-primary">{"{name}"}</code>، <code className="text-primary">{"{salon}"}</code>، <code className="text-primary">{"{date}"}</code>، <code className="text-primary">{"{time}"}</code>
-        </p>
-      </section>
+      <div className="space-y-4">
+        <section className="glass-card rounded-2xl p-5">
+          <SectionHeader icon={MessageCircle} title="إعدادات واتساب" />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="مفتاح الدولة" value={s.waCountryCode} onChange={(v) => siteActions.update({ waCountryCode: v })} />
+            <Field label="رقم المرسل" value={s.waNumber} onChange={(v) => siteActions.update({ waNumber: v })} />
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-3">
+            متغيرات متاحة: <code className="text-primary">{"{name}"}</code>، <code className="text-primary">{"{salon}"}</code>، <code className="text-primary">{"{date}"}</code>، <code className="text-primary">{"{time}"}</code>
+          </p>
+        </section>
+
+        <section className="glass-card rounded-2xl p-5">
+          <SectionHeader icon={MessageCircle} title="قوالب الرسائل" />
+          <div className="space-y-3">
+            <Textarea label="تأكيد الحجز" value={s.waTemplateBooking} onChange={(v) => siteActions.update({ waTemplateBooking: v })} />
+            <Textarea label="تذكير بموعد" value={s.waTemplateReminder} onChange={(v) => siteActions.update({ waTemplateReminder: v })} />
+            <Textarea label="عروض وترويج" value={s.waTemplatePromo} onChange={(v) => siteActions.update({ waTemplatePromo: v })} />
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <Save className="size-4 text-success" />
+            <span className="text-xs text-muted-foreground">الحفظ تلقائي عند التعديل</span>
+          </div>
+        </section>
+      </div>
 
       <section className="glass-card rounded-2xl p-5">
-        <SectionHeader icon={MessageCircle} title="قوالب الرسائل" />
-        <div className="space-y-3">
-          <Textarea label="تأكيد الحجز" value={s.waTemplateBooking} onChange={(v) => siteActions.update({ waTemplateBooking: v })} />
-          <Textarea label="تذكير بموعد" value={s.waTemplateReminder} onChange={(v) => siteActions.update({ waTemplateReminder: v })} />
-          <Textarea label="عروض وترويج" value={s.waTemplatePromo} onChange={(v) => siteActions.update({ waTemplatePromo: v })} />
-        </div>
-        <div className="mt-4 flex items-center gap-2">
-          <Save className="size-4 text-success" />
-          <span className="text-xs text-muted-foreground">الحفظ تلقائي عند التعديل</span>
+        <SectionHeader icon={Send} title="إرسال رسالة سريعة" />
+        <label className="text-xs font-semibold text-muted-foreground mb-2 block">نص الرسالة</label>
+        <textarea
+          value={broadcast}
+          onChange={(e) => setBroadcast(e.target.value)}
+          rows={4}
+          className="w-full rounded-lg bg-muted/40 border border-border p-3 text-sm mb-4"
+        />
+        <div className="text-xs font-semibold text-muted-foreground mb-2">اختر العميلة</div>
+        <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
+          {list.length === 0 && <div className="text-center py-8 text-sm text-muted-foreground">لا يوجد عملاء</div>}
+          {list.map((c) => (
+            <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
+              <div className="size-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold text-sm">
+                {c.name.charAt(0)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold truncate">{c.name}</div>
+                <div className="text-[11px] text-muted-foreground">{c.phone}</div>
+              </div>
+              <button
+                onClick={() => send(c.phone, c.name)}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-success/15 text-success border border-success/30 text-xs font-semibold hover:bg-success/25"
+              >
+                <MessageCircle className="size-3.5" /> إرسال
+              </button>
+            </div>
+          ))}
         </div>
       </section>
     </div>
   );
 }
-
 
 /* ---------------- Small helpers ---------------- */
 function SectionHeader({ icon: Icon, title }: { icon: any; title: string }) {

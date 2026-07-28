@@ -1,805 +1,474 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import {
-  useStaff,
-  staffActions,
-  SERVICE_CATALOG,
-  findServiceById,
-  totalSalary,
-  EMPLOYMENT_LABELS,
-  type Staff,
-  type EmploymentType,
-  type Gender,
-} from "@/lib/staff-store";
-import { useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import {
-  Users2,
-  Plus,
-  Search,
-  Trash2,
-  X,
-  Upload,
-  UserCircle2,
-  Briefcase,
-  Wallet,
-  Sparkles,
-  Star,
-  ChevronDown,
-  Check,
-  Save,
-} from "lucide-react";
+import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
+import { useMemo, useState } from "react";
+import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/staff")({
   head: () => ({
     meta: [
-      { title: "إدارة الموظفين — لمسة" },
-      { name: "description", content: "إدارة كاملة لبيانات الموظفين: التوظيف والرواتب والاختصاصات ومؤشرات التقييم." },
-      { property: "og:title", content: "إدارة الموظفين" },
-      { property: "og:description", content: "بيانات شخصية، توظيف، رواتب وبدلات وعمولات، واختصاصات الصالون بتقييم لكل خدمة." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "الموظفون — لمسة" },
+      { name: "description", content: "إدارة الموظفين والرواتب والبدلات والنقاط والملاحظات." },
+      { property: "og:title", content: "الموظفون" },
+      { property: "og:description", content: "إدارة الموظفين والعمولات والنقاط." },
     ],
   }),
   component: StaffPage,
 });
 
-/* -------- Helpers -------- */
-function fmtSAR(n: number) {
-  try {
-    return new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 0 }).format(n);
-  } catch {
-    return `${n} ر.س`;
-  }
-}
+type FormShape = {
+  name: string;
+  role: string;
+  phone: string;
+  email: string;
+  hireDate: string;
+  commissionPct: number;
+  salary: number;
+  active: boolean;
+};
 
-/* -------- Root Page -------- */
+const emptyForm: FormShape = {
+  name: "", role: "مصففة شعر", phone: "", email: "", hireDate: "",
+  commissionPct: 20, salary: 0, active: true,
+};
+
 function StaffPage() {
-  const staff = useStaff();
-  const [query, setQuery] = useState("");
+  const { staff, bookings, services } = useSalon((s) => s);
+  const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [form, setForm] = useState<FormShape>(emptyForm);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return staff;
-    return staff.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.jobTitle.toLowerCase().includes(q) ||
-        s.phone.includes(q) ||
-        s.nationalId.includes(q),
-    );
-  }, [staff, query]);
+  const stats = useMemo(() => {
+    const m = new Map<string, { count: number; revenue: number; upcoming: number }>();
+    bookings.forEach((b) => {
+      const cur = m.get(b.staffId) ?? { count: 0, revenue: 0, upcoming: 0 };
+      if (b.status === "completed") {
+        cur.count += 1;
+        cur.revenue += b.price - b.discount;
+      }
+      if (["new", "confirmed", "checked_in", "in_progress"].includes(b.status)) cur.upcoming += 1;
+      m.set(b.staffId, cur);
+    });
+    return m;
+  }, [bookings]);
 
-  const handleCreate = () => {
-    try {
-      const rec = staffActions.create({ name: "موظفة جديدة", jobTitle: "أخصائية" });
-      setEditingId(rec.id);
-      toast.success("تمت إضافة موظفة جديدة");
-    } catch (err) {
-      console.error(err);
-      toast.error("تعذّر إضافة الموظفة");
-    }
+  const openNew = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setOpen(true);
+  };
+  const openEdit = (s: Staff) => {
+    setEditingId(s.id);
+    setForm({
+      name: s.name,
+      role: s.role,
+      phone: s.phone,
+      email: s.email ?? "",
+      hireDate: s.hireDate ?? "",
+      commissionPct: s.commissionPct,
+      salary: s.salary ?? 0,
+      active: s.active,
+    });
+    setOpen(true);
   };
 
-  const editing = editingId ? staff.find((s) => s.id === editingId) ?? null : null;
+  const submit = () => {
+    if (!form.name || !form.phone) return toast.error("أكمل البيانات");
+    if (!form.hireDate) return toast.error("تاريخ التعيين مطلوب لاحتساب الراتب");
+    const patch = {
+      name: form.name,
+      role: form.role,
+      phone: form.phone,
+      email: form.email || undefined,
+      hireDate: form.hireDate || undefined,
+      commissionPct: form.commissionPct,
+      salary: form.salary,
+      active: form.active,
+    };
+    if (editingId) {
+      actions.updateStaff(editingId, patch);
+      toast.success("تم التحديث");
+    } else {
+      actions.addStaff({ ...patch, services: [], notes: [], allowances: [], points: 0, pointsLog: [] });
+      toast.success("تمت الإضافة");
+    }
+    setOpen(false);
+    setEditingId(null);
+    setForm(emptyForm);
+  };
+
+  const detail = detailId ? staff.find((s) => s.id === detailId) ?? null : null;
 
   return (
     <AppShell
-      title="إدارة الموظفين"
-      subtitle={`${staff.length} موظفة مسجّلة`}
+      title="الموظفون"
+      subtitle={`${staff.length} موظف`}
       action={
-        <button
-          onClick={handleCreate}
-          className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)]"
-        >
-          <Plus className="size-4" /> إضافة موظفة
+        <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)]">
+          <Plus className="size-4" /> موظف جديد
         </button>
       }
     >
-      {/* Search */}
-      <div className="glass-card rounded-2xl p-3 mb-5 flex items-center gap-2">
-        <Search className="size-4 text-muted-foreground shrink-0 mr-1" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="ابحث بالاسم، الوظيفة، الجوال، الهوية…"
-          className="flex-1 bg-transparent outline-none text-sm h-9"
-        />
-        {query && (
-          <button onClick={() => setQuery("")} className="size-8 grid place-items-center rounded-lg hover:bg-muted">
-            <X className="size-4" />
-          </button>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {staff.map((s) => {
+          const st = stats.get(s.id) ?? { count: 0, revenue: 0, upcoming: 0 };
+          const commission = (st.revenue * s.commissionPct) / 100;
+          const allowancesTotal = (s.allowances ?? []).reduce((a, x) => a + x.amount, 0);
+          const totalPay = (s.salary ?? 0) + allowancesTotal + commission;
+          return (
+            <div key={s.id} className="glass-card rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute -top-16 -left-16 size-40 rounded-full bg-gradient-to-br from-primary/20 to-accent/10 blur-3xl" />
+              <div className="relative flex items-start gap-4">
+                <div className="size-14 rounded-2xl bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground text-xl font-bold shadow-[var(--shadow-glow)]">
+                  {s.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="font-bold text-base">{s.name}</div>
+                    <span className={cn("size-1.5 rounded-full", s.active ? "bg-success" : "bg-muted-foreground")} />
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{s.role}</div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                    <Phone className="size-3" /> {s.phone}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button onClick={() => openEdit(s)} className="size-8 rounded-lg hover:bg-primary/10 hover:text-primary grid place-items-center" title="تعديل">
+                    <Pencil className="size-4" />
+                  </button>
+                  <button onClick={() => { if (confirm("حذف الموظف؟")) { actions.removeStaff(s.id); toast.success("تم الحذف"); } }} className="size-8 rounded-lg hover:bg-destructive/10 hover:text-destructive grid place-items-center" title="حذف">
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative mt-4 grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-muted/30 border border-border px-3 py-2">
+                  <div className="text-[10px] text-muted-foreground">الراتب</div>
+                  <div className="font-bold text-sm">{formatSAR(s.salary ?? 0)}</div>
+                </div>
+                <div className="rounded-lg bg-muted/30 border border-border px-3 py-2">
+                  <div className="text-[10px] text-muted-foreground">البدلات</div>
+                  <div className="font-bold text-sm">{formatSAR(allowancesTotal)}</div>
+                </div>
+                <div className="rounded-lg bg-muted/30 border border-border px-3 py-2">
+                  <div className="text-[10px] text-muted-foreground">العمولة</div>
+                  <div className="font-bold text-sm gradient-text">{formatSAR(commission)}</div>
+                </div>
+                <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 px-3 py-2">
+                  <div className="text-[10px] text-muted-foreground">الإجمالي</div>
+                  <div className="font-bold text-sm">{formatSAR(totalPay)}</div>
+                </div>
+              </div>
+
+              <div className="relative mt-3 pt-3 border-t border-border grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <div className="text-base font-bold">{st.count}</div>
+                  <div className="text-[10px] text-muted-foreground">خدمة</div>
+                </div>
+                <div>
+                  <div className="text-base font-bold">{st.upcoming}</div>
+                  <div className="text-[10px] text-muted-foreground">قادمة</div>
+                </div>
+                <div className="flex items-center justify-center gap-1">
+                  <Star className="size-3.5 text-warning fill-warning" />
+                  <div className="text-base font-bold">{s.points ?? 0}</div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setDetailId(s.id)}
+                className="relative mt-4 w-full h-9 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 text-xs font-semibold flex items-center justify-center gap-2"
+              >
+                <StickyNote className="size-3.5" /> الملف الكامل والملاحظات
+              </button>
+            </div>
+          );
+        })}
       </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
-        <EmptyState onAdd={handleCreate} />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((s) => (
-            <StaffCard key={s.id} staff={s} onEdit={() => setEditingId(s.id)} />
-          ))}
-        </div>
+      {open && (
+        <EditDialog
+          editing={!!editingId}
+          form={form}
+          setForm={setForm}
+          onClose={() => { setOpen(false); setEditingId(null); }}
+          onSubmit={submit}
+        />
       )}
 
-      {editing && <StaffEditor staff={editing} onClose={() => setEditingId(null)} />}
+      {detail && (
+        <DetailDialog
+          staff={detail}
+          onClose={() => setDetailId(null)}
+          bookingsCount={stats.get(detail.id)?.count ?? 0}
+          revenue={stats.get(detail.id)?.revenue ?? 0}
+        />
+      )}
     </AppShell>
   );
 }
 
-/* -------- Empty state -------- */
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
+  editing: boolean;
+  form: FormShape;
+  setForm: (f: FormShape) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
   return (
-    <div className="glass-card rounded-2xl p-10 text-center">
-      <div className="mx-auto size-14 rounded-2xl bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground shadow-[var(--shadow-glow)] mb-4">
-        <Users2 className="size-7" />
+    <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+      <div className="glass-card rounded-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-border flex items-center justify-between">
+          <h3 className="font-bold text-lg">{editing ? "تعديل الموظف" : "موظف جديد"}</h3>
+          <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
+        </div>
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-2 block">الاسم</label>
+            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">المسمى</label>
+              <input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الجوال</label>
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">البريد</label>
+              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+                تاريخ التعيين <span className="text-destructive">*</span>
+                <span className="text-[10px] text-muted-foreground/70 mr-1">(يُستخدم لاحتساب الراتب)</span>
+              </label>
+              <input type="date" required value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الراتب الأساسي</label>
+              <input type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">نسبة العمولة %</label>
+              <input type="number" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
+            نشط
+          </label>
+        </div>
+        <div className="p-5 border-t border-border flex items-center justify-end gap-2">
+          <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
+          <button onClick={onSubmit} className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">{editing ? "حفظ" : "إضافة"}</button>
+        </div>
       </div>
-      <h3 className="text-lg font-bold">لا يوجد موظفون بعد</h3>
-      <p className="text-sm text-muted-foreground mt-1">أضيفي أول موظفة لتتمكني من إدارة بياناتها واختصاصاتها.</p>
-      <button
-        onClick={onAdd}
-        className="mt-5 inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold"
-      >
-        <Plus className="size-4" /> إضافة موظفة
-      </button>
     </div>
   );
 }
 
-/* -------- Staff Card -------- */
-function StaffCard({ staff: s, onEdit }: { staff: Staff; onEdit: () => void }) {
-  const total = totalSalary(s);
-  const top = s.specializations.slice(0, 3);
-  return (
-    <button
-      onClick={onEdit}
-      className="glass-card rounded-2xl p-4 text-right hover:border-primary/40 hover:shadow-[var(--shadow-glow)] transition group"
-    >
-      <div className="flex items-start gap-3">
-        <div className="size-14 rounded-xl overflow-hidden bg-gradient-to-br from-primary/30 to-accent/30 grid place-items-center shrink-0">
-          {s.photoUrl ? (
-            <img src={s.photoUrl} alt={s.name} className="w-full h-full object-cover" />
-          ) : (
-            <UserCircle2 className="size-8 text-primary" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold truncate">{s.name || "بدون اسم"}</h3>
-            {!s.active && <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">موقوفة</span>}
-          </div>
-          <p className="text-xs text-muted-foreground truncate">{s.jobTitle || "—"}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{EMPLOYMENT_LABELS[s.employmentType]}</p>
-        </div>
-      </div>
+function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
+  staff: Staff;
+  bookingsCount: number;
+  revenue: number;
+  onClose: () => void;
+}) {
+  const [tab, setTab] = useState<"overview" | "allowances" | "notes" | "points">("overview");
+  const [noteText, setNoteText] = useState("");
+  const [allowLabel, setAllowLabel] = useState("");
+  const [allowAmount, setAllowAmount] = useState(0);
+  const [pointDelta, setPointDelta] = useState(5);
+  const [pointReason, setPointReason] = useState("");
 
-      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-lg bg-muted/40 p-2">
-          <div className="text-[10px] text-muted-foreground">الراتب الإجمالي</div>
-          <div className="font-bold text-primary">{fmtSAR(total)}</div>
-        </div>
-        <div className="rounded-lg bg-muted/40 p-2">
-          <div className="text-[10px] text-muted-foreground">العمولة</div>
-          <div className="font-bold">{s.commissionPct}%</div>
-        </div>
-      </div>
+  const allowancesTotal = (staff.allowances ?? []).reduce((a, x) => a + x.amount, 0);
+  const commission = (revenue * staff.commissionPct) / 100;
+  const totalPay = (staff.salary ?? 0) + allowancesTotal + commission;
 
-      {top.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {top.map((sp) => {
-            const svc = findServiceById(sp.id);
-            if (!svc) return null;
-            return (
-              <span key={sp.id} className="inline-flex items-center gap-1 text-[11px] rounded-full bg-primary/10 text-primary px-2 py-0.5">
-                {svc.label}
-                <span className="opacity-80">· {sp.rating}★</span>
-              </span>
-            );
-          })}
-          {s.specializations.length > 3 && (
-            <span className="text-[11px] text-muted-foreground">+{s.specializations.length - 3}</span>
-          )}
-        </div>
-      )}
-    </button>
-  );
-}
-
-/* -------- Editor Drawer -------- */
-type Tab = "personal" | "employment" | "compensation" | "skills";
-
-function StaffEditor({ staff: s, onClose }: { staff: Staff; onClose: () => void }) {
-  const [tab, setTab] = useState<Tab>("personal");
-
-  const update = (patch: Partial<Staff>) => {
-    try {
-      staffActions.update(s.id, patch);
-    } catch (err) {
-      console.error(err);
-      toast.error("تعذّر حفظ التغييرات");
-    }
+  const addNote = () => {
+    if (!noteText.trim()) return;
+    actions.addStaffNote(staff.id, noteText.trim());
+    setNoteText("");
+    toast.success("أُضيفت الملاحظة");
   };
-
-  const handleDelete = () => {
-    if (!confirm(`حذف الموظفة "${s.name || ""}"؟ لا يمكن التراجع.`)) return;
-    try {
-      staffActions.remove(s.id);
-      toast.success("تم الحذف");
-      onClose();
-    } catch (err) {
-      console.error(err);
-      toast.error("تعذّر الحذف");
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex" dir="rtl">
-      <button
-        onClick={onClose}
-        aria-label="إغلاق"
-        className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-in fade-in"
-      />
-      <aside className="relative ml-auto w-full max-w-2xl bg-background border-l border-border shadow-2xl overflow-y-auto animate-in slide-in-from-left">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border p-4 flex items-center gap-3">
-          <div className="size-11 rounded-xl overflow-hidden bg-gradient-to-br from-primary/30 to-accent/30 grid place-items-center shrink-0">
-            {s.photoUrl ? (
-              <img src={s.photoUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <UserCircle2 className="size-6 text-primary" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold truncate">{s.name || "موظفة جديدة"}</div>
-            <div className="text-xs text-muted-foreground truncate">{s.jobTitle || "—"}</div>
-          </div>
-          <button onClick={handleDelete} className="size-9 rounded-lg text-destructive hover:bg-destructive/10 grid place-items-center" title="حذف">
-            <Trash2 className="size-4" />
-          </button>
-          <button onClick={onClose} className="size-9 rounded-lg hover:bg-muted grid place-items-center" title="إغلاق">
-            <X className="size-4" />
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="p-4 border-b border-border">
-          <div className="glass-card rounded-xl p-1 inline-flex gap-1 flex-wrap">
-            {(
-              [
-                { id: "personal", label: "بيانات شخصية", icon: UserCircle2 },
-                { id: "employment", label: "بيانات التوظيف", icon: Briefcase },
-                { id: "compensation", label: "الراتب والبدلات", icon: Wallet },
-                { id: "skills", label: "الاختصاصات", icon: Sparkles },
-              ] as const
-            ).map((t) => {
-              const Icon = t.icon;
-              const active = tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  className={cn(
-                    "inline-flex items-center gap-2 h-9 px-3 rounded-lg text-xs font-medium transition",
-                    active
-                      ? "bg-gradient-to-l from-primary/25 to-accent/15 text-foreground border border-primary/30"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <Icon className="size-3.5" />
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="p-4 space-y-4">
-          {tab === "personal" && <PersonalTab s={s} update={update} />}
-          {tab === "employment" && <EmploymentTab s={s} update={update} />}
-          {tab === "compensation" && <CompensationTab s={s} update={update} />}
-          {tab === "skills" && <SkillsTab s={s} />}
-        </div>
-
-        <div className="p-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
-          <Save className="size-3.5 text-success" /> الحفظ تلقائي عند التعديل
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-/* -------- Tabs -------- */
-function PersonalTab({ s, update }: { s: Staff; update: (p: Partial<Staff>) => void }) {
-  const photoInput = useRef<HTMLInputElement>(null);
-  const onPhoto = (files: FileList | null) => {
-    if (!files || !files[0]) return;
-    const f = files[0];
-    if (!f.type.startsWith("image/")) {
-      toast.error("الرجاء اختيار صورة صالحة");
-      return;
-    }
-    const r = new FileReader();
-    r.onload = () => update({ photoUrl: String(r.result) });
-    r.onerror = () => {
-      console.error(r.error);
-      toast.error("تعذّر قراءة الصورة");
-    };
-    r.readAsDataURL(f);
-  };
-
-  return (
-    <section className="glass-card rounded-2xl p-5 space-y-4">
-      <SectionTitle icon={UserCircle2} title="بيانات شخصية" />
-
-      <div className="flex items-center gap-4">
-        <div className="size-20 rounded-2xl overflow-hidden border border-border bg-muted/30 grid place-items-center">
-          {s.photoUrl ? (
-            <img src={s.photoUrl} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <UserCircle2 className="size-10 text-muted-foreground" />
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <button onClick={() => photoInput.current?.click()} className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-border text-xs hover:bg-muted">
-            <Upload className="size-3.5" /> رفع صورة
-          </button>
-          {s.photoUrl && (
-            <button onClick={() => update({ photoUrl: "" })} className="inline-flex items-center gap-2 h-9 px-3 rounded-lg text-xs text-destructive hover:bg-destructive/10">
-              <Trash2 className="size-3.5" /> حذف
-            </button>
-          )}
-          <input ref={photoInput} type="file" accept="image/*" className="hidden" onChange={(e) => onPhoto(e.target.files)} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label="الاسم الكامل" value={s.name} onChange={(v) => update({ name: v })} />
-        <Select
-          label="الجنس"
-          value={s.gender}
-          onChange={(v) => update({ gender: v as Gender })}
-          options={[
-            { value: "female", label: "أنثى" },
-            { value: "male", label: "ذكر" },
-          ]}
-        />
-        <Field label="رقم الهوية / الإقامة" value={s.nationalId} onChange={(v) => update({ nationalId: v })} />
-        <Field label="الجوال" value={s.phone} onChange={(v) => update({ phone: v })} type="tel" />
-        <Field label="البريد الإلكتروني" value={s.email} onChange={(v) => update({ email: v })} type="email" className="md:col-span-2" />
-        <Field label="تاريخ الميلاد" value={s.birthDate} onChange={(v) => update({ birthDate: v })} type="date" />
-        <Field label="العنوان" value={s.address} onChange={(v) => update({ address: v })} />
-      </div>
-    </section>
-  );
-}
-
-function EmploymentTab({ s, update }: { s: Staff; update: (p: Partial<Staff>) => void }) {
-  return (
-    <section className="glass-card rounded-2xl p-5 space-y-4">
-      <SectionTitle icon={Briefcase} title="بيانات التوظيف" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label="المسمى الوظيفي" value={s.jobTitle} onChange={(v) => update({ jobTitle: v })} />
-        <Select
-          label="نوع التوظيف"
-          value={s.employmentType}
-          onChange={(v) => update({ employmentType: v as EmploymentType })}
-          options={[
-            { value: "full_time", label: "دوام كامل" },
-            { value: "part_time", label: "دوام جزئي" },
-            { value: "contract", label: "عقد مؤقت" },
-            { value: "trainee", label: "متدرّبة" },
-          ]}
-        />
-        <Field label="تاريخ التعيين" value={s.hireDate} onChange={(v) => update({ hireDate: v })} type="date" />
-        <Field label="الفرع" value={s.branch} onChange={(v) => update({ branch: v })} />
-      </div>
-
-      <div className="flex items-center justify-between rounded-xl border border-border p-3">
-        <div>
-          <div className="text-sm font-semibold">الحالة</div>
-          <div className="text-xs text-muted-foreground">{s.active ? "موظفة نشطة" : "موقوفة عن العمل"}</div>
-        </div>
-        <button
-          onClick={() => update({ active: !s.active })}
-          className={cn(
-            "h-9 px-4 rounded-lg text-xs font-semibold transition",
-            s.active ? "bg-success/15 text-success border border-success/30" : "bg-muted text-muted-foreground border border-border",
-          )}
-        >
-          {s.active ? "نشطة" : "موقوفة"}
-        </button>
-      </div>
-
-      <div>
-        <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">ملاحظات</label>
-        <textarea
-          value={s.notes}
-          onChange={(e) => update({ notes: e.target.value })}
-          rows={3}
-          className="w-full rounded-lg bg-muted/40 border border-border p-3 text-sm outline-none focus:border-primary/50 resize-none"
-        />
-      </div>
-    </section>
-  );
-}
-
-function CompensationTab({ s, update }: { s: Staff; update: (p: Partial<Staff>) => void }) {
-  const total = totalSalary(s);
-  const [newLabel, setNewLabel] = useState("");
-  const [newAmount, setNewAmount] = useState("");
-
   const addAllowance = () => {
-    const label = newLabel.trim();
-    const amount = Number(newAmount);
-    if (!label) {
-      toast.error("أدخلي اسم البدل");
-      return;
-    }
-    if (!Number.isFinite(amount) || amount < 0) {
-      toast.error("قيمة البدل غير صحيحة");
-      return;
-    }
-    try {
-      staffActions.addAllowance(s.id, { label, amount });
-      setNewLabel("");
-      setNewAmount("");
-    } catch (err) {
-      console.error(err);
-      toast.error("تعذّرت الإضافة");
-    }
+    if (!allowLabel.trim() || !allowAmount) return toast.error("أكمل بيانات البدل");
+    actions.addStaffAllowance(staff.id, allowLabel.trim(), allowAmount);
+    setAllowLabel(""); setAllowAmount(0);
+    toast.success("أُضيف البدل");
+  };
+  const givePoints = (sign: 1 | -1) => {
+    if (!pointReason.trim()) return toast.error("اكتب السبب");
+    actions.addStaffPoints(staff.id, sign * Math.abs(pointDelta), pointReason.trim());
+    setPointReason("");
+    toast.success(sign > 0 ? "تمت إضافة النقاط" : "تم خصم النقاط");
   };
 
   return (
-    <section className="glass-card rounded-2xl p-5 space-y-5">
-      <SectionTitle icon={Wallet} title="الراتب والبدلات والعمولة" />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <NumberField
-          label="الراتب الأساسي (ر.س)"
-          value={s.basicSalary}
-          onChange={(v) => update({ basicSalary: v })}
-          min={0}
-        />
-        <NumberField
-          label="نسبة العمولة (%)"
-          value={s.commissionPct}
-          onChange={(v) => update({ commissionPct: Math.max(0, Math.min(100, v)) })}
-          min={0}
-          max={100}
-          step={0.5}
-        />
-      </div>
-
-      {/* Allowances */}
-      <div>
-        <div className="text-xs font-semibold text-muted-foreground mb-2">البدلات</div>
-        <div className="space-y-2">
-          {s.allowances.length === 0 && (
-            <div className="text-xs text-muted-foreground rounded-lg border border-dashed border-border p-3 text-center">
-              لا توجد بدلات — أضيفي بدلاً من الأسفل
+    <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+      <div className="glass-card rounded-2xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="size-12 rounded-2xl bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold">
+              {staff.name.charAt(0)}
             </div>
-          )}
-          {s.allowances.map((a) => (
-            <div key={a.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/20 p-2">
-              <input
-                value={a.label}
-                onChange={(e) => staffActions.updateAllowance(s.id, a.id, { label: e.target.value })}
-                className="flex-1 min-w-0 bg-transparent text-sm outline-none px-2"
-                placeholder="اسم البدل"
-              />
-              <input
-                type="number"
-                inputMode="decimal"
-                value={a.amount}
-                onChange={(e) => staffActions.updateAllowance(s.id, a.id, { amount: Number(e.target.value) || 0 })}
-                className="w-24 bg-background border border-border rounded-md h-8 px-2 text-sm outline-none focus:border-primary/50 text-left"
-              />
-              <span className="text-xs text-muted-foreground">ر.س</span>
-              <button
-                onClick={() => staffActions.removeAllowance(s.id, a.id)}
-                className="size-8 rounded-md text-destructive hover:bg-destructive/10 grid place-items-center"
-                title="حذف"
-              >
-                <Trash2 className="size-4" />
-              </button>
+            <div>
+              <h3 className="font-bold text-lg">{staff.name}</h3>
+              <p className="text-xs text-muted-foreground">{staff.role}</p>
             </div>
+          </div>
+          <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
+        </div>
+
+        <div className="px-5 pt-4 flex gap-1 border-b border-border">
+          {([
+            ["overview", "نظرة عامة", TrendingUp],
+            ["allowances", "البدلات", Wallet],
+            ["notes", "الملاحظات", StickyNote],
+            ["points", "النقاط", Award],
+          ] as const).map(([k, label, Icon]) => (
+            <button
+              key={k}
+              onClick={() => setTab(k)}
+              className={cn(
+                "px-3 h-9 rounded-t-lg text-xs font-semibold flex items-center gap-1.5 border-b-2 -mb-px",
+                tab === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="size-3.5" /> {label}
+            </button>
           ))}
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
-          <input
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            placeholder="بدل جديد (مثال: سكن)"
-            className="flex-1 h-9 rounded-lg bg-muted/40 border border-border px-3 text-sm outline-none focus:border-primary/50"
-          />
-          <input
-            value={newAmount}
-            onChange={(e) => setNewAmount(e.target.value)}
-            placeholder="القيمة"
-            type="number"
-            inputMode="decimal"
-            className="w-28 h-9 rounded-lg bg-muted/40 border border-border px-3 text-sm outline-none focus:border-primary/50"
-          />
-          <button
-            onClick={addAllowance}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-semibold"
-          >
-            <Plus className="size-3.5" /> إضافة
-          </button>
-        </div>
-      </div>
-
-      {/* Summary */}
-      <div className="rounded-xl bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20 p-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">الراتب الأساسي</span>
-          <span className="font-semibold">{fmtSAR(s.basicSalary)}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm mt-1">
-          <span className="text-muted-foreground">إجمالي البدلات</span>
-          <span className="font-semibold">{fmtSAR(s.allowances.reduce((a, b) => a + (Number(b.amount) || 0), 0))}</span>
-        </div>
-        <div className="h-px bg-border my-2" />
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">الإجمالي الشهري</span>
-          <span className="text-lg font-black text-primary">{fmtSAR(total)}</span>
-        </div>
-        <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-          <span>+ عمولة</span>
-          <span>{s.commissionPct}% من المبيعات</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SkillsTab({ s }: { s: Staff }) {
-  const [open, setOpen] = useState(false);
-
-  const availableCount = SERVICE_CATALOG.reduce(
-    (n, cat) => n + cat.services.filter((svc) => !s.specializations.some((sp) => sp.id === svc.id)).length,
-    0,
-  );
-
-  const addSpec = (id: string) => {
-    try {
-      staffActions.addSpecialization(s.id, id, 3);
-    } catch (err) {
-      console.error(err);
-      toast.error("تعذّرت الإضافة");
-    }
-  };
-
-  return (
-    <section className="glass-card rounded-2xl p-5 space-y-4">
-      <SectionTitle icon={Sparkles} title="اختصاصات الموظفة" />
-      <p className="text-xs text-muted-foreground">
-        أضيفي الخدمات التي تتقنها الموظفة من قائمة اختصاصات الصالون، وحدّدي مؤشر التقييم (من 1 إلى 5 نجوم) لكل خدمة.
-      </p>
-
-      {/* Add dropdown */}
-      <div className="relative">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          disabled={availableCount === 0}
-          className={cn(
-            "w-full inline-flex items-center justify-between gap-2 h-10 px-4 rounded-lg border text-sm font-semibold transition",
-            availableCount === 0
-              ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed"
-              : "border-primary/40 bg-gradient-to-l from-primary/10 to-accent/10 text-foreground hover:border-primary/60",
-          )}
-        >
-          <span className="inline-flex items-center gap-2">
-            <Plus className="size-4" />
-            {availableCount === 0 ? "تمت إضافة كل الاختصاصات" : `إضافة اختصاص (${availableCount} متاح)`}
-          </span>
-          <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
-        </button>
-
-        {open && availableCount > 0 && (
-          <>
-            <button className="fixed inset-0 z-10 cursor-default" onClick={() => setOpen(false)} aria-label="إغلاق القائمة" />
-            <div className="absolute z-20 mt-2 right-0 left-0 max-h-80 overflow-y-auto rounded-xl border border-border bg-popover shadow-2xl">
-              {SERVICE_CATALOG.map((cat) => {
-                const available = cat.services.filter((svc) => !s.specializations.some((sp) => sp.id === svc.id));
-                if (available.length === 0) return null;
-                return (
-                  <div key={cat.id} className="py-1.5">
-                    <div className="px-3 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{cat.label}</div>
-                    {available.map((svc) => (
-                      <button
-                        key={svc.id}
-                        onClick={() => {
-                          addSpec(svc.id);
-                        }}
-                        className="w-full text-right px-3 py-2 text-sm hover:bg-muted flex items-center gap-2"
-                      >
-                        <Plus className="size-3.5 text-primary" />
-                        {svc.label}
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
+        <div className="p-5 max-h-[60vh] overflow-y-auto space-y-4">
+          {tab === "overview" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Stat label="خدمات مكتملة" value={String(bookingsCount)} />
+                <Stat label="الإيرادات" value={formatSAR(revenue)} />
+                <Stat label="النقاط" value={String(staff.points ?? 0)} />
+                <Stat label="الإجمالي الشهري" value={formatSAR(totalPay)} highlight />
+              </div>
+              <div className="rounded-xl border border-border p-4 space-y-2 text-sm">
+                <Row label="الراتب الأساسي" value={formatSAR(staff.salary ?? 0)} />
+                <Row label="مجموع البدلات" value={formatSAR(allowancesTotal)} />
+                <Row label={`العمولة (${staff.commissionPct}%)`} value={formatSAR(commission)} />
+                <div className="border-t border-border my-2" />
+                <Row label="الإجمالي" value={formatSAR(totalPay)} bold />
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                <div>الجوال: <span className="text-foreground">{staff.phone}</span></div>
+                {staff.email && <div>البريد: <span className="text-foreground">{staff.email}</span></div>}
+                {staff.hireDate && <div>تاريخ التعيين: <span className="text-foreground">{staff.hireDate}</span></div>}
+                <div>الحالة: <span className="text-foreground">{staff.active ? "نشط" : "غير نشط"}</span></div>
+              </div>
             </div>
-          </>
-        )}
-      </div>
+          )}
 
-      {/* Selected list */}
-      <div className="space-y-2">
-        {s.specializations.length === 0 ? (
-          <div className="text-xs text-muted-foreground rounded-lg border border-dashed border-border p-4 text-center">
-            لم تتم إضافة اختصاصات بعد
-          </div>
-        ) : (
-          groupSpecializations(s.specializations).map(([catLabel, list]) => (
-            <div key={catLabel} className="rounded-xl border border-border overflow-hidden">
-              <div className="px-3 py-1.5 bg-muted/40 text-[11px] font-bold text-muted-foreground">{catLabel}</div>
-              <div className="divide-y divide-border">
-                {list.map(({ id, rating, label }) => (
-                  <div key={id} className="flex items-center gap-3 p-3">
-                    <Check className="size-4 text-success shrink-0" />
-                    <div className="flex-1 min-w-0 text-sm font-medium truncate">{label}</div>
-                    <RatingPicker value={rating} onChange={(v) => staffActions.updateSpecializationRating(s.id, id, v)} />
-                    <button
-                      onClick={() => staffActions.removeSpecialization(s.id, id)}
-                      className="size-8 rounded-md text-destructive hover:bg-destructive/10 grid place-items-center shrink-0"
-                      title="حذف"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
+          {tab === "allowances" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-[1fr_120px_auto] gap-2">
+                <input placeholder="مسمى البدل (مواصلات، سكن...)" value={allowLabel} onChange={(e) => setAllowLabel(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                <input type="number" placeholder="المبلغ" value={allowAmount || ""} onChange={(e) => setAllowAmount(Number(e.target.value))} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                <button onClick={addAllowance} className="px-4 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">إضافة</button>
+              </div>
+              <div className="space-y-2">
+                {(staff.allowances ?? []).length === 0 && <div className="text-center py-8 text-sm text-muted-foreground">لا توجد بدلات</div>}
+                {(staff.allowances ?? []).map((a) => (
+                  <div key={a.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+                    <div className="font-semibold text-sm">{a.label}</div>
+                    <div className="flex items-center gap-3">
+                      <div className="font-bold text-sm">{formatSAR(a.amount)}</div>
+                      <button onClick={() => { actions.removeStaffAllowance(staff.id, a.id); toast.success("حُذف"); }} className="size-8 rounded-lg hover:bg-destructive/10 hover:text-destructive grid place-items-center"><Trash2 className="size-4" /></button>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          ))
-        )}
+          )}
+
+          {tab === "notes" && (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <textarea placeholder="اكتب ملاحظة عن الموظف..." value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={2} className="flex-1 rounded-lg bg-muted/40 border border-border px-3 py-2 text-sm resize-none" />
+                <button onClick={addNote} className="px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">إضافة</button>
+              </div>
+              <div className="space-y-2">
+                {(staff.notes ?? []).length === 0 && <div className="text-center py-8 text-sm text-muted-foreground">لا توجد ملاحظات</div>}
+                {(staff.notes ?? []).map((n) => (
+                  <div key={n.id} className="rounded-lg border border-border bg-muted/20 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm flex-1 whitespace-pre-wrap">{n.text}</p>
+                      <button onClick={() => actions.removeStaffNote(staff.id, n.id)} className="size-7 rounded-md hover:bg-destructive/10 hover:text-destructive grid place-items-center shrink-0"><Trash2 className="size-3.5" /></button>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-2">{new Date(n.at).toLocaleString("ar-SA")}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "points" && (
+            <div className="space-y-4">
+              <div className="rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 p-5 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Star className="size-6 text-warning fill-warning" />
+                  <div className="text-4xl font-bold">{staff.points ?? 0}</div>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">إجمالي النقاط</div>
+              </div>
+              <div className="rounded-xl border border-border p-3 space-y-2">
+                <div className="grid grid-cols-[100px_1fr] gap-2">
+                  <input type="number" value={pointDelta} onChange={(e) => setPointDelta(Number(e.target.value))} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <input placeholder="السبب (أداء ممتاز، تأخير...)" value={pointReason} onChange={(e) => setPointReason(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => givePoints(1)} className="flex-1 h-10 rounded-lg bg-success/20 text-success hover:bg-success/30 text-sm font-semibold flex items-center justify-center gap-1"><Plus className="size-4" /> إضافة نقاط</button>
+                  <button onClick={() => givePoints(-1)} className="flex-1 h-10 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 text-sm font-semibold flex items-center justify-center gap-1"><Minus className="size-4" /> خصم نقاط</button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-muted-foreground">السجل</div>
+                {(staff.pointsLog ?? []).length === 0 && <div className="text-center py-6 text-sm text-muted-foreground">لا يوجد سجل</div>}
+                {(staff.pointsLog ?? []).map((l) => (
+                  <div key={l.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+                    <div>
+                      <div className="text-sm">{l.reason}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{new Date(l.at).toLocaleString("ar-SA")}</div>
+                    </div>
+                    <div className={cn("text-sm font-bold", l.delta > 0 ? "text-success" : "text-destructive")}>
+                      {l.delta > 0 ? "+" : ""}{l.delta}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </section>
-  );
-}
-
-function groupSpecializations(specs: Staff["specializations"]) {
-  const map = new Map<string, { id: string; rating: number; label: string }[]>();
-  for (const sp of specs) {
-    const svc = findServiceById(sp.id);
-    if (!svc) continue;
-    const arr = map.get(svc.category) ?? [];
-    arr.push({ id: sp.id, rating: sp.rating, label: svc.label });
-    map.set(svc.category, arr);
-  }
-  return Array.from(map.entries());
-}
-
-/* -------- Small components -------- */
-function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="size-8 rounded-lg bg-primary/15 text-primary grid place-items-center">
-        <Icon className="size-4" />
-      </div>
-      <h3 className="font-bold">{title}</h3>
     </div>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  className,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  className?: string;
-  type?: string;
-}) {
+function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={className}>
-      <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm outline-none focus:border-primary/50"
-      />
+    <div className={cn("rounded-xl border p-3", highlight ? "border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10" : "border-border bg-muted/20")}>
+      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className={cn("font-bold text-base mt-1", highlight && "gradient-text")}>{value}</div>
     </div>
   );
 }
-
-function NumberField({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-}) {
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div>
-      <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">{label}</label>
-      <input
-        type="number"
-        inputMode="decimal"
-        min={min}
-        max={max}
-        step={step}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) => {
-          const n = Number(e.target.value);
-          onChange(Number.isFinite(n) ? n : 0);
-        }}
-        className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm outline-none focus:border-primary/50"
-      />
-    </div>
-  );
-}
-
-function Select({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div>
-      <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm outline-none focus:border-primary/50"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function RatingPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="flex items-center gap-0.5" role="radiogroup" aria-label="التقييم">
-      {[1, 2, 3, 4, 5].map((n) => {
-        const active = n <= value;
-        return (
-          <button
-            key={n}
-            role="radio"
-            aria-checked={value === n}
-            onClick={() => onChange(n)}
-            className={cn(
-              "size-7 grid place-items-center rounded-md transition",
-              active ? "text-amber-500" : "text-muted-foreground/40 hover:text-amber-500/60",
-            )}
-            title={`${n} من 5`}
-          >
-            <Star className={cn("size-4", active && "fill-current")} />
-          </button>
-        );
-      })}
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className={cn(bold ? "font-bold" : "font-semibold")}>{value}</span>
     </div>
   );
 }

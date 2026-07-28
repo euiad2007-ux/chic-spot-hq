@@ -1,725 +1,463 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import {
-  useServices,
-  servicesActions,
-  computeServiceCosts,
-  type Service,
-  type ServiceMaterial,
-  type MaterialUnitType,
-} from "@/lib/services-store";
-import { useInventory, type InventoryItem } from "@/lib/inventory-store";
-import { useStaff, findServiceById, type Staff } from "@/lib/staff-store";
-import {
-  Scissors,
-  Plus,
-  Trash2,
-  X,
-  Search,
-  Save,
-  Package,
-  Percent,
-  Users2,
-  Star,
-  Calculator,
-  Sparkles,
-  Receipt,
-  BadgeCheck,
-  TrendingUp,
-  Tag,
-} from "lucide-react";
+  useSalon, actions, formatSAR, serviceTotalMin,
+  costPerBase, measureLabel, serviceMaterialsCost,
+  type Service, type ServiceMaterial,
+} from "@/lib/salon-store";
+import { useState, useMemo } from "react";
+import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
       { title: "الخدمات — لمسة" },
-      { name: "description", content: "إدارة خدمات الصالون: تكاليف المواد، النسب، الأرباح، والموظفين المؤهلين." },
-      { property: "og:title", content: "إدارة الخدمات" },
-      { property: "og:description", content: "حساب تكلفة الخدمة تلقائياً من مواد المخزن والنسب مع تعيين الموظفين المؤهلين." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "description", content: "إدارة خدمات المشغل والأسعار والمواد والأوقات." },
+      { property: "og:title", content: "الخدمات" },
+      { property: "og:description", content: "إدارة الخدمات والأسعار والمواد والأوقات." },
     ],
   }),
   component: ServicesPage,
 });
 
-function fmtSAR(n: number) {
-  try {
-    return new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 2 }).format(n);
-  } catch {
-    return `${n.toFixed(2)} ر.س`;
-  }
-}
+type FormState = {
+  name: string;
+  category: string;
+  price: number;
+  durationMin: number;
+  prepMin: number;
+  cleanupMin: number;
+  materials: ServiceMaterial[];
+};
+
+const empty: FormState = {
+  name: "", category: "الشعر", price: 100, durationMin: 30, prepMin: 5, cleanupMin: 5, materials: [],
+};
 
 function ServicesPage() {
-  const services = useServices();
-  const { items } = useInventory();
-  const [q, setQ] = useState("");
+  const services = useSalon((s) => s.services);
+  const staff = useSalon((s) => s.staff);
+  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
-
-  const itemsById = useMemo(() => {
-    const m = new Map<string, InventoryItem>();
-    for (const it of items) m.set(it.id, it);
-    return m;
-  }, [items]);
-
-  const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    if (!s) return services;
-    return services.filter((x) => x.name.toLowerCase().includes(s) || x.description.toLowerCase().includes(s));
-  }, [services, q]);
+  const [form, setForm] = useState<FormState>(empty);
+  const [staffIds, setStaffIds] = useState<string[]>([]);
 
   const openNew = () => {
-    setEditing({ ...servicesActions.empty(), name: "خدمة جديدة" });
+    setEditing(null); setForm(empty); setStaffIds([]); setOpen(true);
   };
+  const openEdit = (s: Service) => {
+    setEditing(s);
+    setForm({
+      name: s.name, category: s.category, price: s.price, durationMin: s.durationMin,
+      prepMin: s.prepMin ?? 0, cleanupMin: s.cleanupMin ?? 0, materials: s.materials ?? [],
+    });
+    setStaffIds(staff.filter((st) => st.services.includes(s.id)).map((st) => st.id));
+    setOpen(true);
+  };
+
+  const submit = () => {
+    if (!form.name.trim()) return toast.error("اكتب اسم الخدمة");
+    if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
+    let serviceId = editing?.id;
+    if (editing) {
+      actions.updateService(editing.id, form);
+      toast.success("تم تحديث الخدمة");
+    } else {
+      serviceId = actions.addService({ ...form, active: true });
+      toast.success("تمت إضافة الخدمة");
+    }
+    if (serviceId) actions.setServiceStaff(serviceId, staffIds);
+    setOpen(false);
+  };
+
+  const grouped = services.reduce<Record<string, typeof services>>((acc, s) => {
+    (acc[s.category] ||= []).push(s);
+    return acc;
+  }, {});
 
   return (
     <AppShell
       title="الخدمات"
-      subtitle="حساب تكلفة الخدمة تلقائياً من المواد والنسب"
+      subtitle={`${services.length} خدمة — تُستخدم في الحجوزات وجرد المواد`}
       action={
-        <button
-          onClick={openNew}
-          className="h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm inline-flex items-center gap-1.5 shadow-[var(--shadow-glow)]"
-        >
+        <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)]">
           <Plus className="size-4" /> خدمة جديدة
         </button>
       }
     >
-      <div className="relative mb-3">
-        <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="بحث باسم الخدمة..."
-          className="w-full h-10 pr-9 pl-3 rounded-lg bg-card/60 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
+      <div className="space-y-6">
+        {Object.entries(grouped).map(([cat, list]) => (
+          <div key={cat}>
+            <div className="flex items-center gap-2 mb-3">
+              <Tag className="size-4 text-primary" />
+              <h2 className="font-bold text-lg">{cat}</h2>
+              <span className="text-xs text-muted-foreground">({list.length})</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {list.map((s) => <ServiceCard key={s.id} s={s} onEdit={() => openEdit(s)} />)}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/40 p-10 text-center text-muted-foreground">
-          <Scissors className="size-8 mx-auto mb-2 opacity-60" />
-          لا توجد خدمات بعد. أضف خدمة جديدة لبدء الحساب التلقائي للتكاليف.
-        </div>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((svc) => {
-            const costs = computeServiceCosts(svc, itemsById);
-            return (
-              <button
-                key={svc.id}
-                onClick={() => setEditing(svc)}
-                className="text-right rounded-xl border border-border bg-card/60 hover:bg-card p-4 transition"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="font-bold truncate">{svc.name || "بدون اسم"}</div>
-                    {svc.description && (
-                      <div className="text-xs text-muted-foreground truncate">{svc.description}</div>
-                    )}
-                  </div>
-                  <div className="shrink-0 text-left">
-                    <div className="text-[11px] text-muted-foreground">السعر</div>
-                    <div className="font-bold text-primary">{fmtSAR(costs.finalPrice)}</div>
-                  </div>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                  <MiniStat label="المواد" value={fmtSAR(costs.materialsCost)} />
-                  <MiniStat label="التكاليف" value={fmtSAR(costs.totalCosts)} />
-                  <MiniStat label="الربح" value={fmtSAR(costs.profitAmount)} tone="ok" />
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><Package className="size-3" />{svc.materials.length}</span>
-                  <span className="inline-flex items-center gap-1"><Users2 className="size-3" />{svc.staffIds.length}</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {editing && (
-        <ServiceEditor
-          key={editing.id}
-          draft={editing}
-          onClose={() => setEditing(null)}
+      {open && (
+        <ServiceDialog
+          form={form}
+          setForm={setForm}
+          staffIds={staffIds}
+          setStaffIds={setStaffIds}
+          onClose={() => setOpen(false)}
+          onSubmit={submit}
+          isEdit={!!editing}
         />
       )}
     </AppShell>
   );
 }
 
-function MiniStat({ label, value, tone }: { label: string; value: string; tone?: "ok" }) {
+function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
+  const inventory = useSalon((st) => st.inventory);
+  const staff = useSalon((st) => st.staff);
+  const total = serviceTotalMin(s);
+  const matCost = serviceMaterialsCost(s.materials, inventory);
+  const eligible = staff.filter((st) => st.services.includes(s.id));
   return (
-    <div className="rounded-lg bg-muted/40 border border-border/50 p-2">
-      <div className="text-[10px] text-muted-foreground">{label}</div>
-      <div className={cn("font-semibold text-xs mt-0.5", tone === "ok" && "text-emerald-600")}>{value}</div>
+    <div className="glass-card rounded-2xl p-4 group relative">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-base">{s.name}</div>
+          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
+            <span className="flex items-center gap-1"><Clock className="size-3" /> {s.durationMin} د</span>
+            <span className="flex items-center gap-1 text-primary/80"><Timer className="size-3" /> إجمالي {total} د</span>
+            <span className={cn("size-1.5 rounded-full", s.active ? "bg-success" : "bg-muted-foreground")} />
+            <span>{s.active ? "متاحة" : "متوقفة"}</span>
+          </div>
+        </div>
+        <div className="flex opacity-0 group-hover:opacity-100 transition">
+          <button onClick={onEdit} className="size-8 rounded-lg hover:bg-primary/10 hover:text-primary grid place-items-center" title="تعديل">
+            <Pencil className="size-4" />
+          </button>
+          <button onClick={() => { if (confirm("حذف الخدمة؟")) { actions.removeService(s.id); toast.success("تم الحذف"); } }} className="size-8 rounded-lg hover:bg-destructive/10 hover:text-destructive grid place-items-center" title="حذف">
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+      </div>
+
+      {(s.prepMin > 0 || s.cleanupMin > 0) && (
+        <div className="mt-2 text-[11px] text-muted-foreground">
+          تحضير {s.prepMin || 0} د · تنظيف {s.cleanupMin || 0} د
+        </div>
+      )}
+
+      {s.materials && s.materials.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-border/60">
+          <div className="text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+            <Package className="size-3" /> المواد المستهلكة
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {s.materials.map((m) => {
+              const it = inventory.find((x) => x.id === m.itemId);
+              if (!it) return null;
+              return (
+                <span key={m.itemId} className="text-[11px] px-2 py-0.5 rounded-full bg-muted/50 border border-border">
+                  {it.name} · {m.qty} {it.unit}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-3 pt-3 border-t border-border/60">
+        <div className="text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+          <Users className="size-3" /> الموظفون المؤهلون
+        </div>
+        {eligible.length === 0 ? (
+          <div className="text-[11px] text-warning">لا يوجد موظف مربوط — اضبطي التعيين من زر التعديل.</div>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {eligible.map((st) => (
+              <span key={st.id} className="text-[11px] px-2 py-0.5 rounded-full bg-accent/10 border border-accent/30 text-accent">
+                {st.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+        <div className="rounded-lg bg-muted/40 border border-border p-2">
+          <div className="text-muted-foreground">تكلفة المواد</div>
+          <div className="font-bold">{formatSAR(matCost)}</div>
+        </div>
+        <div className="rounded-lg bg-success/10 border border-success/30 p-2">
+          <div className="text-muted-foreground">صافي الربح</div>
+          <div className="font-bold text-success">{formatSAR(Math.max(0, s.price - matCost))}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-end justify-between">
+        <div className="text-2xl font-bold gradient-text">{formatSAR(s.price)}</div>
+        <button
+          onClick={() => actions.updateService(s.id, { active: !s.active })}
+          className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted"
+        >
+          {s.active ? "إيقاف" : "تفعيل"}
+        </button>
+      </div>
     </div>
   );
 }
 
-/* -------- Editor -------- */
-function ServiceEditor({ draft, onClose }: { draft: Service; onClose: () => void }) {
-  const [d, setD] = useState<Service>(draft);
-  const { items } = useInventory();
-  const staff = useStaff();
-  const services = useServices();
-  const exists = services.some((s) => s.id === draft.id);
-  const [staffQ, setStaffQ] = useState("");
-  const [onlyQualified, setOnlyQualified] = useState(false);
+function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
+  form: FormState;
+  setForm: (f: FormState) => void;
+  staffIds: string[];
+  setStaffIds: (ids: string[] | ((prev: string[]) => string[])) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+  isEdit: boolean;
+}) {
+  const inventory = useSalon((s) => s.inventory);
+  const staff = useSalon((s) => s.staff);
+  const total = form.prepMin + form.durationMin + form.cleanupMin;
 
-  const itemsById = useMemo(() => {
-    const m = new Map<string, InventoryItem>();
-    for (const it of items) m.set(it.id, it);
-    return m;
-  }, [items]);
+  const matCost = useMemo(() => serviceMaterialsCost(form.materials, inventory), [form.materials, inventory]);
 
-  const costs = useMemo(() => computeServiceCosts(d, itemsById), [d, itemsById]);
-  const subtotal = costs.materialsCost + costs.storeCost + costs.serviceCost + costs.staffCost;
-
-  const patch = (p: Partial<Service>) => setD((prev) => ({ ...prev, ...p }));
-
-  const save = () => {
-    if (!d.name.trim()) {
-      toast.error("أدخل اسم الخدمة");
-      return;
-    }
-    if (exists) {
-      servicesActions.update(d.id, d);
-      toast.success("تم حفظ الخدمة");
-    } else {
-      servicesActions.create(d);
-      toast.success("تم إضافة الخدمة");
-    }
-    onClose();
+  const setMaterial = (itemId: string, qty: number) => {
+    const others = form.materials.filter((m) => m.itemId !== itemId);
+    setForm({ ...form, materials: qty > 0 ? [...others, { itemId, qty }] : others });
   };
-
-  const remove = () => {
-    if (!exists) { onClose(); return; }
-    if (!confirm("حذف الخدمة؟")) return;
-    servicesActions.remove(d.id);
-    toast.success("تم الحذف");
-    onClose();
-  };
-
-  const addMaterial = () => {
-    const it = items[0];
-    if (!it) {
-      toast.error("لا توجد مواد في المخزن");
-      return;
-    }
-    const m: ServiceMaterial = {
-      id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      itemId: it.id,
-      unitType: "small",
-      qty: 1,
-    };
-    patch({ materials: [...d.materials, m] });
-  };
-
-  const updateMaterial = (id: string, p: Partial<ServiceMaterial>) => {
-    patch({ materials: d.materials.map((m) => (m.id === id ? { ...m, ...p } : m)) });
-  };
-  const removeMaterial = (id: string) => {
-    patch({ materials: d.materials.filter((m) => m.id !== id) });
-  };
-
+  const currentQty = (id: string) => form.materials.find((m) => m.itemId === id)?.qty ?? 0;
   const toggleStaff = (id: string) => {
-    patch({
-      staffIds: d.staffIds.includes(id)
-        ? d.staffIds.filter((x) => x !== id)
-        : [...d.staffIds, id],
-    });
+    setStaffIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   };
-
-  // Enriched staff list with best matching specialization + score
-  const staffEnriched = useMemo(() => {
-    const nameL = d.name.toLowerCase();
-    return staff.map((s) => {
-      let best: { label: string; rating: number; matched: boolean } | null = null;
-      for (const sp of s.specializations) {
-        const svc = findServiceById(sp.id);
-        if (!svc) continue;
-        const matched = !!nameL && svc.label.toLowerCase().includes(nameL);
-        if (!best
-          || (matched && !best.matched)
-          || (matched === best.matched && sp.rating > best.rating)) {
-          best = { label: svc.label, rating: sp.rating, matched };
-        }
-      }
-      return { staff: s, best };
-    });
-  }, [staff, d.name]);
-
-  const staffFiltered = useMemo(() => {
-    const q = staffQ.trim().toLowerCase();
-    let list = staffEnriched;
-    if (onlyQualified) list = list.filter((x) => !!x.best);
-    if (q) list = list.filter((x) => x.staff.name.toLowerCase().includes(q) || (x.staff.jobTitle || "").toLowerCase().includes(q));
-    // Sort: selected → matched → rating desc → name
-    return [...list].sort((a, b) => {
-      const aSel = d.staffIds.includes(a.staff.id) ? 1 : 0;
-      const bSel = d.staffIds.includes(b.staff.id) ? 1 : 0;
-      if (aSel !== bSel) return bSel - aSel;
-      const aM = a.best?.matched ? 1 : 0;
-      const bM = b.best?.matched ? 1 : 0;
-      if (aM !== bM) return bM - aM;
-      const aR = a.best?.rating || 0;
-      const bR = b.best?.rating || 0;
-      if (aR !== bR) return bR - aR;
-      return (a.staff.name || "").localeCompare(b.staff.name || "");
-    });
-  }, [staffEnriched, staffQ, onlyQualified, d.staffIds]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="w-full md:max-w-5xl bg-background md:rounded-2xl md:my-6 border-y md:border border-border shadow-2xl overflow-y-auto max-h-screen"
-        onClick={(e) => e.stopPropagation()}
-        dir="rtl"
-      >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 md:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <Sparkles className="size-4 text-primary shrink-0" />
-            <div className="font-bold truncate">{exists ? "تعديل خدمة" : "خدمة جديدة"}</div>
-            {d.name && <span className="text-xs text-muted-foreground truncate hidden md:inline">— {d.name}</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            {exists && (
-              <button onClick={remove} className="h-9 px-3 rounded-lg border border-destructive/40 text-destructive text-sm inline-flex items-center gap-1.5 hover:bg-destructive/10">
-                <Trash2 className="size-4" /> حذف
-              </button>
-            )}
-            <button onClick={save} className="h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm inline-flex items-center gap-1.5">
-              <Save className="size-4" /> حفظ
-            </button>
-            <button onClick={onClose} className="size-9 rounded-lg border border-border inline-flex items-center justify-center hover:bg-muted">
-              <X className="size-4" />
-            </button>
-          </div>
+    <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+      <div className="glass-card rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur">
+          <h3 className="font-bold text-lg">{isEdit ? "تعديل الخدمة" : "خدمة جديدة"}</h3>
+          <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
         </div>
 
-        <div className="grid md:grid-cols-[1fr_320px] gap-4 md:gap-6 p-4 md:p-6">
-          {/* Main column */}
-          <div className="space-y-4 min-w-0">
-            {/* Basic */}
-            <Section title="بيانات الخدمة" icon={<Tag className="size-4" />} step="1">
-              <div className="grid md:grid-cols-2 gap-3">
-                <Field label="اسم الخدمة" required>
-                  <input
-                    value={d.name}
-                    onChange={(e) => patch({ name: e.target.value })}
-                    className="input"
-                    placeholder="مثلاً: صبغ شعر"
-                  />
-                </Field>
-                <Field label="الوصف (اختياري)">
-                  <input
-                    value={d.description}
-                    onChange={(e) => patch({ description: e.target.value })}
-                    className="input"
-                    placeholder="ملاحظات مختصرة"
-                  />
-                </Field>
-              </div>
-            </Section>
-
-            {/* Materials */}
-            <Section
-              title="مواد الخدمة"
-              icon={<Package className="size-4" />}
-              step="2"
-              hint="اختر المواد من المخزن. سعر الوحدة الصغيرة يُحسب تلقائياً."
-              action={
-                <button onClick={addMaterial} className="h-8 px-2.5 rounded-lg border border-border bg-card/60 text-xs inline-flex items-center gap-1 hover:bg-muted">
-                  <Plus className="size-3.5" /> إضافة مادة
-                </button>
-              }
-            >
-              {d.materials.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                  لا توجد مواد. اضغط "إضافة مادة" لاختيار مادة من المخزن.
-                </div>
-              ) : (
-                <div className="rounded-lg border border-border overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/40 text-muted-foreground text-xs">
-                        <tr>
-                          <th className="text-right p-2 font-medium">المادة</th>
-                          <th className="text-right p-2 font-medium">نوع الوحدة</th>
-                          <th className="text-right p-2 font-medium">الوحدة</th>
-                          <th className="text-right p-2 font-medium">الكمية</th>
-                          <th className="text-right p-2 font-medium">الإجمالي</th>
-                          <th className="p-2"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {d.materials.map((m) => {
-                          const it = itemsById.get(m.itemId);
-                          const unitLabel = it ? (m.unitType === "large" ? it.unit : it.smallUnit) : "-";
-                          const perUnit = it ? (m.unitType === "large" ? it.unitPrice : (it.unitPrice / (it.packQty || 1))) : 0;
-                          const total = perUnit * (Number(m.qty) || 0);
-                          return (
-                            <tr key={m.id} className="border-t border-border">
-                              <td className="p-2">
-                                <select
-                                  value={m.itemId}
-                                  onChange={(e) => updateMaterial(m.id, { itemId: e.target.value })}
-                                  className="input h-9"
-                                >
-                                  {items.map((it2) => (
-                                    <option key={it2.id} value={it2.id}>{it2.name || it2.code}</option>
-                                  ))}
-                                </select>
-                              </td>
-                              <td className="p-2">
-                                <select
-                                  value={m.unitType}
-                                  onChange={(e) => updateMaterial(m.id, { unitType: e.target.value as MaterialUnitType })}
-                                  className="input h-9"
-                                >
-                                  <option value="small">صغيرة</option>
-                                  <option value="large">كبيرة</option>
-                                </select>
-                              </td>
-                              <td className="p-2 text-muted-foreground text-xs">{unitLabel}</td>
-                              <td className="p-2">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step="0.01"
-                                  value={m.qty}
-                                  onChange={(e) => updateMaterial(m.id, { qty: Number(e.target.value) })}
-                                  className="input h-9 w-24"
-                                />
-                              </td>
-                              <td className="p-2 font-medium">{fmtSAR(total)}</td>
-                              <td className="p-2">
-                                <button
-                                  onClick={() => removeMaterial(m.id)}
-                                  className="size-8 rounded-md hover:bg-destructive/10 text-destructive inline-flex items-center justify-center"
-                                >
-                                  <Trash2 className="size-4" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-t border-border bg-muted/30">
-                          <td colSpan={4} className="p-2 text-left font-medium">تكلفة المواد</td>
-                          <td colSpan={2} className="p-2 font-bold text-primary">{fmtSAR(costs.materialsCost)}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </Section>
-
-            {/* Overhead percentages (before VAT) */}
-            <Section
-              title="النسب التشغيلية"
-              icon={<Percent className="size-4" />}
-              step="3"
-              hint="نسب تُحسب على تكلفة المواد وتُضاف قبل الضريبة."
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <PctField label="نسبة المتجر" value={d.storePct} onChange={(v) => patch({ storePct: v })} hint={fmtSAR(costs.storeCost)} />
-                <PctField label="نسبة الخدمات" value={d.servicePct} onChange={(v) => patch({ servicePct: v })} hint={fmtSAR(costs.serviceCost)} />
-                <PctField label="نسبة راتب الموظف" value={d.staffSalaryPct} onChange={(v) => patch({ staffSalaryPct: v })} hint={fmtSAR(costs.staffCost)} />
-              </div>
-
-              {/* Subtotal before VAT */}
-              <div className="mt-4 rounded-lg bg-muted/30 border border-border p-3 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">الإجمالي قبل الضريبة</div>
-                <div className="font-bold">{fmtSAR(subtotal)}</div>
-              </div>
-            </Section>
-
-            {/* VAT — applied on subtotal */}
-            <Section title="الضريبة" icon={<Receipt className="size-4" />} step="4" hint="الضريبة تُحسب على الإجمالي بعد النسب التشغيلية.">
-              <div className="grid md:grid-cols-2 gap-3 items-end">
-                <PctField label="نسبة الضريبة (الهاك)" value={d.vatPct} onChange={(v) => patch({ vatPct: v })} />
-                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">قيمة الضريبة</div>
-                  <div className="font-bold text-emerald-700 dark:text-emerald-400">{fmtSAR(costs.vatCost)}</div>
-                </div>
-              </div>
-              <div className="mt-3 rounded-lg bg-primary/10 border border-primary/30 p-3 flex items-center justify-between">
-                <div className="text-sm font-medium">إجمالي التكاليف (شامل الضريبة)</div>
-                <div className="font-bold text-lg text-primary">{fmtSAR(costs.totalCosts)}</div>
-              </div>
-            </Section>
-
-            {/* Pricing */}
-            <Section title="التسعير والربح" icon={<Calculator className="size-4" />} step="5">
-              <div className="grid md:grid-cols-2 gap-3">
-                <Field label="الربح">
-                  <div className="flex gap-2">
-                    <select
-                      value={d.profitMode}
-                      onChange={(e) => patch({ profitMode: e.target.value as "pct" | "amount" })}
-                      className="input w-28"
-                    >
-                      <option value="pct">نسبة %</option>
-                      <option value="amount">مبلغ ر.س</option>
-                    </select>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={d.profitValue}
-                      onChange={(e) => patch({ profitValue: Number(e.target.value) })}
-                      className="input flex-1"
-                    />
-                  </div>
-                  <div className="text-[11px] text-muted-foreground mt-1 inline-flex items-center gap-1">
-                    <TrendingUp className="size-3" /> قيمة الربح: {fmtSAR(costs.profitAmount)}
-                  </div>
-                </Field>
-                <Field label="سعر الخدمة">
-                  <div className="flex gap-2">
-                    <select
-                      value={d.priceMode}
-                      onChange={(e) => patch({ priceMode: e.target.value as "auto" | "manual" })}
-                      className="input w-28"
-                    >
-                      <option value="auto">تلقائي</option>
-                      <option value="manual">يدوي</option>
-                    </select>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      disabled={d.priceMode === "auto"}
-                      value={d.priceMode === "auto" ? costs.autoPrice.toFixed(2) : d.manualPrice}
-                      onChange={(e) => patch({ manualPrice: Number(e.target.value) })}
-                      className="input flex-1 disabled:opacity-70"
-                    />
-                  </div>
-                  <div className="text-[11px] text-muted-foreground mt-1">
-                    السعر التلقائي المقترح: {fmtSAR(costs.autoPrice)}
-                  </div>
-                </Field>
-              </div>
-            </Section>
-
-            {/* Staff */}
-            <Section
-              title="الموظفون المؤهلون"
-              icon={<Users2 className="size-4" />}
-              step="6"
-              hint="اختر من يستطيع تقديم هذه الخدمة. الأعلى تقييماً والأنسب لاسم الخدمة يظهرون أولاً."
-              action={
-                <div className="text-xs text-muted-foreground">
-                  محدد: <span className="font-bold text-foreground">{d.staffIds.length}</span> / {staff.length}
-                </div>
-              }
-            >
-              <div className="flex flex-col sm:flex-row gap-2 mb-3">
-                <div className="relative flex-1">
-                  <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    value={staffQ}
-                    onChange={(e) => setStaffQ(e.target.value)}
-                    placeholder="بحث بالاسم أو المسمى الوظيفي..."
-                    className="w-full h-10 pr-9 pl-3 rounded-lg bg-card/60 border border-border text-sm"
-                  />
-                </div>
-                <label className="inline-flex items-center gap-2 h-10 px-3 rounded-lg border border-border bg-card/60 text-sm cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={onlyQualified}
-                    onChange={(e) => setOnlyQualified(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  عرض المؤهلين فقط
-                </label>
-              </div>
-
-              {staffFiltered.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                  لا يوجد موظفون مطابقون.
-                </div>
-              ) : (
-                <div className="grid gap-2 md:grid-cols-2">
-                  {staffFiltered.map((row) => (
-                    <StaffPickRow
-                      key={row.staff.id}
-                      staff={row.staff}
-                      best={row.best}
-                      selected={d.staffIds.includes(row.staff.id)}
-                      onToggle={() => toggleStaff(row.staff.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </Section>
+        <div className="p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="اسم الخدمة">
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" />
+            </Field>
+            <Field label="التصنيف">
+              <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="input" />
+            </Field>
+            <Field label="السعر (ر.س)">
+              <input type="number" min={0} value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className="input" />
+            </Field>
+            <Field label="مدة الخدمة (دقيقة)">
+              <input type="number" min={0} value={form.durationMin} onChange={(e) => setForm({ ...form, durationMin: Number(e.target.value) })} className="input" />
+            </Field>
           </div>
 
-          {/* Sticky summary sidebar */}
-          <aside className="md:sticky md:top-16 self-start">
-            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-bold">
-                <Receipt className="size-4 text-primary" />
-                ملخص التكلفة
-              </div>
-              <SumRow label="المواد" value={fmtSAR(costs.materialsCost)} />
-              <SumRow label="المتجر" value={fmtSAR(costs.storeCost)} muted />
-              <SumRow label="الخدمات" value={fmtSAR(costs.serviceCost)} muted />
-              <SumRow label="راتب" value={fmtSAR(costs.staffCost)} muted />
-              <div className="h-px bg-border" />
-              <SumRow label="قبل الضريبة" value={fmtSAR(subtotal)} bold />
-              <SumRow label={`الضريبة (${d.vatPct || 0}%)`} value={fmtSAR(costs.vatCost)} />
-              <div className="h-px bg-border" />
-              <SumRow label="إجمالي التكاليف" value={fmtSAR(costs.totalCosts)} bold />
-              <SumRow label="الربح" value={fmtSAR(costs.profitAmount)} tone="ok" />
-              <div className="h-px bg-border" />
-              <div className="rounded-xl bg-gradient-to-l from-primary/20 to-accent/15 border border-primary/30 p-3 flex items-center justify-between">
-                <div className="text-xs text-muted-foreground">السعر النهائي</div>
-                <div className="font-extrabold text-xl text-primary">{fmtSAR(costs.finalPrice)}</div>
-              </div>
-              <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
-                <BadgeCheck className="size-3" />
-                {d.priceMode === "auto" ? "تسعير تلقائي" : "تسعير يدوي"}
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+              <Timer className="size-3" /> إدارة الوقت
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="تحضير (د)">
+                <input type="number" min={0} value={form.prepMin} onChange={(e) => setForm({ ...form, prepMin: Number(e.target.value) })} className="input" />
+              </Field>
+              <Field label="تنظيف (د)">
+                <input type="number" min={0} value={form.cleanupMin} onChange={(e) => setForm({ ...form, cleanupMin: Number(e.target.value) })} className="input" />
+              </Field>
+              <div className="flex flex-col justify-end">
+                <div className="text-xs text-muted-foreground mb-1.5">الإجمالي المحجوز</div>
+                <div className="h-10 rounded-lg bg-primary/10 border border-primary/30 grid place-items-center text-sm font-bold text-primary">
+                  {total} دقيقة
+                </div>
               </div>
             </div>
-          </aside>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              يتم حجز الوقت الإجمالي في تقويم الموظف لمنع تداخل الحجوزات.
+            </p>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+              <Users className="size-3" /> الموظفون المؤهلون لتقديم الخدمة
+            </div>
+            {staff.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                لا يوجد موظفون. أضيفي موظفين من صفحة الموظفين.
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {staff.map((st) => {
+                  const on = staffIds.includes(st.id);
+                  return (
+                    <button
+                      type="button"
+                      key={st.id}
+                      onClick={() => toggleStaff(st.id)}
+                      className={cn(
+                        "text-xs px-3 py-1.5 rounded-full border transition",
+                        on
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:border-primary/50 hover:text-primary",
+                      )}
+                    >
+                      {st.name}
+                      <span className="opacity-70 mr-1">· {st.role}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-2">
+              في الحجز يظهر فقط الموظفون المؤهلون لهذه الخدمة.
+            </p>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center justify-between gap-1">
+              <span className="flex items-center gap-1"><Package className="size-3" /> المواد المستهلكة لكل جلسة</span>
+              <span className="text-[11px] font-normal">{form.materials.length} مادة</span>
+            </div>
+
+            {inventory.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                لا توجد مواد في المخزون بعد. أضيفي عناصر من صفحة المخزون أولاً.
+              </div>
+            ) : (
+              <>
+                {/* Add from inventory */}
+                {(() => {
+                  const available = inventory.filter((it) => !form.materials.some((m) => m.itemId === it.id));
+                  return (
+                    <div className="flex items-center gap-2 mb-2">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          if (!id) return;
+                          const it = inventory.find((x) => x.id === id);
+                          if (!it) return;
+                          setForm({ ...form, materials: [...form.materials, { itemId: id, qty: 1 }] });
+                        }}
+                        disabled={available.length === 0}
+                        className="input flex-1"
+                      >
+                        <option value="">
+                          {available.length === 0 ? "أضفتِ جميع المواد المتوفرة" : "اختاري مادة من المخزون…"}
+                        </option>
+                        {available.map((it) => (
+                          <option key={it.id} value={it.id}>
+                            {it.name} — متوفر {it.stock} {it.unit}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
+
+                {/* Added list */}
+                {form.materials.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                    لا توجد مواد مضافة. اختاري مادة من القائمة أعلاه لإضافتها.
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border divide-y divide-border">
+                    {form.materials.map((m) => {
+                      const it = inventory.find((x) => x.id === m.itemId);
+                      if (!it) {
+                        return (
+                          <div key={m.itemId} className="flex items-center gap-2 p-2.5 text-xs text-destructive">
+                            <span className="flex-1">مادة محذوفة من المخزون</span>
+                            <button
+                              type="button"
+                              onClick={() => setForm({ ...form, materials: form.materials.filter((x) => x.itemId !== m.itemId) })}
+                              className="size-7 rounded-md hover:bg-destructive/10 grid place-items-center"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        );
+                      }
+                      const perBase = costPerBase(it);
+                      const mLabel = measureLabel(it.measure ?? "count");
+                      const lineCost = m.qty * perBase;
+                      return (
+                        <div key={m.itemId} className="flex items-center gap-2 p-2.5 text-sm">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{it.name}</div>
+                            <div className="text-[11px] text-muted-foreground">
+                              {perBase.toFixed(3)} ر.س / {mLabel} · متوفر {it.stock} {it.unit}
+                            </div>
+                          </div>
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={m.qty}
+                            onChange={(e) => setMaterial(it.id, Number(e.target.value))}
+                            className="h-8 w-20 rounded-md bg-muted/40 border border-border px-2 text-xs text-center"
+                          />
+                          <span className="text-[11px] text-muted-foreground w-8">{mLabel}</span>
+                          <span className="text-[11px] w-16 text-left font-semibold text-primary">
+                            {lineCost > 0 ? formatSAR(lineCost) : "—"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setForm({ ...form, materials: form.materials.filter((x) => x.itemId !== m.itemId) })}
+                            className="size-7 rounded-md hover:bg-destructive/10 hover:text-destructive grid place-items-center"
+                            title="حذف"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+              <div className="rounded-lg bg-muted/40 border border-border p-2 flex items-center gap-1">
+                <Coins className="size-3 text-muted-foreground" />
+                <span className="text-muted-foreground">تكلفة المواد:</span>
+                <span className="font-bold mr-auto">{formatSAR(matCost)}</span>
+              </div>
+              <div className="rounded-lg bg-muted/40 border border-border p-2">
+                <span className="text-muted-foreground">السعر:</span>
+                <span className="font-bold mr-1">{formatSAR(form.price)}</span>
+              </div>
+              <div className="rounded-lg bg-success/10 border border-success/30 p-2">
+                <span className="text-muted-foreground">الربح:</span>
+                <span className="font-bold text-success mr-1">{formatSAR(Math.max(0, form.price - matCost))}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
+          <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
+          <button onClick={onSubmit} className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">
+            {isEdit ? "حفظ التعديلات" : "إضافة"}
+          </button>
         </div>
       </div>
+      <style>{`.input{width:100%;height:2.5rem;border-radius:.5rem;background:color-mix(in oklab,var(--muted) 40%,transparent);border:1px solid var(--border);padding:0 .75rem;font-size:.875rem;outline:none}.input:focus{border-color:color-mix(in oklab,var(--primary) 50%,transparent)}`}</style>
     </div>
   );
 }
 
-function SumRow({ label, value, muted, bold, tone }: {
-  label: string; value: string; muted?: boolean; bold?: boolean; tone?: "ok";
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between text-sm">
-      <span className={cn("text-muted-foreground", muted && "text-xs")}>{label}</span>
-      <span className={cn(
-        bold && "font-bold",
-        tone === "ok" && "text-emerald-600 font-semibold",
-      )}>{value}</span>
-    </div>
-  );
-}
-
-function StaffPickRow({ staff, best, selected, onToggle }: {
-  staff: Staff;
-  best: { label: string; rating: number; matched: boolean } | null;
-  selected: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={cn(
-        "text-right flex items-center gap-3 p-3 rounded-lg border transition",
-        selected
-          ? "border-primary/60 bg-primary/10 shadow-sm"
-          : "border-border bg-card/60 hover:bg-muted/50",
-      )}
-    >
-      <div className={cn(
-        "size-10 rounded-full flex items-center justify-center border-2 shrink-0 font-bold",
-        selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-muted text-muted-foreground",
-      )}>
-        {staff.name.slice(0, 1) || "؟"}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <div className="font-medium text-sm truncate">{staff.name || "بدون اسم"}</div>
-          {best?.matched && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-              مطابق
-            </span>
-          )}
-        </div>
-        <div className="text-[11px] text-muted-foreground truncate">
-          {staff.jobTitle || "—"}
-          {best && <span className="mx-1">• {best.label}</span>}
-        </div>
-      </div>
-      {best ? (
-        <div className="flex items-center gap-0.5 shrink-0">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className={cn("size-3.5", i < best.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40")} />
-          ))}
-        </div>
-      ) : (
-        <span className="text-[10px] text-muted-foreground shrink-0">بدون تخصص</span>
-      )}
-    </button>
-  );
-}
-
-/* -------- Small UI helpers -------- */
-function Section({ title, icon, action, children, step, hint }: {
-  title: string;
-  icon?: React.ReactNode;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-  step?: string;
-  hint?: string;
-}) {
-  return (
-    <section className="rounded-xl border border-border bg-card/60 overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-border flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 font-semibold text-sm min-w-0">
-          {step && (
-            <span className="size-6 rounded-full bg-primary/15 text-primary text-[11px] font-bold inline-flex items-center justify-center shrink-0">
-              {step}
-            </span>
-          )}
-          {icon}
-          <span className="truncate">{title}</span>
-        </div>
-        {action}
-      </div>
-      {hint && (
-        <div className="px-4 pt-2 text-[11px] text-muted-foreground">{hint}</div>
-      )}
-      <div className="p-4">{children}</div>
-    </section>
-  );
-}
-
-function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
-  return (
-    <label className="block">
-      <div className="text-xs text-muted-foreground mb-1">
-        {label}
-        {required && <span className="text-destructive mr-0.5">*</span>}
-      </div>
+    <div>
+      <label className="text-xs font-semibold text-muted-foreground mb-2 block">{label}</label>
       {children}
-    </label>
-  );
-}
-
-function PctField({ label, value, onChange, hint }: { label: string; value: number; onChange: (v: number) => void; hint?: string }) {
-  return (
-    <Field label={label}>
-      <div className="relative">
-        <input
-          type="number"
-          min={0}
-          step="0.01"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="input pl-8"
-        />
-        <Percent className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-      </div>
-      {hint && <div className="text-[11px] text-muted-foreground mt-1">= {hint}</div>}
-    </Field>
+    </div>
   );
 }

@@ -136,25 +136,6 @@
   color: transparent;
 }
 
-@utility input {
-  width: 100%;
-  height: 2.5rem;
-  border-radius: 0.75rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 0 0.75rem;
-  font-size: 0.875rem;
-  outline: none;
-  color: var(--foreground);
-  transition: border-color 0.15s;
-}
-.input:focus { border-color: color-mix(in oklab, var(--primary) 60%, transparent); }
-.input[type="date"], textarea.input { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-textarea.input { height: auto; min-height: 2.5rem; }
-
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
 @media print {
   body * { visibility: hidden !important; }
   .receipt, .receipt * { visibility: visible !important; }

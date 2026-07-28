@@ -10,15 +10,35 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as SpecialistRouteImport } from './routes/specialist'
+import { Route as SiteRouteImport } from './routes/site'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as PayrollRouteImport } from './routes/payroll'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as ClientRouteImport } from './routes/client'
+import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as BookingsRouteImport } from './routes/bookings'
+import { Route as BookingSettingsRouteImport } from './routes/booking-settings'
+import { Route as AttendanceRouteImport } from './routes/attendance'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpecialistRoute = SpecialistRouteImport.update({
+  id: '/specialist',
+  path: '/specialist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteRoute = SiteRouteImport.update({
+  id: '/site',
+  path: '/site',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -31,6 +51,21 @@ const ServicesRoute = ServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayrollRoute = PayrollRouteImport.update({
+  id: '/payroll',
+  path: '/payroll',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoicesRoute = InvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InventoryRoute = InventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -41,6 +76,31 @@ const CustomersRoute = CustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientRoute = ClientRouteImport.update({
+  id: '/client',
+  path: '/client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsRoute = BookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingSettingsRoute = BookingSettingsRouteImport.update({
+  id: '/booking-settings',
+  path: '/booking-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttendanceRoute = AttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,56 +109,132 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/attendance': typeof AttendanceRoute
+  '/booking-settings': typeof BookingSettingsRoute
+  '/bookings': typeof BookingsRoute
+  '/calendar': typeof CalendarRoute
+  '/client': typeof ClientRoute
   '/customers': typeof CustomersRoute
   '/inventory': typeof InventoryRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/payroll': typeof PayrollRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/site': typeof SiteRoute
+  '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/attendance': typeof AttendanceRoute
+  '/booking-settings': typeof BookingSettingsRoute
+  '/bookings': typeof BookingsRoute
+  '/calendar': typeof CalendarRoute
+  '/client': typeof ClientRoute
   '/customers': typeof CustomersRoute
   '/inventory': typeof InventoryRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/payroll': typeof PayrollRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/site': typeof SiteRoute
+  '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/attendance': typeof AttendanceRoute
+  '/booking-settings': typeof BookingSettingsRoute
+  '/bookings': typeof BookingsRoute
+  '/calendar': typeof CalendarRoute
+  '/client': typeof ClientRoute
   '/customers': typeof CustomersRoute
   '/inventory': typeof InventoryRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/payroll': typeof PayrollRoute
   '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
+  '/site': typeof SiteRoute
+  '/specialist': typeof SpecialistRoute
   '/staff': typeof StaffRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/attendance'
+    | '/booking-settings'
+    | '/bookings'
+    | '/calendar'
+    | '/client'
     | '/customers'
     | '/inventory'
+    | '/invoices'
+    | '/login'
+    | '/payroll'
     | '/services'
     | '/settings'
+    | '/site'
+    | '/specialist'
     | '/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/customers' | '/inventory' | '/services' | '/settings' | '/staff'
+  to:
+    | '/'
+    | '/attendance'
+    | '/booking-settings'
+    | '/bookings'
+    | '/calendar'
+    | '/client'
+    | '/customers'
+    | '/inventory'
+    | '/invoices'
+    | '/login'
+    | '/payroll'
+    | '/services'
+    | '/settings'
+    | '/site'
+    | '/specialist'
+    | '/staff'
   id:
     | '__root__'
     | '/'
+    | '/attendance'
+    | '/booking-settings'
+    | '/bookings'
+    | '/calendar'
+    | '/client'
     | '/customers'
     | '/inventory'
+    | '/invoices'
+    | '/login'
+    | '/payroll'
     | '/services'
     | '/settings'
+    | '/site'
+    | '/specialist'
     | '/staff'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AttendanceRoute: typeof AttendanceRoute
+  BookingSettingsRoute: typeof BookingSettingsRoute
+  BookingsRoute: typeof BookingsRoute
+  CalendarRoute: typeof CalendarRoute
+  ClientRoute: typeof ClientRoute
   CustomersRoute: typeof CustomersRoute
   InventoryRoute: typeof InventoryRoute
+  InvoicesRoute: typeof InvoicesRoute
+  LoginRoute: typeof LoginRoute
+  PayrollRoute: typeof PayrollRoute
   ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
+  SiteRoute: typeof SiteRoute
+  SpecialistRoute: typeof SpecialistRoute
   StaffRoute: typeof StaffRoute
 }
 
@@ -109,6 +245,20 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/specialist': {
+      id: '/specialist'
+      path: '/specialist'
+      fullPath: '/specialist'
+      preLoaderRoute: typeof SpecialistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/site': {
+      id: '/site'
+      path: '/site'
+      fullPath: '/site'
+      preLoaderRoute: typeof SiteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -125,6 +275,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payroll': {
+      id: '/payroll'
+      path: '/payroll'
+      fullPath: '/payroll'
+      preLoaderRoute: typeof PayrollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoices': {
+      id: '/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof InvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inventory': {
       id: '/inventory'
       path: '/inventory'
@@ -139,6 +310,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client': {
+      id: '/client'
+      path: '/client'
+      fullPath: '/client'
+      preLoaderRoute: typeof ClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings': {
+      id: '/bookings'
+      path: '/bookings'
+      fullPath: '/bookings'
+      preLoaderRoute: typeof BookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking-settings': {
+      id: '/booking-settings'
+      path: '/booking-settings'
+      fullPath: '/booking-settings'
+      preLoaderRoute: typeof BookingSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attendance': {
+      id: '/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AttendanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -151,10 +357,20 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AttendanceRoute: AttendanceRoute,
+  BookingSettingsRoute: BookingSettingsRoute,
+  BookingsRoute: BookingsRoute,
+  CalendarRoute: CalendarRoute,
+  ClientRoute: ClientRoute,
   CustomersRoute: CustomersRoute,
   InventoryRoute: InventoryRoute,
+  InvoicesRoute: InvoicesRoute,
+  LoginRoute: LoginRoute,
+  PayrollRoute: PayrollRoute,
   ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
+  SiteRoute: SiteRoute,
+  SpecialistRoute: SpecialistRoute,
   StaffRoute: StaffRoute,
 }
 export const routeTree = rootRouteImport
