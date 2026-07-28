@@ -41,6 +41,8 @@ export interface InventorySettings {
   alertsEnabled: boolean;
   defaultThreshold: number;
   notifyPhone: string;
+  largeUnits: string[];
+  smallUnits: string[];
 }
 
 interface InventoryState {
@@ -61,10 +63,15 @@ const DEFAULT_CATEGORIES: InventoryCategory[] = [
   { id: "cat_body", name: "العناية بالجسم" },
 ];
 
+const DEFAULT_LARGE_UNITS = ["علبة", "زجاجة", "أنبوب", "كيس", "قطعة", "كرتون", "عبوة"];
+const DEFAULT_SMALL_UNITS = ["مل", "جم", "كجم", "قطعة", "لتر"];
+
 const DEFAULT_SETTINGS: InventorySettings = {
   alertsEnabled: true,
   defaultThreshold: 5,
   notifyPhone: "",
+  largeUnits: DEFAULT_LARGE_UNITS,
+  smallUnits: DEFAULT_SMALL_UNITS,
 };
 
 const DEFAULT: InventoryState = {
@@ -92,7 +99,16 @@ function ensure() {
           ? parsed.categories
           : DEFAULT_CATEGORIES,
         items: Array.isArray(parsed?.items) ? parsed.items : [],
-        settings: { ...DEFAULT_SETTINGS, ...(parsed?.settings || {}) },
+        settings: {
+          ...DEFAULT_SETTINGS,
+          ...(parsed?.settings || {}),
+          largeUnits: Array.isArray(parsed?.settings?.largeUnits) && parsed.settings.largeUnits.length
+            ? parsed.settings.largeUnits
+            : DEFAULT_LARGE_UNITS,
+          smallUnits: Array.isArray(parsed?.settings?.smallUnits) && parsed.settings.smallUnits.length
+            ? parsed.settings.smallUnits
+            : DEFAULT_SMALL_UNITS,
+        },
         counter: Number(parsed?.counter) || 0,
       };
     }
@@ -195,6 +211,60 @@ export const inventoryActions = {
   /* Settings */
   updateSettings(patch: Partial<InventorySettings>) {
     state = { ...state, settings: { ...state.settings, ...patch } };
+    persist();
+  },
+
+  /* Units management */
+  addLargeUnit(name: string) {
+    const n = name.trim();
+    if (!n || state.settings.largeUnits.includes(n)) return;
+    state = { ...state, settings: { ...state.settings, largeUnits: [...state.settings.largeUnits, n] } };
+    persist();
+  },
+  updateLargeUnit(oldName: string, newName: string) {
+    const n = newName.trim();
+    if (!n) return;
+    state = {
+      ...state,
+      settings: {
+        ...state.settings,
+        largeUnits: state.settings.largeUnits.map((u) => (u === oldName ? n : u)),
+      },
+      items: state.items.map((i) => (i.unit === oldName ? { ...i, unit: n } : i)),
+    };
+    persist();
+  },
+  removeLargeUnit(name: string) {
+    state = {
+      ...state,
+      settings: { ...state.settings, largeUnits: state.settings.largeUnits.filter((u) => u !== name) },
+    };
+    persist();
+  },
+  addSmallUnit(name: string) {
+    const n = name.trim();
+    if (!n || state.settings.smallUnits.includes(n)) return;
+    state = { ...state, settings: { ...state.settings, smallUnits: [...state.settings.smallUnits, n] } };
+    persist();
+  },
+  updateSmallUnit(oldName: string, newName: string) {
+    const n = newName.trim();
+    if (!n) return;
+    state = {
+      ...state,
+      settings: {
+        ...state.settings,
+        smallUnits: state.settings.smallUnits.map((u) => (u === oldName ? n : u)),
+      },
+      items: state.items.map((i) => (i.smallUnit === oldName ? { ...i, smallUnit: n } : i)),
+    };
+    persist();
+  },
+  removeSmallUnit(name: string) {
+    state = {
+      ...state,
+      settings: { ...state.settings, smallUnits: state.settings.smallUnits.filter((u) => u !== name) },
+    };
     persist();
   },
 
