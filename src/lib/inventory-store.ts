@@ -41,6 +41,8 @@ export interface InventorySettings {
   alertsEnabled: boolean;
   defaultThreshold: number;
   notifyPhone: string;
+  largeUnits: string[];
+  smallUnits: string[];
 }
 
 interface InventoryState {
@@ -61,10 +63,15 @@ const DEFAULT_CATEGORIES: InventoryCategory[] = [
   { id: "cat_body", name: "العناية بالجسم" },
 ];
 
+const DEFAULT_LARGE_UNITS = ["علبة", "زجاجة", "أنبوب", "كيس", "قطعة", "كرتون", "عبوة"];
+const DEFAULT_SMALL_UNITS = ["مل", "جم", "كجم", "قطعة", "لتر"];
+
 const DEFAULT_SETTINGS: InventorySettings = {
   alertsEnabled: true,
   defaultThreshold: 5,
   notifyPhone: "",
+  largeUnits: DEFAULT_LARGE_UNITS,
+  smallUnits: DEFAULT_SMALL_UNITS,
 };
 
 const DEFAULT: InventoryState = {
