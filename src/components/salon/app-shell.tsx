@@ -73,7 +73,7 @@ export function AppShell({ children, title, subtitle, action }: {
 
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/85 backdrop-blur-xl">
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-4">
             {nav.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.to;
