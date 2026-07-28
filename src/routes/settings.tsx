@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
-import { useSalon } from "@/lib/salon-store";
+import { useSiteSettings, siteActions, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useEffect, useRef, useState } from "react";
-import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check } from "lucide-react";
+import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Sparkles, Layout, Store, Type, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +27,6 @@ const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
 
 function SettingsPage() {
   const s = useSiteSettings();
-  const customers = useSalon((x) => x.customers);
   const [tab, setTab] = useState<"design" | "images" | "wa">("design");
 
   return (
@@ -36,21 +34,22 @@ function SettingsPage() {
       title="إعدادات الموقع"
       subtitle="خصّص الألوان، الشكل، الصور، ورسائل واتساب"
       action={
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { if (confirm("استعادة الإعدادات الافتراضية؟")) { siteActions.reset(); toast.success("تمت الاستعادة"); } }}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted"
-          >
-            <RotateCcw className="size-4" /> استعادة
-          </button>
-          <a
-            href="/site"
-            target="_blank"
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)]"
-          >
-            <ExternalLink className="size-4" /> معاينة الموقع
-          </a>
-        </div>
+        <button
+          onClick={() => {
+            if (confirm("استعادة الإعدادات الافتراضية؟")) {
+              try {
+                siteActions.reset();
+                toast.success("تمت الاستعادة");
+              } catch (err) {
+                console.error(err);
+                toast.error("تعذّرت الاستعادة");
+              }
+            }
+          }}
+          className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted"
+        >
+          <RotateCcw className="size-4" /> استعادة
+        </button>
       }
     >
       {/* Tabs */}
