@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, Settings, Scissors } from "lucide-react";
+import { LayoutDashboard, Settings, Scissors, Users2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/lib/site-settings";
 
 const nav = [
   { to: "/", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/staff", label: "الموظفون", icon: Users2 },
   { to: "/settings", label: "إعدادات الموقع", icon: Settings },
 ] as const;
 
@@ -71,7 +72,7 @@ export function AppShell({ children, title, subtitle, action }: {
 
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/85 backdrop-blur-xl">
-          <div className="grid grid-cols-2">
+          <div className="grid grid-cols-3">
             {nav.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.to;
