@@ -415,50 +415,109 @@ function ItemEditor({ item, onClose }: { item: InventoryItem; onClose: () => voi
 
   return (
     <Modal title={isNew ? "منتج جديد" : `تعديل: ${draft.name}`} onClose={onClose} wide>
-      <div className="grid md:grid-cols-2 gap-3">
-        <Field label="اسم المنتج">
-          <input className={inputCls} value={draft.name} onChange={(e) => set({ name: e.target.value })} />
-        </Field>
-        <Field label="القسم">
-          <select className={inputCls} value={draft.categoryId} onChange={(e) => set({ categoryId: e.target.value })}>
-            <option value="">— بدون —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="الكود">
-          <input
-            className={inputCls}
-            value={draft.code}
-            onChange={(e) => set({ code: e.target.value })}
-            placeholder="تلقائي"
-          />
-        </Field>
-        <Field label="حد التنبيه (بالوحدات)">
-          <input
-            type="number"
-            min={0}
-            className={inputCls}
-            value={draft.lowStockThreshold}
-            onChange={(e) => set({ lowStockThreshold: Number(e.target.value) })}
-            placeholder={`الافتراضي: ${settings.defaultThreshold}`}
-          />
-        </Field>
+      {/* ============ Card 1: Product info & stock ============ */}
+      <section className="rounded-xl border border-border bg-muted/20 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-bold flex items-center gap-1.5">
+            <Package className="size-4 text-primary" /> بيانات المنتج والكمية
+          </h4>
+        </div>
+        <div className="grid md:grid-cols-2 gap-3">
+          <Field label="اسم المنتج">
+            <input className={inputCls} value={draft.name} onChange={(e) => set({ name: e.target.value })} />
+          </Field>
+          <Field label="القسم">
+            <select className={inputCls} value={draft.categoryId} onChange={(e) => set({ categoryId: e.target.value })}>
+              <option value="">— بدون —</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="الكود">
+            <input
+              className={inputCls}
+              value={draft.code}
+              onChange={(e) => set({ code: e.target.value })}
+              placeholder="تلقائي"
+            />
+          </Field>
+          <Field label="حد التنبيه (بالوحدات)">
+            <input
+              type="number"
+              min={0}
+              className={inputCls}
+              value={draft.lowStockThreshold}
+              onChange={(e) => set({ lowStockThreshold: Number(e.target.value) })}
+              placeholder={`الافتراضي: ${settings.defaultThreshold}`}
+            />
+          </Field>
+          <Field label={`الكمية (${draft.unit || "وحدة"})`}>
+            <input
+              type="number"
+              min={0}
+              step="any"
+              className={inputCls}
+              value={draft.quantity}
+              onChange={(e) => set({ quantity: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label={`سعر الوحدة (${draft.unit || "وحدة"})`}>
+            <input
+              type="number"
+              min={0}
+              step="any"
+              className={inputCls}
+              value={draft.unitPrice}
+              onChange={(e) => set({ unitPrice: Number(e.target.value) })}
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="الوصف">
+              <textarea
+                rows={2}
+                className={cn(inputCls, "h-auto py-2")}
+                value={draft.description}
+                onChange={(e) => set({ description: e.target.value })}
+              />
+            </Field>
+          </div>
+        </div>
+        <div className="mt-3">
+          <ReadonlyStat label="إجمالي قيمة المخزون" value={fmtSAR(draft.quantity * draft.unitPrice)} />
+        </div>
+      </section>
 
-        <Field label="الوحدة">
-          <input
-            list="units-list"
-            className={inputCls}
-            value={draft.unit}
-            onChange={(e) => set({ unit: e.target.value })}
-          />
-          <datalist id="units-list">
-            {COMMON_UNITS.map((u) => <option key={u} value={u} />)}
-          </datalist>
-        </Field>
-        <Field label={`الكمية داخل الوحدة (تفصيل)`}>
-          <div className="flex gap-2">
+      {/* ============ Card 2: Unit breakdown ============ */}
+      <section className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h4 className="text-sm font-bold flex items-center gap-1.5">
+            <Ruler className="size-4 text-primary" /> تفصيل الوحدات
+          </h4>
+          <button
+            type="button"
+            onClick={() => setShowUnits(true)}
+            className="h-8 px-2.5 rounded-lg border border-border bg-card/60 hover:bg-muted text-xs inline-flex items-center gap-1"
+          >
+            <Settings2 className="size-3.5" /> إدارة الوحدات
+          </button>
+        </div>
+        <div className="grid md:grid-cols-3 gap-3">
+          <Field label="الوحدة الكبيرة">
+            <select
+              className={inputCls}
+              value={draft.unit}
+              onChange={(e) => set({ unit: e.target.value })}
+            >
+              {!settings.largeUnits.includes(draft.unit) && draft.unit && (
+                <option value={draft.unit}>{draft.unit}</option>
+              )}
+              {settings.largeUnits.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="كمية الوحدة الصغيرة داخل الكبيرة">
             <input
               type="number"
               min={0}
@@ -467,62 +526,36 @@ function ItemEditor({ item, onClose }: { item: InventoryItem; onClose: () => voi
               value={draft.packQty}
               onChange={(e) => set({ packQty: Number(e.target.value) })}
             />
-            <input
-              list="small-units-list"
-              className={cn(inputCls, "w-28")}
+          </Field>
+          <Field label="الوحدة الصغيرة">
+            <select
+              className={inputCls}
               value={draft.smallUnit}
               onChange={(e) => set({ smallUnit: e.target.value })}
-            />
-            <datalist id="small-units-list">
-              {COMMON_SMALL_UNITS.map((u) => <option key={u} value={u} />)}
-            </datalist>
-          </div>
-        </Field>
-
-        <Field label={`الكمية (${draft.unit})`}>
-          <input
-            type="number"
-            min={0}
-            step="any"
-            className={inputCls}
-            value={draft.quantity}
-            onChange={(e) => set({ quantity: Number(e.target.value) })}
-          />
-        </Field>
-        <Field label="سعر الوحدة">
-          <input
-            type="number"
-            min={0}
-            step="any"
-            className={inputCls}
-            value={draft.unitPrice}
-            onChange={(e) => set({ unitPrice: Number(e.target.value) })}
-          />
-        </Field>
-
-        <div className="md:col-span-2">
-          <Field label="الوصف">
-            <textarea
-              rows={2}
-              className={cn(inputCls, "h-auto py-2")}
-              value={draft.description}
-              onChange={(e) => set({ description: e.target.value })}
-            />
+            >
+              {!settings.smallUnits.includes(draft.smallUnit) && draft.smallUnit && (
+                <option value={draft.smallUnit}>{draft.smallUnit}</option>
+              )}
+              {settings.smallUnits.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
           </Field>
         </div>
-      </div>
-
-      <div className="mt-4 grid md:grid-cols-3 gap-3">
-        <ReadonlyStat label="الإجمالي" value={fmtSAR(draft.quantity * draft.unitPrice)} />
-        <ReadonlyStat
-          label={`سعر الـ ${draft.smallUnit || "وحدة صغيرة"}`}
-          value={fmtSAR(perSmall)}
-        />
-        <ReadonlyStat
-          label={`إجمالي الوحدات الصغيرة`}
-          value={`${(draft.quantity * draft.packQty).toLocaleString()} ${draft.smallUnit}`}
-        />
-      </div>
+        <div className="mt-3 text-xs text-muted-foreground">
+          1 {draft.unit || "وحدة"} = <b className="text-foreground">{draft.packQty || 0}</b> {draft.smallUnit || "وحدة صغيرة"}
+        </div>
+        <div className="mt-3 grid md:grid-cols-2 gap-3">
+          <ReadonlyStat
+            label={`سعر الـ ${draft.smallUnit || "وحدة صغيرة"}`}
+            value={fmtSAR(perSmall)}
+          />
+          <ReadonlyStat
+            label="إجمالي الوحدات الصغيرة"
+            value={`${(draft.quantity * draft.packQty).toLocaleString()} ${draft.smallUnit || ""}`}
+          />
+        </div>
+      </section>
 
       <div className="mt-5 flex items-center justify-end gap-2">
         <button onClick={onClose} className="h-10 px-4 rounded-lg border border-border bg-card hover:bg-muted text-sm">
@@ -535,6 +568,8 @@ function ItemEditor({ item, onClose }: { item: InventoryItem; onClose: () => voi
           <Save className="size-4" /> حفظ
         </button>
       </div>
+
+      {showUnits && <UnitsDialog onClose={() => setShowUnits(false)} />}
     </Modal>
   );
 }
