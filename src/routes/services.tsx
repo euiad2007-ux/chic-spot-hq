@@ -1,0 +1,569 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AppShell } from "@/components/salon/app-shell";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  useServices,
+  servicesActions,
+  computeServiceCosts,
+  type Service,
+  type ServiceMaterial,
+  type MaterialUnitType,
+} from "@/lib/services-store";
+import { useInventory, type InventoryItem } from "@/lib/inventory-store";
+import { useStaff, findServiceById, type Staff } from "@/lib/staff-store";
+import {
+  Scissors,
+  Plus,
+  Trash2,
+  X,
+  Search,
+  Save,
+  Package,
+  Percent,
+  Users2,
+  Star,
+  Calculator,
+  Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/services")({
+  head: () => ({
+    meta: [
+      { title: "الخدمات — لمسة" },
+      { name: "description", content: "إدارة خدمات الصالون: تكاليف المواد، النسب، الأرباح، والموظفين المؤهلين." },
+      { property: "og:title", content: "إدارة الخدمات" },
+      { property: "og:description", content: "حساب تكلفة الخدمة تلقائياً من مواد المخزن والنسب مع تعيين الموظفين المؤهلين." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ServicesPage,
+});
+
+function fmtSAR(n: number) {
+  try {
+    return new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 2 }).format(n);
+  } catch {
+    return `${n.toFixed(2)} ر.س`;
+  }
+}
+
+function ServicesPage() {
+  const services = useServices();
+  const { items } = useInventory();
+  const [q, setQ] = useState("");
+  const [editing, setEditing] = useState<Service | null>(null);
+
+  const itemsById = useMemo(() => {
+    const m = new Map<string, InventoryItem>();
+    for (const it of items) m.set(it.id, it);
+    return m;
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return services;
+    return services.filter((x) => x.name.toLowerCase().includes(s) || x.description.toLowerCase().includes(s));
+  }, [services, q]);
+
+  const openNew = () => {
+    setEditing({ ...servicesActions.empty(), name: "خدمة جديدة" });
+  };
+
+  return (
+    <AppShell
+      title="الخدمات"
+      subtitle="حساب تكلفة الخدمة تلقائياً من المواد والنسب"
+      action={
+        <button
+          onClick={openNew}
+          className="h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm inline-flex items-center gap-1.5 shadow-[var(--shadow-glow)]"
+        >
+          <Plus className="size-4" /> خدمة جديدة
+        </button>
+      }
+    >
+      <div className="relative mb-3">
+        <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="بحث باسم الخدمة..."
+          className="w-full h-10 pr-9 pl-3 rounded-lg bg-card/60 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border bg-card/40 p-10 text-center text-muted-foreground">
+          <Scissors className="size-8 mx-auto mb-2 opacity-60" />
+          لا توجد خدمات بعد. أضف خدمة جديدة لبدء الحساب التلقائي للتكاليف.
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((svc) => {
+            const costs = computeServiceCosts(svc, itemsById);
+            return (
+              <button
+                key={svc.id}
+                onClick={() => setEditing(svc)}
+                className="text-right rounded-xl border border-border bg-card/60 hover:bg-card p-4 transition"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-bold truncate">{svc.name || "بدون اسم"}</div>
+                    {svc.description && (
+                      <div className="text-xs text-muted-foreground truncate">{svc.description}</div>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-left">
+                    <div className="text-[11px] text-muted-foreground">السعر</div>
+                    <div className="font-bold text-primary">{fmtSAR(costs.finalPrice)}</div>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                  <MiniStat label="المواد" value={fmtSAR(costs.materialsCost)} />
+                  <MiniStat label="التكاليف" value={fmtSAR(costs.totalCosts)} />
+                  <MiniStat label="الربح" value={fmtSAR(costs.profitAmount)} tone="ok" />
+                </div>
+                <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1"><Package className="size-3" />{svc.materials.length}</span>
+                  <span className="inline-flex items-center gap-1"><Users2 className="size-3" />{svc.staffIds.length}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {editing && (
+        <ServiceEditor
+          key={editing.id}
+          draft={editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
+    </AppShell>
+  );
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: string; tone?: "ok" }) {
+  return (
+    <div className="rounded-lg bg-muted/40 border border-border/50 p-2">
+      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className={cn("font-semibold text-xs mt-0.5", tone === "ok" && "text-emerald-600")}>{value}</div>
+    </div>
+  );
+}
+
+/* -------- Editor -------- */
+function ServiceEditor({ draft, onClose }: { draft: Service; onClose: () => void }) {
+  const [d, setD] = useState<Service>(draft);
+  const { items } = useInventory();
+  const staff = useStaff();
+  const services = useServices();
+  const exists = services.some((s) => s.id === draft.id);
+
+  const itemsById = useMemo(() => {
+    const m = new Map<string, InventoryItem>();
+    for (const it of items) m.set(it.id, it);
+    return m;
+  }, [items]);
+
+  const costs = useMemo(() => computeServiceCosts(d, itemsById), [d, itemsById]);
+
+  const patch = (p: Partial<Service>) => setD((prev) => ({ ...prev, ...p }));
+
+  const save = () => {
+    if (!d.name.trim()) {
+      toast.error("أدخل اسم الخدمة");
+      return;
+    }
+    if (exists) {
+      servicesActions.update(d.id, d);
+      toast.success("تم حفظ الخدمة");
+    } else {
+      servicesActions.create(d);
+      toast.success("تم إضافة الخدمة");
+    }
+    onClose();
+  };
+
+  const remove = () => {
+    if (!exists) { onClose(); return; }
+    if (!confirm("حذف الخدمة؟")) return;
+    servicesActions.remove(d.id);
+    toast.success("تم الحذف");
+    onClose();
+  };
+
+  const addMaterial = () => {
+    const it = items[0];
+    if (!it) {
+      toast.error("لا توجد مواد في المخزن");
+      return;
+    }
+    const m: ServiceMaterial = {
+      id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      itemId: it.id,
+      unitType: "small",
+      qty: 1,
+    };
+    patch({ materials: [...d.materials, m] });
+  };
+
+  const updateMaterial = (id: string, p: Partial<ServiceMaterial>) => {
+    patch({ materials: d.materials.map((m) => (m.id === id ? { ...m, ...p } : m)) });
+  };
+  const removeMaterial = (id: string) => {
+    patch({ materials: d.materials.filter((m) => m.id !== id) });
+  };
+
+  const toggleStaff = (id: string) => {
+    patch({
+      staffIds: d.staffIds.includes(id)
+        ? d.staffIds.filter((x) => x !== id)
+        : [...d.staffIds, id],
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full md:max-w-4xl bg-background md:rounded-2xl md:my-6 border-y md:border border-border shadow-2xl overflow-y-auto max-h-screen"
+        onClick={(e) => e.stopPropagation()}
+        dir="rtl"
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 md:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles className="size-4 text-primary shrink-0" />
+            <div className="font-bold truncate">{exists ? "تعديل خدمة" : "خدمة جديدة"}</div>
+          </div>
+          <div className="flex items-center gap-2">
+            {exists && (
+              <button onClick={remove} className="h-9 px-3 rounded-lg border border-destructive/40 text-destructive text-sm inline-flex items-center gap-1.5 hover:bg-destructive/10">
+                <Trash2 className="size-4" /> حذف
+              </button>
+            )}
+            <button onClick={save} className="h-9 px-3 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm inline-flex items-center gap-1.5">
+              <Save className="size-4" /> حفظ
+            </button>
+            <button onClick={onClose} className="size-9 rounded-lg border border-border inline-flex items-center justify-center hover:bg-muted">
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 md:p-6 space-y-4">
+          {/* Basic */}
+          <Section title="بيانات الخدمة" icon={<Scissors className="size-4" />}>
+            <div className="grid md:grid-cols-2 gap-3">
+              <Field label="اسم الخدمة">
+                <input
+                  value={d.name}
+                  onChange={(e) => patch({ name: e.target.value })}
+                  className="input"
+                  placeholder="مثلاً: صبغ شعر"
+                />
+              </Field>
+              <Field label="الوصف (اختياري)">
+                <input
+                  value={d.description}
+                  onChange={(e) => patch({ description: e.target.value })}
+                  className="input"
+                />
+              </Field>
+            </div>
+          </Section>
+
+          {/* Materials */}
+          <Section
+            title="مواد الخدمة"
+            icon={<Package className="size-4" />}
+            action={
+              <button onClick={addMaterial} className="h-8 px-2.5 rounded-lg border border-border bg-card/60 text-xs inline-flex items-center gap-1 hover:bg-muted">
+                <Plus className="size-3.5" /> إضافة مادة
+              </button>
+            }
+          >
+            {d.materials.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-4">لا توجد مواد. أضف مادة من المخزن.</div>
+            ) : (
+              <div className="rounded-lg border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40 text-muted-foreground text-xs">
+                      <tr>
+                        <th className="text-right p-2 font-medium">المادة</th>
+                        <th className="text-right p-2 font-medium">نوع الوحدة</th>
+                        <th className="text-right p-2 font-medium">الوحدة</th>
+                        <th className="text-right p-2 font-medium">الكمية</th>
+                        <th className="text-right p-2 font-medium">الإجمالي</th>
+                        <th className="p-2"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {d.materials.map((m) => {
+                        const it = itemsById.get(m.itemId);
+                        const unitLabel = it ? (m.unitType === "large" ? it.unit : it.smallUnit) : "-";
+                        const perUnit = it ? (m.unitType === "large" ? it.unitPrice : (it.unitPrice / (it.packQty || 1))) : 0;
+                        const total = perUnit * (Number(m.qty) || 0);
+                        return (
+                          <tr key={m.id} className="border-t border-border">
+                            <td className="p-2">
+                              <select
+                                value={m.itemId}
+                                onChange={(e) => updateMaterial(m.id, { itemId: e.target.value })}
+                                className="input h-9"
+                              >
+                                {items.map((it2) => (
+                                  <option key={it2.id} value={it2.id}>{it2.name || it2.code}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="p-2">
+                              <select
+                                value={m.unitType}
+                                onChange={(e) => updateMaterial(m.id, { unitType: e.target.value as MaterialUnitType })}
+                                className="input h-9"
+                              >
+                                <option value="small">صغيرة</option>
+                                <option value="large">كبيرة</option>
+                              </select>
+                            </td>
+                            <td className="p-2 text-muted-foreground text-xs">{unitLabel}</td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={m.qty}
+                                onChange={(e) => updateMaterial(m.id, { qty: Number(e.target.value) })}
+                                className="input h-9 w-24"
+                              />
+                            </td>
+                            <td className="p-2 font-medium">{fmtSAR(total)}</td>
+                            <td className="p-2">
+                              <button
+                                onClick={() => removeMaterial(m.id)}
+                                className="size-8 rounded-md hover:bg-destructive/10 text-destructive inline-flex items-center justify-center"
+                              >
+                                <Trash2 className="size-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-border bg-muted/30">
+                        <td colSpan={4} className="p-2 text-left font-medium">تكلفة المواد</td>
+                        <td colSpan={2} className="p-2 font-bold text-primary">{fmtSAR(costs.materialsCost)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
+          </Section>
+
+          {/* Percentages */}
+          <Section title="النسب" icon={<Percent className="size-4" />}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <PctField label="نسبة الضريبة (الهاك)" value={d.vatPct} onChange={(v) => patch({ vatPct: v })} />
+              <PctField label="نسبة المتجر" value={d.storePct} onChange={(v) => patch({ storePct: v })} />
+              <PctField label="نسبة الخدمات" value={d.servicePct} onChange={(v) => patch({ servicePct: v })} />
+              <PctField label="نسبة راتب الموظف" value={d.staffSalaryPct} onChange={(v) => patch({ staffSalaryPct: v })} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <MiniStat label="ضريبة" value={fmtSAR(costs.vatCost)} />
+              <MiniStat label="متجر" value={fmtSAR(costs.storeCost)} />
+              <MiniStat label="خدمات" value={fmtSAR(costs.serviceCost)} />
+              <MiniStat label="راتب" value={fmtSAR(costs.staffCost)} />
+            </div>
+          </Section>
+
+          {/* Pricing */}
+          <Section title="التسعير والربح" icon={<Calculator className="size-4" />}>
+            <div className="rounded-lg bg-muted/30 border border-border p-3 mb-3 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">إجمالي التكاليف</div>
+              <div className="font-bold text-lg">{fmtSAR(costs.totalCosts)}</div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              <Field label="نسبة الربح">
+                <div className="flex gap-2">
+                  <select
+                    value={d.profitMode}
+                    onChange={(e) => patch({ profitMode: e.target.value as "pct" | "amount" })}
+                    className="input w-28"
+                  >
+                    <option value="pct">نسبة %</option>
+                    <option value="amount">مبلغ ر.س</option>
+                  </select>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={d.profitValue}
+                    onChange={(e) => patch({ profitValue: Number(e.target.value) })}
+                    className="input flex-1"
+                  />
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-1">قيمة الربح: {fmtSAR(costs.profitAmount)}</div>
+              </Field>
+              <Field label="تكلفة/سعر الخدمة">
+                <div className="flex gap-2">
+                  <select
+                    value={d.priceMode}
+                    onChange={(e) => patch({ priceMode: e.target.value as "auto" | "manual" })}
+                    className="input w-28"
+                  >
+                    <option value="auto">تلقائي</option>
+                    <option value="manual">يدوي</option>
+                  </select>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    disabled={d.priceMode === "auto"}
+                    value={d.priceMode === "auto" ? costs.autoPrice.toFixed(2) : d.manualPrice}
+                    onChange={(e) => patch({ manualPrice: Number(e.target.value) })}
+                    className="input flex-1 disabled:opacity-70"
+                  />
+                </div>
+              </Field>
+            </div>
+            <div className="mt-3 rounded-lg bg-gradient-to-l from-primary/15 to-accent/10 border border-primary/30 p-3 flex items-center justify-between">
+              <div className="text-sm font-medium">السعر النهائي</div>
+              <div className="font-bold text-xl text-primary">{fmtSAR(costs.finalPrice)}</div>
+            </div>
+          </Section>
+
+          {/* Staff */}
+          <Section title="الموظفون المؤهلون" icon={<Users2 className="size-4" />}>
+            {staff.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-4">لا يوجد موظفون. أضف موظفين لتحديد المؤهلين.</div>
+            ) : (
+              <div className="grid gap-2 md:grid-cols-2">
+                {staff.map((s) => (
+                  <StaffPickRow
+                    key={s.id}
+                    staff={s}
+                    serviceName={d.name}
+                    selected={d.staffIds.includes(s.id)}
+                    onToggle={() => toggleStaff(s.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StaffPickRow({ staff, serviceName, selected, onToggle }: {
+  staff: Staff;
+  serviceName: string;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  // Find best matching specialization rating (by name overlap or category)
+  const bestSpec = useMemo(() => {
+    if (!staff.specializations.length) return null;
+    const nameL = serviceName.toLowerCase();
+    let best: { label: string; rating: number } | null = null;
+    for (const sp of staff.specializations) {
+      const svc = findServiceById(sp.id);
+      if (!svc) continue;
+      const label = svc.label;
+      if (!best || sp.rating > best.rating || (nameL && label.toLowerCase().includes(nameL))) {
+        best = { label, rating: sp.rating };
+      }
+    }
+    return best;
+  }, [staff.specializations, serviceName]);
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        "text-right flex items-center gap-3 p-3 rounded-lg border transition",
+        selected ? "border-primary/50 bg-primary/10" : "border-border bg-card/60 hover:bg-muted/50",
+      )}
+    >
+      <div className={cn(
+        "size-9 rounded-full flex items-center justify-center border-2",
+        selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-muted text-muted-foreground",
+      )}>
+        {staff.name.slice(0, 1) || "؟"}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="font-medium text-sm truncate">{staff.name || "بدون اسم"}</div>
+        <div className="text-[11px] text-muted-foreground truncate">
+          {staff.jobTitle || "—"}
+          {bestSpec && <span className="mx-1">• {bestSpec.label}</span>}
+        </div>
+      </div>
+      {bestSpec && (
+        <div className="flex items-center gap-0.5 shrink-0">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star key={i} className={cn("size-3.5", i < bestSpec.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40")} />
+          ))}
+        </div>
+      )}
+    </button>
+  );
+}
+
+/* -------- Small UI helpers -------- */
+function Section({ title, icon, action, children }: {
+  title: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-border bg-card/60 overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-border flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 font-semibold text-sm">
+          {icon}
+          {title}
+        </div>
+        {action}
+      </div>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      {children}
+    </label>
+  );
+}
+
+function PctField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  return (
+    <Field label={label}>
+      <div className="relative">
+        <input
+          type="number"
+          min={0}
+          step="0.01"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="input pl-8"
+        />
+        <Percent className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      </div>
+    </Field>
+  );
+}
