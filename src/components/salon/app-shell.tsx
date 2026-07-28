@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, Settings, Scissors } from "lucide-react";
+import { LayoutDashboard, Settings, Scissors, Users2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/lib/site-settings";
 
 const nav = [
   { to: "/", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/staff", label: "الموظفون", icon: Users2 },
   { to: "/settings", label: "إعدادات الموقع", icon: Settings },
 ] as const;
 
