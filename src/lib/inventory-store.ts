@@ -99,7 +99,16 @@ function ensure() {
           ? parsed.categories
           : DEFAULT_CATEGORIES,
         items: Array.isArray(parsed?.items) ? parsed.items : [],
-        settings: { ...DEFAULT_SETTINGS, ...(parsed?.settings || {}) },
+        settings: {
+          ...DEFAULT_SETTINGS,
+          ...(parsed?.settings || {}),
+          largeUnits: Array.isArray(parsed?.settings?.largeUnits) && parsed.settings.largeUnits.length
+            ? parsed.settings.largeUnits
+            : DEFAULT_LARGE_UNITS,
+          smallUnits: Array.isArray(parsed?.settings?.smallUnits) && parsed.settings.smallUnits.length
+            ? parsed.settings.smallUnits
+            : DEFAULT_SMALL_UNITS,
+        },
         counter: Number(parsed?.counter) || 0,
       };
     }
