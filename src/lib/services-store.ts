@@ -156,11 +156,15 @@ export function computeServiceCosts(
     (sum, m) => sum + materialLineCost(m, itemsById.get(m.itemId)),
     0,
   );
-  const vatCost = materialsCost * (svc.vatPct || 0) / 100;
+  // Overheads applied over materials cost
   const storeCost = materialsCost * (svc.storePct || 0) / 100;
   const serviceCost = materialsCost * (svc.servicePct || 0) / 100;
   const staffCost = materialsCost * (svc.staffSalaryPct || 0) / 100;
-  const totalCosts = materialsCost + vatCost + storeCost + serviceCost + staffCost;
+  // Subtotal before VAT
+  const subtotal = materialsCost + storeCost + serviceCost + staffCost;
+  // VAT is applied on the full subtotal (after overheads)
+  const vatCost = subtotal * (svc.vatPct || 0) / 100;
+  const totalCosts = subtotal + vatCost;
   const profitAmount =
     svc.profitMode === "pct"
       ? totalCosts * (svc.profitValue || 0) / 100
@@ -169,3 +173,4 @@ export function computeServiceCosts(
   const finalPrice = svc.priceMode === "manual" ? (svc.manualPrice || 0) : autoPrice;
   return { materialsCost, vatCost, storeCost, serviceCost, staffCost, totalCosts, profitAmount, autoPrice, finalPrice };
 }
+
