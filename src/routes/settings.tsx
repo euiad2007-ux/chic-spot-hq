@@ -79,7 +79,7 @@ function SettingsPage() {
 
       {tab === "design" && <DesignTab s={s} />}
       {tab === "images" && <ImagesTab s={s} />}
-      {tab === "wa" && <WhatsAppTab s={s} customers={customers} />}
+      {tab === "wa" && <WhatsAppTab s={s} />}
     </AppShell>
   );
 }
