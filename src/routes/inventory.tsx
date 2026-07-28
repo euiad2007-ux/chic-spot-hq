@@ -392,6 +392,7 @@ const inputCls =
 function ItemEditor({ item, onClose }: { item: InventoryItem; onClose: () => void }) {
   const { categories, settings } = useInventory();
   const [draft, setDraft] = useState<InventoryItem>(item);
+  const [showUnits, setShowUnits] = useState(false);
   const isNew = !useInventory().items.some((i) => i.id === item.id);
 
   const save = () => {
