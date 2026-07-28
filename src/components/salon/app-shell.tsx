@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, Settings, Scissors, Users2, Users } from "lucide-react";
+import { LayoutDashboard, Settings, Scissors, Users2, Users, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/lib/site-settings";
 
@@ -8,6 +8,7 @@ const nav = [
   { to: "/", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/staff", label: "الموظفون", icon: Users2 },
   { to: "/customers", label: "العملاء", icon: Users },
+  { to: "/inventory", label: "المخزن", icon: Package },
   { to: "/settings", label: "الإعدادات", icon: Settings },
 ] as const;
 
