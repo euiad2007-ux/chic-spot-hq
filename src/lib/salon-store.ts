@@ -351,19 +351,85 @@ function load(): SalonState {
           if (b.bookingDate) counters.byDay[b.bookingDate] = Math.max(counters.byDay[b.bookingDate] ?? 0, b.dailyNo || 0);
         }
       }
+      // Normalize + dedupe customers by phone; recompute visits/totalSpent from invoices
+      const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
+      const rawCustomers = (parsed.customers ?? []) as any[];
+      const byPhone = new Map<string, Customer>();
+      const idRemap = new Map<string, string>();
+      for (const c of rawCustomers) {
+        const key = normPhone(c.phone) || c.id;
+        const existing = byPhone.get(key);
+        if (existing) {
+          idRemap.set(c.id, existing.id);
+          // Merge: keep richer fields
+          existing.name = existing.name || c.name;
+          existing.email = existing.email || c.email;
+          existing.address = existing.address || c.address;
+          existing.notes = existing.notes || c.notes;
+          existing.birthDate = existing.birthDate || c.birthDate;
+          existing.walletBalance = (existing.walletBalance ?? 0) + (c.walletBalance ?? 0);
+          existing.loyaltyPoints = (existing.loyaltyPoints ?? 0) + (c.loyaltyPoints ?? 0);
+          existing.referralEarnings = (existing.referralEarnings ?? 0) + (c.referralEarnings ?? 0);
+        } else {
+          byPhone.set(key, {
+            id: c.id,
+            name: c.name ?? "",
+            phone: c.phone ?? "",
+            gender: c.gender,
+            notes: c.notes,
+            visits: 0,
+            totalSpent: 0,
+            createdAt: c.createdAt ?? new Date().toISOString(),
+            birthDate: c.birthDate,
+            address: c.address,
+            email: c.email,
+            walletBalance: c.walletBalance ?? 0,
+            walletLog: c.walletLog ?? [],
+            loyaltyPoints: c.loyaltyPoints ?? 0,
+            loyaltyLog: c.loyaltyLog ?? [],
+            referralCode: c.referralCode ?? genReferralCode(c.name ?? ""),
+            referredBy: c.referredBy,
+            referralEarnings: c.referralEarnings ?? 0,
+          });
+        }
+      }
+      // Remap bookings/invoices to merged customer ids
+      const remap = (id: string) => idRemap.get(id) ?? id;
+      const remappedBookings = bookings.map((b) => ({ ...b, customerId: remap(b.customerId) }));
+      const remappedInvoices = (parsed.invoices ?? []).map((i: any) => ({ ...i, customerId: remap(i.customerId) }));
+      // Recompute visits/totalSpent from invoices
+      const stats = new Map<string, { visits: number; total: number }>();
+      for (const inv of remappedInvoices) {
+        const cur = stats.get(inv.customerId) ?? { visits: 0, total: 0 };
+        cur.visits += 1; cur.total += inv.total ?? 0;
+        stats.set(inv.customerId, cur);
+      }
+      const customers = Array.from(byPhone.values()).map((c) => {
+        const s = stats.get(c.id);
+        return { ...c, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
+      });
+
+      // Normalize staff with new optional fields
+      const staff = (parsed.staff ?? []).map((s: any) => ({
+        annualLeaveDays: 21,
+        leaves: [],
+        ...s,
+      })) as Staff[];
+
       return {
         services: (parsed.services ?? []).map((s: any) => ({
           prepMin: 0, cleanupMin: 0, materials: [], ...s,
         })),
-        staff: parsed.staff ?? [],
-        customers: parsed.customers ?? [],
-        bookings,
-        invoices: parsed.invoices ?? [],
+        staff,
+        customers,
+        bookings: remappedBookings,
+        invoices: remappedInvoices,
         inventory: (parsed.inventory ?? []).map((i: any) => ({
           measure: i.measure ?? "count", sizePerUnit: i.sizePerUnit ?? 1, ...i,
         })),
         counters,
       };
+
     }
   } catch {}
   const s = seed();
