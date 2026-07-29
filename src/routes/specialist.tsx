@@ -31,7 +31,7 @@ export const Route = createFileRoute("/specialist")({
   component: SpecialistPage,
 });
 
-type Tab = "today" | "profile" | "schedule" | "history" | "attendance";
+type Tab = "today" | "calendar" | "profile" | "schedule" | "history" | "attendance";
 
 function SpecialistPage() {
   const session = useSession();
