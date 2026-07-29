@@ -278,3 +278,136 @@ function CouponFormDialog({
     </div>
   );
 }
+
+/* ============ Rewards (Loyalty + Referral) settings panel ============ */
+function RewardsPanel() {
+  const rewards = useRewardsSettings();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(rewards);
+
+  const save = () => {
+    if (form.loyaltyRate < 0 || form.loyaltyRedeemRate <= 0) return toast.error("قيم غير صحيحة");
+    if (form.referralCommissionPct < 0 || form.referralCommissionPct > 100) return toast.error("نسبة العمولة بين 0 و 100");
+    rewardsActions.update(form);
+    toast.success("تم حفظ الإعدادات");
+    setOpen(false);
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+      <div className="glass-card rounded-2xl p-5 relative overflow-hidden">
+        <div className="absolute -top-10 -left-10 size-32 rounded-full bg-primary/15 blur-3xl" />
+        <div className="relative flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-xl bg-gradient-to-br from-primary/30 to-accent/30 grid place-items-center">
+              <Gift className="size-5 text-primary" />
+            </div>
+            <div>
+              <div className="font-bold">نقاط الولاء</div>
+              <div className="text-[11px] text-muted-foreground">
+                {rewards.loyaltyEnabled ? "مُفعّلة" : "متوقفة"} · {rewards.loyaltyRate} نقطة/ريال · قيمة النقطة {formatSAR(rewards.loyaltyRedeemRate)}
+              </div>
+            </div>
+          </div>
+          <button onClick={() => { setForm(rewards); setOpen(true); }} className="h-9 px-3 rounded-lg border border-border text-xs inline-flex items-center gap-1 hover:bg-muted">
+            <Settings2 className="size-3.5" /> ضبط
+          </button>
+        </div>
+      </div>
+
+      <div className="glass-card rounded-2xl p-5 relative overflow-hidden">
+        <div className="absolute -top-10 -left-10 size-32 rounded-full bg-accent/15 blur-3xl" />
+        <div className="relative flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="size-11 rounded-xl bg-gradient-to-br from-accent/30 to-primary/30 grid place-items-center">
+              <Users className="size-5 text-accent" />
+            </div>
+            <div>
+              <div className="font-bold">التسويق بالإحالة</div>
+              <div className="text-[11px] text-muted-foreground">
+                {rewards.referralEnabled ? "مُفعّل" : "متوقف"} · عمولة {rewards.referralCommissionPct}% · مكافأة انضمام {formatSAR(rewards.referralWelcomeBonus)}
+              </div>
+            </div>
+          </div>
+          <button onClick={() => { setForm(rewards); setOpen(true); }} className="h-9 px-3 rounded-lg border border-border text-xs inline-flex items-center gap-1 hover:bg-muted">
+            <Settings2 className="size-3.5" /> ضبط
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={() => setOpen(false)}>
+          <div className="glass-card rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-border flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2"><Settings2 className="size-5 text-primary" /> ضبط الولاء والإحالة</h3>
+              <button onClick={() => setOpen(false)} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
+            </div>
+            <div className="p-5 space-y-5">
+              <section className="rounded-xl border border-border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-bold flex items-center gap-2"><Gift className="size-4 text-primary" /> نقاط الولاء</div>
+                  <label className="inline-flex items-center gap-2 text-xs">
+                    <input type="checkbox" checked={form.loyaltyEnabled} onChange={(e) => setForm({ ...form, loyaltyEnabled: e.target.checked })} />
+                    مُفعّل
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Field label="نقاط لكل ريال يُنفقه العميل">
+                    <input type="number" step="0.01" min={0} value={form.loyaltyRate} onChange={(e) => setForm({ ...form, loyaltyRate: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  </Field>
+                  <Field label="قيمة النقطة عند الاستبدال (ريال)">
+                    <input type="number" step="0.1" min={0.1} value={form.loyaltyRedeemRate} onChange={(e) => setForm({ ...form, loyaltyRedeemRate: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  </Field>
+                  <Field label="حد أدنى للاستبدال (نقاط)">
+                    <input type="number" min={1} value={form.loyaltyMinRedeem} onChange={(e) => setForm({ ...form, loyaltyMinRedeem: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  </Field>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  مثال: لو أنفقت العميلة {formatSAR(200)} ستحصل على {(200 * form.loyaltyRate).toFixed(1)} نقطة تعادل {formatSAR(200 * form.loyaltyRate * form.loyaltyRedeemRate)}.
+                </p>
+              </section>
+
+              <section className="rounded-xl border border-border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-bold flex items-center gap-2"><Users className="size-4 text-accent" /> التسويق بالإحالة</div>
+                  <label className="inline-flex items-center gap-2 text-xs">
+                    <input type="checkbox" checked={form.referralEnabled} onChange={(e) => setForm({ ...form, referralEnabled: e.target.checked })} />
+                    مُفعّل
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Field label="عمولة الإحالة (%)">
+                    <input type="number" step="0.5" min={0} max={100} value={form.referralCommissionPct} onChange={(e) => setForm({ ...form, referralCommissionPct: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  </Field>
+                  <Field label="مكافأة انضمام (ريال) للعميل الجديد">
+                    <input type="number" step="1" min={0} value={form.referralWelcomeBonus} onChange={(e) => setForm({ ...form, referralWelcomeBonus: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  </Field>
+                  <Field label="كوبون مرتبط بالإحالة (اختياري)">
+                    <input value={form.referralCouponCode ?? ""} onChange={(e) => setForm({ ...form, referralCouponCode: e.target.value.toUpperCase() })} placeholder="مثل REF10" className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono uppercase" />
+                  </Field>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  يتم إيداع العمولة تلقائياً في محفظة صاحب كود الإحالة عند دفع كل فاتورة من عميل أحاله.
+                </p>
+              </section>
+            </div>
+            <div className="p-5 border-t border-border flex items-center justify-end gap-2">
+              <button onClick={() => setOpen(false)} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
+              <button onClick={save} className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">حفظ</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[11px] font-semibold text-muted-foreground mb-1.5">{label}</label>
+      {children}
+    </div>
+  );
+}
+
