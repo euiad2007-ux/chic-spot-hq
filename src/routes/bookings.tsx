@@ -3,10 +3,12 @@ import { AppShell } from "@/components/salon/app-shell";
 import { SlotPicker } from "@/components/salon/slot-picker";
 import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, eligibleStaffFor, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
 import { checkBookingConflict, getDaySlots, useBookingSettings } from "@/lib/booking-settings";
+import { evalCoupon, couponActions } from "@/lib/coupon-store";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle } from "lucide-react";
+import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle, Ticket, Wallet } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/bookings")({
   head: () => ({
