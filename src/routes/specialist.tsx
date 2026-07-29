@@ -148,6 +148,10 @@ function SpecialistPage() {
           <TodaySection today={today} upcoming={upcoming} services={services} customers={customers} setStatus={setStatus} />
         )}
 
+        {tab === "calendar" && (
+          <BookingCalendar bookings={mine} services={services} staff={staff} customers={customers} variant="staff" meId={me.id} />
+        )}
+
         {tab === "attendance" && (
           <AttendanceSection
             staffId={me.id}
