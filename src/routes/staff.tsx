@@ -27,11 +27,24 @@ type FormShape = {
   commissionPct: number;
   salary: number;
   active: boolean;
+  gender: "female" | "male" | "";
+  nationalId: string;
+  birthDate: string;
+  nationality: string;
+  address: string;
+  emergencyName: string;
+  emergencyPhone: string;
+  jobTitle: string;
+  contractType: "full_time" | "part_time" | "contract";
+  annualLeaveDays: number;
 };
 
 const emptyForm: FormShape = {
   name: "", role: "مصففة شعر", phone: "", email: "", hireDate: "",
   commissionPct: 20, salary: 0, active: true,
+  gender: "female", nationalId: "", birthDate: "", nationality: "",
+  address: "", emergencyName: "", emergencyPhone: "",
+  jobTitle: "", contractType: "full_time", annualLeaveDays: 21,
 };
 
 function StaffPage() {
@@ -71,6 +84,16 @@ function StaffPage() {
       commissionPct: s.commissionPct,
       salary: s.salary ?? 0,
       active: s.active,
+      gender: s.gender ?? "female",
+      nationalId: s.nationalId ?? "",
+      birthDate: s.birthDate ?? "",
+      nationality: s.nationality ?? "",
+      address: s.address ?? "",
+      emergencyName: s.emergencyName ?? "",
+      emergencyPhone: s.emergencyPhone ?? "",
+      jobTitle: s.jobTitle ?? "",
+      contractType: s.contractType ?? "full_time",
+      annualLeaveDays: s.annualLeaveDays ?? 21,
     });
     setOpen(true);
   };
@@ -87,18 +110,29 @@ function StaffPage() {
       commissionPct: form.commissionPct,
       salary: form.salary,
       active: form.active,
+      gender: form.gender || undefined,
+      nationalId: form.nationalId || undefined,
+      birthDate: form.birthDate || undefined,
+      nationality: form.nationality || undefined,
+      address: form.address || undefined,
+      emergencyName: form.emergencyName || undefined,
+      emergencyPhone: form.emergencyPhone || undefined,
+      jobTitle: form.jobTitle || undefined,
+      contractType: form.contractType,
+      annualLeaveDays: form.annualLeaveDays,
     };
     if (editingId) {
       actions.updateStaff(editingId, patch);
       toast.success("تم التحديث");
     } else {
-      actions.addStaff({ ...patch, services: [], notes: [], allowances: [], points: 0, pointsLog: [] });
+      actions.addStaff({ ...patch, services: [], notes: [], allowances: [], points: 0, pointsLog: [], leaves: [] });
       toast.success("تمت الإضافة");
     }
     setOpen(false);
     setEditingId(null);
     setForm(emptyForm);
   };
+
 
   const detail = detailId ? staff.find((s) => s.id === detailId) ?? null : null;
 
