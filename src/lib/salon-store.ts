@@ -604,12 +604,98 @@ export const actions = {
   },
 
   // Customers
-  addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt">) {
-    const newC: Customer = { ...c, id: uid(), visits: 0, totalSpent: 0, createdAt: new Date().toISOString() };
+  addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt" | "referralCode"> & { referralCode?: string }) {
+    // Dedupe by phone
+    const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
+    const key = normPhone(c.phone);
+    if (key) {
+      const existing = state.customers.find((x) => normPhone(x.phone) === key);
+      if (existing) return existing;
+    }
+    const newC: Customer = {
+      ...c,
+      id: uid(),
+      visits: 0,
+      totalSpent: 0,
+      createdAt: new Date().toISOString(),
+      walletBalance: c.walletBalance ?? 0,
+      walletLog: c.walletLog ?? [],
+      loyaltyPoints: c.loyaltyPoints ?? 0,
+      loyaltyLog: c.loyaltyLog ?? [],
+      referralCode: c.referralCode ?? genReferralCode(c.name),
+      referralEarnings: c.referralEarnings ?? 0,
+    };
     state = { ...state, customers: [...state.customers, newC] }; persist();
     return newC;
   },
+  updateCustomer(id: string, patch: Partial<Customer>) {
+    state = { ...state, customers: state.customers.map((x) => x.id === id ? { ...x, ...patch } : x) };
+    persist();
+  },
   removeCustomer(id: string) { state = { ...state, customers: state.customers.filter((x) => x.id !== id) }; persist(); },
+
+  // Wallet
+  walletAdjust(customerId: string, delta: number, reason: string) {
+    if (!delta) return;
+    const log: WalletLog = { id: uid(), delta, reason, at: new Date().toISOString() };
+    state = {
+      ...state,
+      customers: state.customers.map((c) => c.id === customerId ? {
+        ...c,
+        walletBalance: Math.max(0, (c.walletBalance ?? 0) + delta),
+        walletLog: [log, ...(c.walletLog ?? [])],
+      } : c),
+    };
+    persist();
+  },
+
+  // Loyalty
+  loyaltyAdjust(customerId: string, delta: number, reason: string) {
+    if (!delta) return;
+    const log: LoyaltyLog = { id: uid(), delta, reason, at: new Date().toISOString() };
+    state = {
+      ...state,
+      customers: state.customers.map((c) => c.id === customerId ? {
+        ...c,
+        loyaltyPoints: Math.max(0, (c.loyaltyPoints ?? 0) + delta),
+        loyaltyLog: [log, ...(c.loyaltyLog ?? [])],
+      } : c),
+    };
+    persist();
+  },
+  redeemLoyalty(customerId: string, points: number) {
+    const c = state.customers.find((x) => x.id === customerId);
+    if (!c) return 0;
+    const p = Math.min(points, c.loyaltyPoints ?? 0);
+    if (p <= 0) return 0;
+    const value = p * LOYALTY_REDEEM_RATE;
+    const lLog: LoyaltyLog = { id: uid(), delta: -p, reason: `استبدال ${p} نقطة`, at: new Date().toISOString() };
+    const wLog: WalletLog = { id: uid(), delta: value, reason: `استبدال ${p} نقطة ولاء`, at: new Date().toISOString() };
+    state = {
+      ...state,
+      customers: state.customers.map((x) => x.id === customerId ? {
+        ...x,
+        loyaltyPoints: (x.loyaltyPoints ?? 0) - p,
+        loyaltyLog: [lLog, ...(x.loyaltyLog ?? [])],
+        walletBalance: (x.walletBalance ?? 0) + value,
+        walletLog: [wLog, ...(x.walletLog ?? [])],
+      } : x),
+    };
+    persist();
+    return value;
+  },
+
+  // Staff leaves
+  addStaffLeave(id: string, leave: Omit<StaffLeave, "id" | "at">) {
+    const l: StaffLeave = { ...leave, id: uid(), at: new Date().toISOString() };
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, leaves: [l, ...(x.leaves ?? [])] } : x) };
+    persist();
+  },
+  removeStaffLeave(id: string, leaveId: string) {
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, leaves: (x.leaves ?? []).filter((l) => l.id !== leaveId) } : x) };
+    persist();
+  },
+
 
   // Bookings
   addBooking(b: Omit<Booking, "id" | "code" | "createdAt" | "status" | "payStatus" | "globalNo" | "branchNo" | "dailyNo" | "bookingDate" | "serviceQueue">) {
