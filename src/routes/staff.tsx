@@ -377,9 +377,11 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
           {([
             ["overview", "نظرة عامة", TrendingUp],
             ["allowances", "البدلات", Wallet],
+            ["leaves", "الإجازات", CalendarDaysIcon],
             ["notes", "الملاحظات", StickyNote],
             ["points", "النقاط", Award],
           ] as const).map(([k, label, Icon]) => (
+
             <button
               key={k}
               onClick={() => setTab(k)}
