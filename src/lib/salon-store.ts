@@ -86,6 +86,14 @@ export interface StaffPointLog {
   reason: string;
   at: string;
 }
+export interface StaffLeave {
+  id: string;
+  from: string;      // YYYY-MM-DD
+  to: string;        // YYYY-MM-DD
+  days: number;
+  reason?: string;
+  at: string;
+}
 export interface Staff {
   id: string;
   name: string;
@@ -101,8 +109,33 @@ export interface Staff {
   pointsLog?: StaffPointLog[];
   services: string[];
   active: boolean;
+  // Personal (optional, backward compatible)
+  gender?: "female" | "male";
+  nationalId?: string;
+  birthDate?: string;
+  nationality?: string;
+  address?: string;
+  emergencyName?: string;
+  emergencyPhone?: string;
+  jobTitle?: string;
+  contractType?: "full_time" | "part_time" | "contract";
+  // Leaves
+  annualLeaveDays?: number;   // yearly entitlement
+  leaves?: StaffLeave[];
 }
 
+export interface LoyaltyLog {
+  id: string;
+  delta: number;      // + earned, - redeemed
+  reason: string;
+  at: string;
+}
+export interface WalletLog {
+  id: string;
+  delta: number;      // + top-up/refund, - deduction
+  reason: string;
+  at: string;
+}
 export interface Customer {
   id: string;
   name: string;
@@ -112,7 +145,32 @@ export interface Customer {
   visits: number;
   totalSpent: number;
   createdAt: string;
+  // Personal
+  birthDate?: string;
+  address?: string;
+  email?: string;
+  // Wallet & loyalty
+  walletBalance?: number;
+  walletLog?: WalletLog[];
+  loyaltyPoints?: number;
+  loyaltyLog?: LoyaltyLog[];
+  // Referral marketing
+  referralCode?: string;
+  referredBy?: string;         // referral code that referred this customer
+  referralEarnings?: number;   // total SAR earned from referrals
 }
+
+// Loyalty & referral defaults (can be adjusted later via settings)
+export const LOYALTY_RATE = 0.1;         // points per SAR spent
+export const LOYALTY_REDEEM_RATE = 1;    // SAR value per point when redeemed
+export const REFERRAL_COMMISSION_PCT = 5; // % of invoice total awarded to referrer's wallet
+
+function genReferralCode(name: string) {
+  const base = (name || "REF").replace(/[^\p{L}\p{N}]/gu, "").slice(0, 3).toUpperCase() || "REF";
+  const n = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${base}${n}`;
+}
+
 
 export interface Booking {
   id: string;
