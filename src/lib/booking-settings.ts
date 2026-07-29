@@ -278,10 +278,54 @@ export function getDaySlots(q: SlotQuery): Slot[] {
       startsAt,
       durationMin: q.durationMin,
       ignoreBookingId: q.ignoreBookingId,
+      customerId: q.customerId,
     });
     slots.push({ time, startsAt, available: !c, reason: c?.type });
   }
   return slots;
+}
+
+// Earliest available slot for a service across the given staff pool (starting today, scanning up to 14 days).
+export interface EarliestOptions {
+  serviceIds: string[];
+  staffPool: { id: string; name: string; services: string[]; active: boolean }[];
+  durationMin: number;
+  fromDate?: string;   // YYYY-MM-DD (default today)
+  maxDaysAhead?: number;
+  customerId?: string;
+  notBefore?: string;  // ISO — only slots at/after this instant
+}
+export interface EarliestSlot {
+  staffId: string;
+  staffName: string;
+  startsAt: string;
+  time: string;
+  date: string;
+}
+export function findEarliestSlot(opts: EarliestOptions): EarliestSlot | null {
+  const eligible = opts.staffPool.filter((s) => s.active && opts.serviceIds.every((sid) => s.services.includes(sid)));
+  if (!eligible.length || !opts.durationMin) return null;
+  const notBefore = opts.notBefore ? new Date(opts.notBefore).getTime() : 0;
+  const startDate = opts.fromDate ? new Date(opts.fromDate + "T00:00:00") : new Date();
+  const maxDays = opts.maxDaysAhead ?? 14;
+  let best: EarliestSlot | null = null;
+  for (let d = 0; d < maxDays; d++) {
+    const dt = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + d);
+    const dateKey = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    for (const st of eligible) {
+      const slots = getDaySlots({ date: dateKey, staffId: st.id, durationMin: opts.durationMin, customerId: opts.customerId });
+      for (const s of slots) {
+        if (!s.available) continue;
+        if (notBefore && new Date(s.startsAt).getTime() < notBefore) continue;
+        const t = new Date(s.startsAt).getTime();
+        if (!best || t < new Date(best.startsAt).getTime()) {
+          best = { staffId: st.id, staffName: st.name, startsAt: s.startsAt, time: s.time, date: dateKey };
+        }
+      }
+    }
+    if (best) return best; // earliest found on this day
+  }
+  return best;
 }
 
 export function getDayAvailabilitySummary(q: SlotQuery) {
