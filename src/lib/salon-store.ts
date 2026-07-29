@@ -193,6 +193,11 @@ export function isValidWalletId(id: string) {
 
 
 
+export type BookingPaymentMethod =
+  | "cash" | "mada" | "card" | "apple_pay" | "google_pay" | "transfer"
+  | "wallet"        // pay in full from wallet (needs customer approval when created by admin)
+  | "hold";         // client-created reservation without payment; auto-cancel after grace
+
 export interface Booking {
   id: string;
   code: string;              // "GLOBAL-BRANCH-DAILY" e.g. "000125-000042-0001"
@@ -217,6 +222,11 @@ export interface Booking {
   payStatus: PayStatus;
   notes?: string;
   createdAt: string;
+  // New: payment intent + wallet approval + auto-cancel hold
+  paymentMethod?: BookingPaymentMethod;
+  walletApproved?: boolean;              // customer approved wallet deduction
+  walletApprovalRequestedAt?: string;
+  holdExpiresAt?: string;                // ISO; auto-cancel after this instant
 }
 
 
