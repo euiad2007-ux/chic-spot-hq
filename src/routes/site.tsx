@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import { useSiteSettings, settingsToCssVars, waLink, googleFontsHref } from "@/lib/site-settings";
-import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle } from "lucide-react";
+import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { PaymentIcon } from "@/components/salon/payment-icons";
 
 function useGoogleFonts(href: string) {
   useEffect(() => {
@@ -302,6 +303,19 @@ function SitePage() {
             </div>
           </div>
         </div>
+        {site.paymentMethods.length > 0 && (
+          <div className="border-t border-border">
+            <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ShieldCheck className="size-4" style={{ color: site.primary }} />
+                <span>وسائل الدفع المقبولة</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                {site.paymentMethods.map((id) => <PaymentIcon key={id} id={id} />)}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
           © 2026 {site.salonName} — جميع الحقوق محفوظة
         </div>

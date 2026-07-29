@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
+import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
 import { useEffect, useRef, useState } from "react";
-import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check } from "lucide-react";
+import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PAYMENT_METHODS, PaymentIcon } from "@/components/salon/payment-icons";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -29,7 +30,7 @@ const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
 function SettingsPage() {
   const s = useSiteSettings();
   const customers = useSalon((x) => x.customers);
-  const [tab, setTab] = useState<"design" | "images" | "wa">("design");
+  const [tab, setTab] = useState<"design" | "images" | "payments" | "wa">("design");
 
   return (
     <AppShell
@@ -58,6 +59,7 @@ function SettingsPage() {
         {[
           { id: "design", label: "الهوية والشكل", icon: Palette },
           { id: "images", label: "الصور", icon: ImageIcon },
+          { id: "payments", label: "وسائل الدفع", icon: CreditCard },
           { id: "wa", label: "رسائل واتساب", icon: MessageCircle },
         ].map((t) => {
           const Icon = t.icon;
@@ -80,8 +82,60 @@ function SettingsPage() {
 
       {tab === "design" && <DesignTab s={s} />}
       {tab === "images" && <ImagesTab s={s} />}
+      {tab === "payments" && <PaymentsTab s={s} />}
       {tab === "wa" && <WhatsAppTab s={s} customers={customers} />}
     </AppShell>
+  );
+}
+
+/* ---------------- Payments ---------------- */
+function PaymentsTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
+  const toggle = (id: PaymentMethodId) => {
+    const set = new Set(s.paymentMethods);
+    if (set.has(id)) set.delete(id); else set.add(id);
+    siteActions.update({ paymentMethods: Array.from(set) });
+  };
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <section className="glass-card rounded-2xl p-5 lg:col-span-2">
+        <SectionHeader icon={CreditCard} title="وسائل الدفع المقبولة" />
+        <p className="text-xs text-muted-foreground mb-4">اختاري وسائل الدفع التي يقبلها الصالون؛ ستظهر رموزها في تذييل الموقع لتعزيز الثقة.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {PAYMENT_METHODS.map((m) => {
+            const active = s.paymentMethods.includes(m.id);
+            return (
+              <button
+                key={m.id}
+                onClick={() => toggle(m.id)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl border text-right transition",
+                  active ? "border-primary/60 bg-primary/10 ring-1 ring-primary/40" : "border-border hover:border-primary/30",
+                )}
+              >
+                <PaymentIcon id={m.id} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold">{m.labelAr}</div>
+                  <div className="text-[11px] text-muted-foreground">{m.label}</div>
+                </div>
+                <span className={cn("size-5 rounded-md grid place-items-center border", active ? "bg-primary border-primary text-primary-foreground" : "border-border")}>
+                  {active && <Check className="size-3.5" />}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+      <section className="glass-card rounded-2xl p-5">
+        <SectionHeader icon={Sparkles} title="معاينة" />
+        <div className="rounded-xl border border-border bg-muted/20 p-4">
+          <div className="text-[11px] font-semibold text-muted-foreground mb-3">نقبل الدفع عبر</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {s.paymentMethods.length === 0 && <span className="text-xs text-muted-foreground">لم يتم اختيار وسائل دفع بعد</span>}
+            {s.paymentMethods.map((id) => <PaymentIcon key={id} id={id} />)}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
