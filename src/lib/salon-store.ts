@@ -431,10 +431,13 @@ function load(): SalonState {
         cur.visits += 1; cur.total += inv.total ?? 0;
         stats.set(inv.customerId, cur);
       }
+      const walletIdSet = new Set<string>(Array.from(byPhone.values()).map((c) => c.walletId).filter(Boolean) as string[]);
       const customers = Array.from(byPhone.values()).map((c) => {
         const s = stats.get(c.id);
-        return { ...c, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
+        const walletId = c.walletId ?? genWalletId(walletIdSet);
+        return { ...c, walletId, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
       });
+
 
       // Normalize staff with new optional fields
       const staff = (parsed.staff ?? []).map((s: any) => ({
