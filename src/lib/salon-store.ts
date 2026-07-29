@@ -642,12 +642,14 @@ export const actions = {
       const existing = state.customers.find((x) => normPhone(x.phone) === key);
       if (existing) return existing;
     }
+    const walletIdSet = new Set<string>(state.customers.map((x) => x.walletId).filter(Boolean) as string[]);
     const newC: Customer = {
       ...c,
       id: uid(),
       visits: 0,
       totalSpent: 0,
       createdAt: new Date().toISOString(),
+      walletId: c.walletId ?? genWalletId(walletIdSet),
       walletBalance: c.walletBalance ?? 0,
       walletLog: c.walletLog ?? [],
       loyaltyPoints: c.loyaltyPoints ?? 0,
@@ -658,6 +660,7 @@ export const actions = {
     state = { ...state, customers: [...state.customers, newC] }; persist();
     return newC;
   },
+
   updateCustomer(id: string, patch: Partial<Customer>) {
     state = { ...state, customers: state.customers.map((x) => x.id === id ? { ...x, ...patch } : x) };
     persist();
