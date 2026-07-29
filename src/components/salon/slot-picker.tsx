@@ -9,6 +9,7 @@ const REASON_LABEL: Record<NonNullable<Slot["reason"]>, string> = {
   outside_hours: "خارج ساعات الدوام",
   break: "وقت استراحة",
   overlap: "محجوز مسبقاً",
+  customer_busy: "لديك حجز آخر",
 };
 
 function reasonLabel(reason?: Slot["reason"]) {

@@ -26,6 +26,7 @@ export interface BookingSettings {
   minLeadMin: number;
   maxDailyBookings: number; // 0 = unlimited
   foundingDate: string;     // "YYYY-MM-DD" — reference for sequential numbering
+  holdGraceMin: number;     // minutes past appointment before hold auto-cancels
 }
 
 const STORAGE_KEY = "lamsa_booking_settings_v1";
@@ -59,6 +60,7 @@ function defaults(): BookingSettings {
     minLeadMin: 0,
     maxDailyBookings: 0,
     foundingDate: new Date().toISOString().slice(0, 10),
+    holdGraceMin: 5,
   };
 }
 
@@ -112,6 +114,7 @@ export const bookingSettingsActions = {
   setSlotStep(min: number) { state = { ...state, slotStepMin: Math.max(5, min) }; persist(); },
   setMinLead(min: number) { state = { ...state, minLeadMin: Math.max(0, min) }; persist(); },
   setMaxDaily(n: number) { state = { ...state, maxDailyBookings: Math.max(0, Math.floor(n)) }; persist(); },
+  setHoldGrace(min: number) { state = { ...state, holdGraceMin: Math.max(0, Math.floor(min)) }; persist(); },
   setFoundingDate(d: string) { state = { ...state, foundingDate: d }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
     const id = "brk-" + Math.random().toString(36).slice(2, 8);
@@ -136,6 +139,7 @@ export interface ConflictCheckInput {
   startsAt: string; // ISO
   durationMin: number;
   ignoreBookingId?: string;
+  customerId?: string;
 }
 
 export type ConflictReason =
@@ -144,7 +148,8 @@ export type ConflictReason =
   | { type: "lead"; message: string }
   | { type: "outside_hours"; message: string }
   | { type: "break"; message: string; label: string }
-  | { type: "overlap"; message: string; bookingId: string };
+  | { type: "overlap"; message: string; bookingId: string }
+  | { type: "customer_busy"; message: string; bookingId: string };
 
 function toMin(hhmm: string) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -203,15 +208,15 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   const newEnd = end.getTime();
   for (const b of bookings) {
     if (b.id === input.ignoreBookingId) continue;
-    if (b.staffId !== input.staffId) continue;
     if (b.status === "cancelled" || b.status === "no_show") continue;
     const r = bookingRange(b, settings.bufferMin);
-    if (newStart < r.end && newEnd > r.start) {
-      return {
-        type: "overlap",
-        message: "الموظف مشغول في هذا الوقت مع حجز آخر",
-        bookingId: b.id,
-      };
+    const overlaps = newStart < r.end && newEnd > r.start;
+    if (!overlaps) continue;
+    if (b.staffId === input.staffId) {
+      return { type: "overlap", message: "الموظف مشغول في هذا الوقت مع حجز آخر", bookingId: b.id };
+    }
+    if (input.customerId && b.customerId === input.customerId) {
+      return { type: "customer_busy", message: "لديك حجز آخر في نفس هذا الوقت — اختر وقتاً لاحقاً", bookingId: b.id };
     }
   }
   return null;
@@ -224,6 +229,7 @@ export interface SlotQuery {
   staffId: string;
   durationMin: number;
   ignoreBookingId?: string;
+  customerId?: string;
 }
 
 export interface Slot {
@@ -241,6 +247,7 @@ export function getSlotReasonLabel(reason?: Slot["reason"]) {
     outside_hours: "خارج ساعات الدوام",
     break: "وقت استراحة",
     overlap: "محجوز مسبقاً",
+    customer_busy: "لديك حجز آخر",
   };
   return reason ? labels[reason] : "غير متاح";
 }
@@ -271,10 +278,54 @@ export function getDaySlots(q: SlotQuery): Slot[] {
       startsAt,
       durationMin: q.durationMin,
       ignoreBookingId: q.ignoreBookingId,
+      customerId: q.customerId,
     });
     slots.push({ time, startsAt, available: !c, reason: c?.type });
   }
   return slots;
+}
+
+// Earliest available slot for a service across the given staff pool (starting today, scanning up to 14 days).
+export interface EarliestOptions {
+  serviceIds: string[];
+  staffPool: { id: string; name: string; services: string[]; active: boolean }[];
+  durationMin: number;
+  fromDate?: string;   // YYYY-MM-DD (default today)
+  maxDaysAhead?: number;
+  customerId?: string;
+  notBefore?: string;  // ISO — only slots at/after this instant
+}
+export interface EarliestSlot {
+  staffId: string;
+  staffName: string;
+  startsAt: string;
+  time: string;
+  date: string;
+}
+export function findEarliestSlot(opts: EarliestOptions): EarliestSlot | null {
+  const eligible = opts.staffPool.filter((s) => s.active && opts.serviceIds.every((sid) => s.services.includes(sid)));
+  if (!eligible.length || !opts.durationMin) return null;
+  const notBefore = opts.notBefore ? new Date(opts.notBefore).getTime() : 0;
+  const startDate = opts.fromDate ? new Date(opts.fromDate + "T00:00:00") : new Date();
+  const maxDays = opts.maxDaysAhead ?? 14;
+  let best: EarliestSlot | null = null;
+  for (let d = 0; d < maxDays; d++) {
+    const dt = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + d);
+    const dateKey = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    for (const st of eligible) {
+      const slots = getDaySlots({ date: dateKey, staffId: st.id, durationMin: opts.durationMin, customerId: opts.customerId });
+      for (const s of slots) {
+        if (!s.available) continue;
+        if (notBefore && new Date(s.startsAt).getTime() < notBefore) continue;
+        const t = new Date(s.startsAt).getTime();
+        if (!best || t < new Date(best.startsAt).getTime()) {
+          best = { staffId: st.id, staffName: st.name, startsAt: s.startsAt, time: s.time, date: dateKey };
+        }
+      }
+    }
+    if (best) return best; // earliest found on this day
+  }
+  return best;
 }
 
 export function getDayAvailabilitySummary(q: SlotQuery) {

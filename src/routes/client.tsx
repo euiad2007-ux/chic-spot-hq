@@ -7,7 +7,7 @@ import {
   LOYALTY_REDEEM_RATE,
 } from "@/lib/salon-store";
 import { useCoupons } from "@/lib/coupon-store";
-import { checkBookingConflict, getDaySlots } from "@/lib/booking-settings";
+import { checkBookingConflict, getDaySlots, findEarliestSlot, getBookingSettings } from "@/lib/booking-settings";
 import { useSession, auth } from "@/lib/auth-store";
 import {
   CalendarDays, Sparkles, Clock, LogOut, Plus, X, Scissors, Star,
@@ -613,77 +613,182 @@ function Labeled({ label, children }: { label: string; children: React.ReactNode
 
 /* ==================== NEW BOOKING MODAL ==================== */
 function NewBookingModal({ onClose, customerId }: { onClose: () => void; customerId: string }) {
-  const { services, staff } = useSalon((s) => s);
-  const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
-  const [staffId, setStaffId] = useState(staff[0]?.id ?? "");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [time, setTime] = useState<string>("");
+  const { services, staff, customers } = useSalon((s) => s);
+  const me = customers.find((c) => c.id === customerId);
+  const wallet = me?.walletBalance ?? 0;
 
-  const svc = services.find((s) => s.id === serviceId);
-  const svcTotal = svc ? serviceTotalMin(svc) : 0;
+  const [selected, setSelected] = useState<string[]>([]);
+  const [pay, setPay] = useState<"cash" | "mada" | "card" | "apple_pay" | "google_pay" | "wallet" | "hold">("hold");
 
-  const slots = useMemo(() => {
-    if (!svc || !staffId) return [];
-    return getDaySlots({ date, staffId, durationMin: svcTotal });
-  }, [date, staffId, svcTotal, svc]);
+  const activeServices = services.filter((s) => s.active);
 
-  const selectedSlot = slots.find((s) => s.time === time);
-  const startsAt = selectedSlot?.startsAt ?? "";
-  const conflict = svc && startsAt ? checkBookingConflict({ staffId, startsAt, durationMin: svcTotal }) : null;
+  const earliestByService = useMemo(() => {
+    const m = new Map<string, ReturnType<typeof findEarliestSlot>>();
+    for (const s of activeServices) {
+      m.set(s.id, findEarliestSlot({
+        serviceIds: [s.id], staffPool: staff, durationMin: serviceTotalMin(s), customerId,
+      }));
+    }
+    return m;
+  }, [activeServices, staff, customerId]);
+
+  const combined = useMemo(() => {
+    if (!selected.length) return null;
+    const chosen = services.filter((s) => selected.includes(s.id));
+    const durationMin = chosen.reduce((a, s) => a + serviceTotalMin(s), 0);
+    const price = chosen.reduce((a, s) => a + s.price, 0);
+    const earliest = findEarliestSlot({ serviceIds: selected, staffPool: staff, durationMin, customerId });
+    return { durationMin, price, earliest, chosen };
+  }, [selected, services, staff, customerId]);
+
+  const toggle = (id: string) => setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
 
   const submit = () => {
-    if (!svc) return;
-    if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
-    if (conflict) return toast.error(conflict.message);
-    actions.addBooking({
-      customerId, staffId, serviceIds: [serviceId], startsAt,
-      durationMin: svcTotal, price: svc.price, discount: 0,
+    if (!combined?.earliest) return toast.error("لا يوجد وقت متاح");
+    if (pay === "wallet" && wallet < combined.price) return toast.error("رصيد المحفظة لا يكفي");
+
+    const settings = getBookingSettings();
+    const graceMs = (settings.holdGraceMin ?? 5) * 60_000;
+    const holdExpiresAt = pay === "hold"
+      ? new Date(new Date(combined.earliest.startsAt).getTime() + graceMs).toISOString()
+      : undefined;
+
+    const nb = actions.addBooking({
+      customerId,
+      staffId: combined.earliest.staffId,
+      serviceIds: selected,
+      startsAt: combined.earliest.startsAt,
+      durationMin: combined.durationMin,
+      price: combined.price,
+      discount: 0,
+      paymentMethod: pay,
+      walletApproved: pay === "wallet",
+      walletUsed: pay === "wallet" ? combined.price : undefined,
+      holdExpiresAt,
     });
-    toast.success("تم إنشاء الحجز");
+
+    if (pay !== "hold") {
+      const inv = actions.createInvoice(nb.id, (pay === "wallet" ? "cash" : pay) as any);
+      if (inv) toast.success(`تم الحجز وإصدار الفاتورة ${nb.code}`);
+    } else {
+      toast.success(`تم حفظ الحجز ${nb.code} — سيُلغى تلقائياً بعد ${settings.holdGraceMin} دقيقة من موعده إن لم يُدفع`);
+    }
     onClose();
   };
 
+  const payOptions: { id: typeof pay; label: string; icon: any; disabled?: boolean }[] = [
+    { id: "hold", label: "حفظ كحجز (بدون دفع)", icon: Clock },
+    { id: "wallet", label: `المحفظة (${formatSAR(wallet)})`, icon: Wallet, disabled: !combined || wallet < (combined?.price ?? 0) },
+    { id: "cash", label: "نقداً في الصالون", icon: Wallet },
+    { id: "mada", label: "مدى", icon: CreditCard },
+    { id: "card", label: "بطاقة", icon: CreditCard },
+    { id: "apple_pay", label: "Apple Pay", icon: CreditCard },
+    { id: "google_pay", label: "Google Pay", icon: CreditCard },
+  ];
+
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur">
+      <div className="glass-card rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur z-10">
           <h3 className="font-bold text-lg flex items-center gap-2"><Sparkles className="size-5 text-primary" /> حجز جديد</h3>
           <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
         </div>
+
         <div className="p-5 space-y-4">
-          <Labeled label="الخدمة">
-            <select value={serviceId} onChange={(e) => { setServiceId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
-              {services.filter((s) => s.active).map((s) => <option key={s.id} value={s.id}>{s.name} — {formatSAR(s.price)}</option>)}
-            </select>
-          </Labeled>
-          <Labeled label="الأخصائية">
-            {(() => {
-              const eligible = eligibleStaffFor(serviceId ? [serviceId] : [], staff);
+          <div className="text-sm font-bold">اختاري الخدمات</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-1">
+            {activeServices.map((s) => {
+              const eligibleNames = staff.filter((st) => st.active && st.services.includes(s.id)).map((x) => x.name);
+              const earliest = earliestByService.get(s.id);
+              const sel = selected.includes(s.id);
               return (
-                <select value={eligible.find((s) => s.id === staffId) ? staffId : ""} onChange={(e) => { setStaffId(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" disabled={eligible.length === 0}>
-                  <option value="">-- اختر الأخصائية --</option>
-                  {eligible.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.role}</option>)}
-                </select>
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={eligibleNames.length === 0}
+                  onClick={() => toggle(s.id)}
+                  className={cn(
+                    "text-right p-3 rounded-xl border transition text-sm",
+                    sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
+                    eligibleNames.length === 0 && "opacity-50 cursor-not-allowed",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-bold">{s.name}</div>
+                    <div className="text-primary font-bold whitespace-nowrap">{formatSAR(s.price)}</div>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
+                    <Clock className="size-3" /> {serviceTotalMin(s)} دقيقة
+                  </div>
+                  <div className="mt-1 text-[11px]">
+                    <span className="text-muted-foreground">المؤهلون: </span>
+                    {eligibleNames.length ? eligibleNames.join("، ") : <span className="text-destructive">لا يوجد</span>}
+                  </div>
+                  {earliest ? (
+                    <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success border border-success/30 px-2 py-0.5 text-[11px] font-semibold">
+                      <Check className="size-3" /> أقرب وقت: {formatDate(earliest.startsAt)} · {earliest.staffName}
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-[11px] text-warning">لا يوجد وقت قريب</div>
+                  )}
+                </button>
               );
-            })()}
-          </Labeled>
-          <Labeled label="التاريخ">
-            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-          </Labeled>
-          <Labeled label={`الأوقات المتاحة${svc ? ` (مدة ${svc.durationMin} دقيقة)` : ""}`}>
-            {slots.length === 0 ? <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">لا توجد أوقات متاحة</div> : <SlotPicker slots={slots} selectedTime={time} onSelect={setTime} />}
-          </Labeled>
-          {svc && (
-            <div className="rounded-xl bg-muted/40 border border-border p-3 flex items-center justify-between text-sm">
-              <span className="flex items-center gap-1 text-muted-foreground"><Clock className="size-3.5" /> {svc.durationMin} دقيقة</span>
-              <span className="font-bold gradient-text">{formatSAR(svc.price)}</span>
+            })}
+          </div>
+
+          {combined?.earliest && (
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm space-y-1">
+              <div>الأخصائية: <span className="font-bold">{combined.earliest.staffName}</span></div>
+              <div>الوقت: <span className="font-bold">{formatDate(combined.earliest.startsAt)}</span></div>
+              <div className="text-xs text-muted-foreground">المدة الإجمالية {combined.durationMin} دقيقة</div>
             </div>
           )}
-          {conflict && <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive p-3 text-xs">{conflict.message}</div>}
+
+          <div>
+            <div className="text-sm font-bold mb-2">طريقة الدفع</div>
+            <div className="grid grid-cols-2 gap-2">
+              {payOptions.map((opt) => {
+                const Icon = opt.icon;
+                const active = pay === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={opt.disabled}
+                    onClick={() => setPay(opt.id)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg border p-3 text-xs font-semibold transition text-right",
+                      active ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
+                      opt.disabled && "opacity-40 cursor-not-allowed",
+                    )}
+                  >
+                    <Icon className="size-4 text-primary" />
+                    <span className="flex-1">{opt.label}</span>
+                    {active && <Check className="size-4 text-success" />}
+                  </button>
+                );
+              })}
+            </div>
+            {pay === "hold" && (
+              <p className="text-[11px] text-muted-foreground mt-2">سيُلغى الحجز تلقائياً بعد فترة السماح بعد موعده إن لم يتم الدفع.</p>
+            )}
+          </div>
+
+          <div className="glass-card rounded-xl p-3 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">الإجمالي</span>
+            <span className="text-xl font-bold gradient-text">{formatSAR(combined?.price ?? 0)}</span>
+          </div>
         </div>
+
         <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
-          <button onClick={submit} disabled={!!conflict || !time} className={cn("px-6 h-10 rounded-lg text-sm font-semibold text-primary-foreground bg-gradient-to-l from-primary to-accent disabled:opacity-50 disabled:cursor-not-allowed")}>تأكيد الحجز</button>
+          <button
+            onClick={submit}
+            disabled={!combined?.earliest}
+            className="px-6 h-10 rounded-lg text-sm font-semibold text-primary-foreground bg-gradient-to-l from-primary to-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            تأكيد الحجز
+          </button>
         </div>
       </div>
     </div>

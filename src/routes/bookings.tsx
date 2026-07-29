@@ -1,14 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { SlotPicker } from "@/components/salon/slot-picker";
-import { useSalon, actions, formatSAR, formatTime, formatDateShort, serviceTotalMin, eligibleStaffFor, STATUS_LABEL, STATUS_TONE, PAY_LABEL, type BookingStatus } from "@/lib/salon-store";
-import { checkBookingConflict, getDaySlots, useBookingSettings } from "@/lib/booking-settings";
+import {
+  useSalon, actions, formatSAR, formatTime, formatDateShort,
+  serviceTotalMin, eligibleStaffFor,
+  STATUS_LABEL, STATUS_TONE, PAY_LABEL,
+  type BookingStatus, type BookingPaymentMethod, type Customer, type Service,
+} from "@/lib/salon-store";
+import { findEarliestSlot, useBookingSettings, getBookingSettings } from "@/lib/booking-settings";
 import { evalCoupon, couponActions } from "@/lib/coupon-store";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Trash2, CheckCircle2, X, AlertTriangle, Ticket, Wallet } from "lucide-react";
+import {
+  Plus, Search, Trash2, CheckCircle2, X, AlertTriangle, Ticket, Wallet,
+  UserPlus, Clock, Sparkles, CreditCard, Banknote, Smartphone, Hourglass,
+} from "lucide-react";
 import { toast } from "sonner";
-
 
 export const Route = createFileRoute("/bookings")({
   head: () => ({
@@ -31,12 +37,28 @@ const STATUS_FILTERS: { id: BookingStatus | "all"; label: string }[] = [
   { id: "cancelled", label: "ملغية" },
 ];
 
+const PAY_METHOD_OPTIONS: { id: BookingPaymentMethod; label: string; icon: any; kind: "cash" | "electronic" | "wallet" }[] = [
+  { id: "cash", label: "نقداً", icon: Banknote, kind: "cash" },
+  { id: "mada", label: "مدى", icon: CreditCard, kind: "electronic" },
+  { id: "card", label: "بطاقة", icon: CreditCard, kind: "electronic" },
+  { id: "apple_pay", label: "Apple Pay", icon: Smartphone, kind: "electronic" },
+  { id: "google_pay", label: "Google Pay", icon: Smartphone, kind: "electronic" },
+  { id: "wallet", label: "من محفظة العميل (يتطلب موافقة)", icon: Wallet, kind: "wallet" },
+];
+
 function BookingsPage() {
   const state = useSalon((s) => s);
   const { bookings, customers, staff, services } = state;
   const [filter, setFilter] = useState<BookingStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [openNew, setOpenNew] = useState(false);
+
+  // Auto-cancel expired hold bookings on mount + every minute
+  useEffect(() => {
+    actions.cancelExpiredHolds();
+    const t = setInterval(() => actions.cancelExpiredHolds(), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   const rows = useMemo(() => {
     return bookings
@@ -100,7 +122,7 @@ function BookingsPage() {
                 <th className="text-right p-3 font-medium">أولوية</th>
                 <th className="text-right p-3 font-medium">رقم الحجز</th>
                 <th className="text-right p-3 font-medium">العميل</th>
-                <th className="text-right p-3 font-medium">الخدمات (رقم الدور)</th>
+                <th className="text-right p-3 font-medium">الخدمات</th>
                 <th className="text-right p-3 font-medium">الموظف</th>
                 <th className="text-right p-3 font-medium">التاريخ</th>
                 <th className="text-right p-3 font-medium">المبلغ</th>
@@ -117,6 +139,8 @@ function BookingsPage() {
                 const c = customers.find((x) => x.id === b.customerId);
                 const st = staff.find((x) => x.id === b.staffId);
                 const parts = b.code.split("-");
+                const needsApproval = b.paymentMethod === "wallet" && !b.walletApproved && b.status !== "cancelled" && b.status !== "completed";
+                const isHold = b.paymentMethod === "hold" && b.status !== "cancelled" && b.status !== "completed";
                 return (
                   <tr key={b.id} className="border-t border-border hover:bg-muted/20">
                     <td className="p-3">
@@ -126,11 +150,11 @@ function BookingsPage() {
                     </td>
                     <td className="p-3 font-mono text-[11px]">
                       <div className="flex items-center gap-1 flex-wrap">
-                        <span className="text-muted-foreground" title="رقم عام">{parts[0]}</span>
+                        <span className="text-muted-foreground">{parts[0]}</span>
                         <span className="text-muted-foreground">·</span>
-                        <span className="text-accent" title="رقم الفرع">{parts[1]}</span>
+                        <span className="text-accent">{parts[1]}</span>
                         <span className="text-muted-foreground">·</span>
-                        <span className="text-primary font-bold" title="رقم اليوم">{parts[2]}</span>
+                        <span className="text-primary font-bold">{parts[2]}</span>
                       </div>
                     </td>
                     <td className="p-3">
@@ -158,9 +182,21 @@ function BookingsPage() {
                     </td>
                     <td className="p-3 font-bold">{formatSAR(b.price - b.discount)}</td>
                     <td className="p-3">
-                      <span className={cn("text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap", STATUS_TONE[b.status])}>
-                        {STATUS_LABEL[b.status]}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={cn("text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap w-max", STATUS_TONE[b.status])}>
+                          {STATUS_LABEL[b.status]}
+                        </span>
+                        {needsApproval && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-warning/40 bg-warning/10 text-warning w-max">
+                            بانتظار موافقة العميل
+                          </span>
+                        )}
+                        {isHold && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-accent/40 bg-accent/10 text-accent w-max inline-flex items-center gap-1">
+                            <Hourglass className="size-3" /> حجز مؤقت
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3 text-xs">{PAY_LABEL[b.payStatus]}</td>
                     <td className="p-3">
@@ -169,11 +205,20 @@ function BookingsPage() {
                           <button
                             title="إتمام وإصدار فاتورة"
                             onClick={() => {
-                              const inv = actions.createInvoice(b.id, "mada");
+                              // Choose invoice method
+                              const method = (b.paymentMethod === "wallet" && b.walletApproved)
+                                ? "cash"
+                                : (b.paymentMethod && b.paymentMethod !== "hold" && b.paymentMethod !== "wallet")
+                                  ? b.paymentMethod as any
+                                  : "cash";
+                              if (b.paymentMethod === "wallet" && !b.walletApproved) {
+                                toast.error("لم يوافق العميل على الخصم من المحفظة بعد");
+                                return;
+                              }
+                              const inv = actions.createInvoice(b.id, method);
                               if (inv && b.couponCode) couponActions.markUsed(b.couponCode);
                               toast.success("تم إصدار الفاتورة");
                             }}
-
                             className="size-8 rounded-lg border border-border hover:border-success/50 hover:text-success grid place-items-center"
                           >
                             <CheckCircle2 className="size-4" />
@@ -210,66 +255,88 @@ function BookingsPage() {
   );
 }
 
+/* ============================================================
+ *  NEW BOOKING DIALOG (rewritten)
+ *  - Customer search (booking#/name/phone/walletId) or new customer
+ *  - Service picker: shows eligible staff, price, duration, earliest slot
+ *  - Sequential scheduling per customer (next service starts after previous)
+ *  - Payment: cash / electronic / wallet (approval) — single invoice
+ * ============================================================ */
 function NewBookingDialog({ onClose }: { onClose: () => void }) {
-  const { customers, staff, services, bookings } = useSalon((s) => s);
+  const { customers, staff, services } = useSalon((s) => s);
   const settings = useBookingSettings((s) => s);
-  const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
-  const [newCustName, setNewCustName] = useState("");
-  const [newCustPhone, setNewCustPhone] = useState("");
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [staffId, setStaffId] = useState(staff[0]?.id ?? "");
-  const today = new Date();
-  const [date, setDate] = useState(today.toISOString().slice(0, 10));
-  const [time, setTime] = useState<string>("");
-  const [discount, setDiscount] = useState(0);
-  const [notes, setNotes] = useState("");
-  const [couponInput, setCouponInput] = useState("");
-  const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number } | null>(null);
-  const [useWallet, setUseWallet] = useState(false);
-  const [walletAmt, setWalletAmt] = useState(0);
 
-  const totals = useMemo(() => {
-    const chosen = services.filter((s) => selectedServices.includes(s.id));
-    const price = chosen.reduce((a, s) => a + s.price, 0);
-    const serviceMin = chosen.reduce((a, s) => a + s.durationMin, 0);
-    const durationMin = chosen.reduce((a, s) => a + serviceTotalMin(s), 0);
-    return { price, durationMin, serviceMin };
-  }, [selectedServices, services]);
+  // ==== Customer step ====
+  const [custQuery, setCustQuery] = useState("");
+  const [customerId, setCustomerId] = useState<string>("");
+  const [newCust, setNewCust] = useState({ name: "", phone: "" });
+  const [showNew, setShowNew] = useState(false);
 
-  const toggle = (id: string) => setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
-
-  const slots = useMemo(() => {
-    if (!staffId || totals.durationMin === 0) return [];
-    return getDaySlots({ date, staffId, durationMin: totals.durationMin });
-  }, [date, staffId, totals.durationMin]);
-
-  const selectedSlot = slots.find((s) => s.time === time);
-  const startsAt = selectedSlot?.startsAt ?? "";
-  const conflict = useMemo(() => {
-    if (selectedServices.length === 0 || !staffId || !startsAt) return null;
-    return checkBookingConflict({ staffId, startsAt, durationMin: totals.durationMin });
-  }, [staffId, startsAt, totals.durationMin, selectedServices.length]);
-
-  const dayBookingsCount = useMemo(
-    () => bookings.filter((b) => b.bookingDate === date && b.status !== "cancelled").length,
-    [bookings, date],
-  );
-  const dayLimitReached = settings.maxDailyBookings > 0 && dayBookingsCount >= settings.maxDailyBookings;
+  const custMatches = useMemo(() => {
+    const q = custQuery.trim().toLowerCase();
+    if (!q) return [] as Customer[];
+    return customers.filter((c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.phone.includes(q) ||
+      (c.walletId ?? "").toLowerCase().includes(q) ||
+      (c.email ?? "").toLowerCase().includes(q),
+    ).slice(0, 6);
+  }, [custQuery, customers]);
 
   const currentCustomer = customers.find((c) => c.id === customerId) ?? null;
   const walletAvailable = currentCustomer?.walletBalance ?? 0;
 
-  // Recompute coupon discount when subtotal changes
-  const subtotalAfterManual = Math.max(0, totals.price - discount);
+  // ==== Services picking ====
+  // Selection order matters — sequential scheduling
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number } | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [payMethod, setPayMethod] = useState<BookingPaymentMethod>("cash");
+  const [notes, setNotes] = useState("");
+
+  // ==== Compute earliest slot for each active service (over all eligible staff) ====
+  const earliestByService = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof findEarliestSlot>>();
+    for (const s of services) {
+      if (!s.active) continue;
+      const e = findEarliestSlot({
+        serviceIds: [s.id],
+        staffPool: staff,
+        durationMin: serviceTotalMin(s),
+        customerId: customerId || undefined,
+      });
+      map.set(s.id, e);
+    }
+    return map;
+  }, [services, staff, customerId]);
+
+  // ==== Compute a single combined staff + startsAt (all selected must share one staff — earliest common) ====
+  const combined = useMemo(() => {
+    if (selectedServices.length === 0) return null;
+    const chosen = services.filter((s) => selectedServices.includes(s.id));
+    const durationMin = chosen.reduce((a, s) => a + serviceTotalMin(s), 0);
+    const price = chosen.reduce((a, s) => a + s.price, 0);
+    const earliest = findEarliestSlot({
+      serviceIds: selectedServices,
+      staffPool: staff,
+      durationMin,
+      customerId: customerId || undefined,
+    });
+    return { durationMin, price, earliest, chosen };
+  }, [selectedServices, services, staff, customerId]);
+
+  const toggleService = (id: string) => {
+    setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
+  };
+
+  const subtotalAfterManual = Math.max(0, (combined?.price ?? 0) - discount);
   const couponDiscount = useMemo(() => {
     if (!couponApplied) return 0;
     const r = evalCoupon(couponApplied.code, subtotalAfterManual);
     return r.ok ? r.discount : 0;
   }, [couponApplied, subtotalAfterManual]);
-
   const afterDiscounts = Math.max(0, subtotalAfterManual - couponDiscount);
-  const walletUsed = useWallet ? Math.min(walletAmt || 0, walletAvailable, afterDiscounts) : 0;
-  const remaining = Math.max(0, afterDiscounts - walletUsed);
 
   const applyCoupon = () => {
     const r = evalCoupon(couponInput, subtotalAfterManual);
@@ -279,17 +346,18 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   };
   const clearCoupon = () => { setCouponApplied(null); setCouponInput(""); };
 
+  const eligibleStaffNames = (svc: Service) => staff.filter((st) => st.active && st.services.includes(svc.id)).map((s) => s.name);
+
   const submit = () => {
-    if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     let cid = customerId;
-    if (newCustName && newCustPhone) {
-      const c = actions.addCustomer({ name: newCustName, phone: newCustPhone, gender: "female" });
+    if (showNew && newCust.name && newCust.phone) {
+      const c = actions.addCustomer({ name: newCust.name.trim(), phone: newCust.phone.trim(), gender: "female" });
       cid = c.id;
     }
-    if (!cid) return toast.error("اختر عميلاً");
-    if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
-    if (conflict) return toast.error(conflict.message);
-    if (dayLimitReached) return toast.error(`تم بلوغ الحد الأقصى للحجوزات اليومية (${settings.maxDailyBookings})`);
+    if (!cid) return toast.error("اختر عميلاً أو أضف جديداً");
+    if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
+    if (!combined?.earliest) return toast.error("لا يوجد موظف/وقت متاح لهذه الخدمات");
+
     // Re-validate coupon at submit
     let finalCouponDiscount = 0;
     let finalCouponCode: string | undefined;
@@ -299,191 +367,251 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       finalCouponDiscount = r.discount;
       finalCouponCode = r.coupon.code;
     }
+
+    // Wallet payment via admin requires customer approval afterwards
+    const needsApproval = payMethod === "wallet";
+
     const nb = actions.addBooking({
       customerId: cid,
-      staffId,
+      staffId: combined.earliest.staffId,
       serviceIds: selectedServices,
-      startsAt,
-      durationMin: totals.durationMin,
-      price: totals.price,
+      startsAt: combined.earliest.startsAt,
+      durationMin: combined.durationMin,
+      price: combined.price,
       discount: discount + finalCouponDiscount,
       couponCode: finalCouponCode,
       couponDiscount: finalCouponDiscount || undefined,
-      walletUsed: walletUsed > 0 ? walletUsed : undefined,
       notes,
+      paymentMethod: payMethod,
+      walletApproved: false,
+      walletApprovalRequestedAt: needsApproval ? new Date().toISOString() : undefined,
     });
-    toast.success(`تم إنشاء الحجز ${nb.code}`);
+
+    // If cash/electronic → issue invoice immediately (one invoice for all services)
+    if (payMethod !== "wallet" && payMethod !== "hold") {
+      const inv = actions.createInvoice(nb.id, payMethod as any);
+      if (inv && finalCouponCode) couponActions.markUsed(finalCouponCode);
+      toast.success(`تم إنشاء الحجز ${nb.code} وإصدار الفاتورة`);
+    } else if (payMethod === "wallet") {
+      toast.success(`تم إنشاء الحجز ${nb.code} — بانتظار موافقة العميل على الخصم من المحفظة`);
+    }
     onClose();
   };
 
-
-
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur">
+      <div className="glass-card rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur z-10">
           <div>
-            <h3 className="font-bold text-lg">حجز جديد</h3>
-            <p className="text-xs text-muted-foreground mt-1">أدخل تفاصيل الحجز</p>
+            <h3 className="font-bold text-lg flex items-center gap-2"><Sparkles className="size-5 text-primary" /> حجز جديد</h3>
+            <p className="text-xs text-muted-foreground mt-1">ابحث عن العميل، اختر الخدمات، ثم حدد طريقة الدفع</p>
           </div>
           <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
         </div>
 
         <div className="p-5 space-y-5">
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">العميل</label>
-            <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm">
-              <option value="">-- اختر عميلاً --</option>
-              {customers.map((c) => <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>)}
-            </select>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <input value={newCustName} onChange={(e) => setNewCustName(e.target.value)} placeholder="أو اسم عميل جديد" className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-              <input value={newCustPhone} onChange={(e) => setNewCustPhone(e.target.value)} placeholder="رقم الجوال" className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+          {/* ================ CUSTOMER STEP ================ */}
+          <section className="rounded-xl border border-border p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-bold flex items-center gap-2"><Search className="size-4 text-primary" /> بيانات العميل</div>
+              <button onClick={() => { setShowNew((v) => !v); setCustomerId(""); }} className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
+                <UserPlus className="size-3.5" /> {showNew ? "بحث بعميل موجود" : "عميل جديد"}
+              </button>
             </div>
-          </div>
 
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">الخدمات</label>
-            <div className="grid grid-cols-2 gap-2">
+            {!showNew ? (
+              <>
+                <input
+                  value={custQuery}
+                  onChange={(e) => setCustQuery(e.target.value)}
+                  placeholder="ابحث برقم الحجز، الاسم، الجوال، أو رقم المحفظة"
+                  className="w-full h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                />
+                {custQuery && (
+                  <div className="rounded-lg border border-border divide-y divide-border max-h-56 overflow-y-auto">
+                    {custMatches.length === 0 ? (
+                      <div className="p-3 text-xs text-muted-foreground text-center">لا نتائج — <button className="text-primary hover:underline" onClick={() => { setShowNew(true); setNewCust({ name: custQuery, phone: "" }); }}>إضافة عميل جديد</button></div>
+                    ) : custMatches.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => { setCustomerId(c.id); setCustQuery(""); }}
+                        className={cn("w-full text-right p-2.5 hover:bg-muted/40 text-sm transition", customerId === c.id && "bg-primary/10")}
+                      >
+                        <div className="font-semibold">{c.name}</div>
+                        <div className="text-[11px] text-muted-foreground flex gap-2 items-center">
+                          <span dir="ltr">{c.phone}</span>
+                          {c.walletId && <span className="font-mono">· {c.walletId}</span>}
+                          <span>· رصيد {formatSAR(c.walletBalance ?? 0)}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {currentCustomer && (
+                  <div className="rounded-lg bg-primary/5 border border-primary/30 p-3 flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-sm">{currentCustomer.name}</div>
+                      <div className="text-xs text-muted-foreground" dir="ltr">{currentCustomer.phone}</div>
+                    </div>
+                    <div className="text-left">
+                      <div className="text-[10px] text-muted-foreground">رصيد المحفظة</div>
+                      <div className="font-bold text-sm text-success">{formatSAR(walletAvailable)}</div>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <input value={newCust.name} onChange={(e) => setNewCust({ ...newCust, name: e.target.value })} placeholder="اسم العميل" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                <input value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} placeholder="رقم الجوال" dir="ltr" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                <p className="col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء.</p>
+              </div>
+            )}
+          </section>
+
+          {/* ================ SERVICES STEP ================ */}
+          <section className="rounded-xl border border-border p-4 space-y-3">
+            <div className="text-sm font-bold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> الخدمات المتاحة</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[420px] overflow-y-auto pr-1">
               {services.filter((s) => s.active).map((s) => {
                 const sel = selectedServices.includes(s.id);
+                const eligNames = eligibleStaffNames(s);
+                const earliest = earliestByService.get(s.id);
+                const total = serviceTotalMin(s);
                 return (
-                  <button key={s.id} type="button" onClick={() => toggle(s.id)} className={cn(
-                    "text-right p-3 rounded-lg border transition text-sm",
-                    sel ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
-                  )}>
-                    <div className="font-semibold">{s.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{formatSAR(s.price)} · {s.durationMin} دقيقة</div>
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => toggleService(s.id)}
+                    disabled={eligNames.length === 0}
+                    className={cn(
+                      "text-right p-3 rounded-xl border transition text-sm",
+                      sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
+                      eligNames.length === 0 && "opacity-50 cursor-not-allowed",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-bold">{s.name}</div>
+                      <div className="text-primary font-bold whitespace-nowrap">{formatSAR(s.price)}</div>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
+                      <Clock className="size-3" /> {total} دقيقة
+                      <span className="text-muted-foreground/50">·</span>
+                      <span>{s.category}</span>
+                    </div>
+                    <div className="mt-1.5 text-[11px]">
+                      <span className="text-muted-foreground">المؤهلون: </span>
+                      {eligNames.length === 0 ? <span className="text-destructive">لا يوجد</span> : <span className="text-foreground">{eligNames.join("، ")}</span>}
+                    </div>
+                    {earliest ? (
+                      <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success border border-success/30 px-2 py-0.5 text-[11px] font-semibold">
+                        <CheckCircle2 className="size-3" /> أقرب وقت: {formatDateShort(earliest.startsAt)} — {formatTime(earliest.startsAt)} · {earliest.staffName}
+                      </div>
+                    ) : (
+                      <div className="mt-2 text-[11px] text-warning">لا يوجد وقت متاح قريب</div>
+                    )}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الموظف</label>
-              {(() => {
-                const eligible = eligibleStaffFor(selectedServices, staff);
+          {/* ================ COMBINED SCHEDULE ================ */}
+          {selectedServices.length > 0 && (
+            <section className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-2">
+              <div className="text-sm font-bold flex items-center gap-2"><Clock className="size-4 text-primary" /> جدولة الحجز</div>
+              {combined?.earliest ? (
+                <>
+                  <div className="text-sm">
+                    الأخصائية: <span className="font-bold">{combined.earliest.staffName}</span>
+                  </div>
+                  <div className="text-sm">
+                    الوقت: <span className="font-bold">{formatDateShort(combined.earliest.startsAt)} — {formatTime(combined.earliest.startsAt)}</span>
+                    <span className="text-muted-foreground mr-2">مدة إجمالية {combined.durationMin} دقيقة</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">يتم حجز هذا الوقت للعميل والموظف تلقائياً — لن يتمكن أي طرف من الحجز في نفس الوقت.</p>
+                </>
+              ) : (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/10 text-destructive p-2 text-xs flex items-start gap-2">
+                  <AlertTriangle className="size-4 mt-0.5" />
+                  لا يوجد موظف مشترك مؤهل لكل هذه الخدمات، أو لا يوجد وقت متاح.
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* ================ DISCOUNTS ================ */}
+          <section className="rounded-xl border border-border p-4 space-y-3">
+            <div className="text-sm font-bold flex items-center gap-2"><Ticket className="size-4 text-primary" /> الخصومات</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground mb-1.5 block">خصم يدوي</label>
+                <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value) || 0)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground mb-1.5 block">كود كوبون</label>
+                {couponApplied ? (
+                  <div className="flex items-center justify-between h-10 rounded-lg bg-primary/10 border border-primary/30 px-3 text-sm">
+                    <span className="font-mono font-bold">{couponApplied.code}</span>
+                    <button onClick={clearCoupon} className="text-xs text-destructive hover:underline">إزالة</button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono uppercase" />
+                    <button onClick={applyCoupon} className="px-3 h-10 rounded-lg border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">تطبيق</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* ================ PAYMENT ================ */}
+          <section className="rounded-xl border border-border p-4 space-y-3">
+            <div className="text-sm font-bold flex items-center gap-2"><CreditCard className="size-4 text-primary" /> طريقة الدفع</div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {PAY_METHOD_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const disabled = opt.id === "wallet" && (!currentCustomer || walletAvailable < afterDiscounts);
+                const active = payMethod === opt.id;
                 return (
-                  <>
-                    <select
-                      value={eligible.find((s) => s.id === staffId) ? staffId : ""}
-                      onChange={(e) => { setStaffId(e.target.value); setTime(""); }}
-                      className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
-                      disabled={eligible.length === 0}
-                    >
-                      <option value="">-- اختر الموظف --</option>
-                      {eligible.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.role}</option>)}
-                    </select>
-                    {selectedServices.length > 0 && eligible.length === 0 && (
-                      <p className="text-[11px] text-warning mt-1">لا يوجد موظف مؤهل لجميع الخدمات المختارة.</p>
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setPayMethod(opt.id)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg border p-3 text-xs font-semibold transition text-right",
+                      active ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
+                      disabled && "opacity-40 cursor-not-allowed",
                     )}
-                  </>
+                  >
+                    <Icon className="size-4 text-primary" />
+                    <span className="flex-1">{opt.label}</span>
+                    {active && <CheckCircle2 className="size-4 text-success" />}
+                  </button>
                 );
-              })()}
+              })}
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الخصم</label>
-              <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div className="col-span-2">
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">التاريخ</label>
-              <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-              الأوقات المتاحة {selectedServices.length > 0 && `(مدة ${totals.durationMin} دقيقة)`}
-            </label>
-            {selectedServices.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
-                اختر خدمة أولاً لعرض الأوقات المتاحة
+            {payMethod === "wallet" && (
+              <div className="rounded-lg border border-warning/40 bg-warning/10 text-warning-foreground p-3 text-xs flex items-start gap-2">
+                <AlertTriangle className="size-4 mt-0.5 text-warning" />
+                <div>
+                  سيتم إنشاء الحجز بحالة "بانتظار موافقة العميل". يظهر للعميل في حسابه الشخصي طلب اعتماد الخصم من محفظته، ثم يمكن إصدار الفاتورة.
+                </div>
               </div>
-            ) : slots.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
-                الصالون مغلق في هذا اليوم أو لا تتسع فتحات مناسبة
-              </div>
-            ) : (
-              <SlotPicker slots={slots} selectedTime={time} onSelect={setTime} />
             )}
-          </div>
-
+          </section>
 
           <div>
             <label className="text-xs font-semibold text-muted-foreground mb-2 block">ملاحظات</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full rounded-lg bg-muted/40 border border-border px-3 py-2 text-sm" />
           </div>
 
-          {/* Coupon */}
-          <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-semibold">
-              <Ticket className="size-4 text-primary" /> كود خصم
-            </div>
-            {couponApplied ? (
-              <div className="flex items-center justify-between rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-sm">
-                <div>
-                  <span className="font-mono font-bold">{couponApplied.code}</span>
-                  <span className="text-muted-foreground text-xs mr-2">− {formatSAR(couponDiscount)}</span>
-                </div>
-                <button onClick={clearCoupon} className="text-xs text-destructive hover:underline">إزالة</button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-[1fr_auto] gap-2">
-                <input
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                  placeholder="أدخل كود الخصم"
-                  className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono uppercase"
-                />
-                <button onClick={applyCoupon} className="px-4 h-10 rounded-lg border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">
-                  تطبيق
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Wallet apply */}
-          {currentCustomer && walletAvailable > 0 && (
-            <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
-              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
-                <input type="checkbox" checked={useWallet} onChange={(e) => {
-                  const v = e.target.checked; setUseWallet(v);
-                  if (v) setWalletAmt(Math.min(walletAvailable, afterDiscounts));
-                  else setWalletAmt(0);
-                }} className="accent-primary" />
-                <Wallet className="size-4 text-success" />
-                استخدام رصيد المحفظة
-                <span className="text-muted-foreground font-normal mr-1">(المتاح: {formatSAR(walletAvailable)})</span>
-              </label>
-              {useWallet && (
-                <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <input
-                    type="number" min={0} max={Math.min(walletAvailable, afterDiscounts)}
-                    value={walletAmt || ""} onChange={(e) => setWalletAmt(Number(e.target.value))}
-                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
-                  />
-                  <button
-                    onClick={() => setWalletAmt(Math.min(walletAvailable, afterDiscounts))}
-                    className="px-3 h-10 rounded-lg border border-border text-xs hover:bg-muted"
-                  >
-                    الأقصى
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Totals summary */}
+          {/* ================ TOTALS ================ */}
           <div className="glass-card rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">المدة المحجوزة</span>
-              <span className="font-bold">{totals.durationMin} دقيقة <span className="text-muted-foreground font-normal">(خدمة {totals.serviceMin} د)</span></span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">المجموع الفرعي</span>
-              <span className="font-mono">{formatSAR(totals.price)}</span>
+              <span className="font-mono">{formatSAR(combined?.price ?? 0)}</span>
             </div>
             {discount > 0 && (
               <div className="flex items-center justify-between text-xs">
@@ -497,46 +625,18 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                 <span className="font-mono text-emerald-500">− {formatSAR(couponDiscount)}</span>
               </div>
             )}
-            {walletUsed > 0 && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">مدفوع من المحفظة</span>
-                <span className="font-mono text-success">− {formatSAR(walletUsed)}</span>
-              </div>
-            )}
             <div className="flex items-center justify-between pt-2 border-t border-border">
-              <span className="text-xs text-muted-foreground">المتبقي للدفع</span>
-              <span className="text-2xl font-bold gradient-text">{formatSAR(remaining)}</span>
+              <span className="text-xs text-muted-foreground">الإجمالي (فاتورة واحدة)</span>
+              <span className="text-2xl font-bold gradient-text">{formatSAR(afterDiscounts)}</span>
             </div>
           </div>
-
-
-          <div className={cn(
-            "rounded-xl border p-3 text-xs flex items-center justify-between",
-            dayLimitReached ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-primary/30 bg-primary/5",
-          )}>
-            <span className="font-semibold">
-              حجوزات هذا اليوم: {dayBookingsCount}
-              {settings.maxDailyBookings > 0 && ` / ${settings.maxDailyBookings}`}
-            </span>
-            <span className="text-muted-foreground">الدور التالي: <b className="text-primary">#{String(dayBookingsCount + 1).padStart(4, "0")}</b></span>
-          </div>
-
-          {conflict && (
-            <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive p-3 flex items-start gap-2 text-sm">
-              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-              <div>
-                <div className="font-semibold">لا يمكن الحجز في هذا الوقت</div>
-                <div className="text-xs mt-0.5 opacity-90">{conflict.message}</div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
           <button
             onClick={submit}
-            disabled={!!conflict || selectedServices.length === 0 || !time || dayLimitReached}
+            disabled={selectedServices.length === 0 || !combined?.earliest}
             className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             تأكيد الحجز
@@ -546,3 +646,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
+// Silence unused-import warnings in some code paths
+void useBookingSettings;
+void eligibleStaffFor;

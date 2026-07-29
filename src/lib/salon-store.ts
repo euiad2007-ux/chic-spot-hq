@@ -193,6 +193,11 @@ export function isValidWalletId(id: string) {
 
 
 
+export type BookingPaymentMethod =
+  | "cash" | "mada" | "card" | "apple_pay" | "google_pay" | "transfer"
+  | "wallet"        // pay in full from wallet (needs customer approval when created by admin)
+  | "hold";         // client-created reservation without payment; auto-cancel after grace
+
 export interface Booking {
   id: string;
   code: string;              // "GLOBAL-BRANCH-DAILY" e.g. "000125-000042-0001"
@@ -217,6 +222,11 @@ export interface Booking {
   payStatus: PayStatus;
   notes?: string;
   createdAt: string;
+  // New: payment intent + wallet approval + auto-cancel hold
+  paymentMethod?: BookingPaymentMethod;
+  walletApproved?: boolean;              // customer approved wallet deduction
+  walletApprovalRequestedAt?: string;
+  holdExpiresAt?: string;                // ISO; auto-cancel after this instant
 }
 
 
@@ -798,6 +808,41 @@ export const actions = {
     state = { ...state, bookings: state.bookings.map((x) => x.id === id ? { ...x, ...patch } : x) }; persist();
   },
   removeBooking(id: string) { state = { ...state, bookings: state.bookings.filter((x) => x.id !== id) }; persist(); },
+
+  // Customer approves a wallet-payment booking created by admin
+  approveWalletPayment(bookingId: string): { ok: boolean; error?: string } {
+    const b = state.bookings.find((x) => x.id === bookingId);
+    if (!b) return { ok: false, error: "الحجز غير موجود" };
+    if (b.paymentMethod !== "wallet") return { ok: false, error: "هذا الحجز لا يتطلب موافقة" };
+    if (b.walletApproved) return { ok: false, error: "تمت الموافقة مسبقاً" };
+    const c = state.customers.find((x) => x.id === b.customerId);
+    const need = Math.max(0, b.price - b.discount);
+    if (!c || (c.walletBalance ?? 0) < need) return { ok: false, error: "الرصيد غير كافٍ" };
+    state = { ...state, bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, walletApproved: true, walletUsed: need } : x) };
+    persist();
+    return { ok: true };
+  },
+  rejectWalletPayment(bookingId: string) {
+    state = { ...state, bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, paymentMethod: undefined, walletApproved: false, walletUsed: undefined } : x) };
+    persist();
+  },
+
+  // Auto-cancel expired hold bookings (client saves-as-hold that weren't paid)
+  cancelExpiredHolds() {
+    const now = Date.now();
+    let changed = false;
+    const bookings = state.bookings.map((b) => {
+      if (b.paymentMethod === "hold" && b.status !== "cancelled" && b.status !== "completed" && b.holdExpiresAt) {
+        if (new Date(b.holdExpiresAt).getTime() < now) {
+          changed = true;
+          return { ...b, status: "cancelled" as BookingStatus, notes: (b.notes ? b.notes + " · " : "") + "إلغاء تلقائي (انتهت مهلة الدفع)" };
+        }
+      }
+      return b;
+    });
+    if (changed) { state = { ...state, bookings }; persist(); }
+  },
+
 
   createInvoice(bookingId: string, method: Invoice["method"]) {
     const b = state.bookings.find((x) => x.id === bookingId);
