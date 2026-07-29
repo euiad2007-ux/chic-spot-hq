@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useCoupons, couponActions, type Coupon, type CouponType } from "@/lib/coupon-store";
+import { useRewardsSettings, rewardsActions } from "@/lib/rewards-settings";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, X, Pencil, Copy, Ticket, Percent, Tag } from "lucide-react";
+import { Plus, Trash2, X, Pencil, Copy, Ticket, Percent, Tag, Gift, Users, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatSAR } from "@/lib/salon-store";
@@ -104,7 +105,10 @@ function CouponsPage() {
         </button>
       }
     >
+      <RewardsPanel />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+
         {rows.map((c) => {
           const now = Date.now();
           const expired = new Date(c.expiresAt).getTime() < now;
