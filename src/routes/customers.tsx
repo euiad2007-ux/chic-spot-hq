@@ -223,6 +223,17 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
   const [walletAmt, setWalletAmt] = useState(0);
   const [walletReason, setWalletReason] = useState("");
   const [redeemPts, setRedeemPts] = useState(0);
+  // Card top-up (mock)
+  const [cardAmt, setCardAmt] = useState(0);
+  const [cardNum, setCardNum] = useState("");
+  const [cardExp, setCardExp] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardName, setCardName] = useState("");
+  // Peer transfer
+  const [xferTo, setXferTo] = useState("");
+  const [xferAmt, setXferAmt] = useState(0);
+  const [xferNote, setXferNote] = useState("");
+
 
   const myBookings = bookings.filter((b) => b.customerId === customer.id).sort((a, b) => (a.startsAt < b.startsAt ? 1 : -1));
   const myInvoices = invoices.filter((i) => i.customerId === customer.id).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
