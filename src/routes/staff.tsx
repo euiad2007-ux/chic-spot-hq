@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
-import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus } from "lucide-react";
+import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, CalendarDays as CalendarDaysIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -27,11 +27,24 @@ type FormShape = {
   commissionPct: number;
   salary: number;
   active: boolean;
+  gender: "female" | "male" | "";
+  nationalId: string;
+  birthDate: string;
+  nationality: string;
+  address: string;
+  emergencyName: string;
+  emergencyPhone: string;
+  jobTitle: string;
+  contractType: "full_time" | "part_time" | "contract";
+  annualLeaveDays: number;
 };
 
 const emptyForm: FormShape = {
   name: "", role: "مصففة شعر", phone: "", email: "", hireDate: "",
   commissionPct: 20, salary: 0, active: true,
+  gender: "female", nationalId: "", birthDate: "", nationality: "",
+  address: "", emergencyName: "", emergencyPhone: "",
+  jobTitle: "", contractType: "full_time", annualLeaveDays: 21,
 };
 
 function StaffPage() {
@@ -71,6 +84,16 @@ function StaffPage() {
       commissionPct: s.commissionPct,
       salary: s.salary ?? 0,
       active: s.active,
+      gender: s.gender ?? "female",
+      nationalId: s.nationalId ?? "",
+      birthDate: s.birthDate ?? "",
+      nationality: s.nationality ?? "",
+      address: s.address ?? "",
+      emergencyName: s.emergencyName ?? "",
+      emergencyPhone: s.emergencyPhone ?? "",
+      jobTitle: s.jobTitle ?? "",
+      contractType: s.contractType ?? "full_time",
+      annualLeaveDays: s.annualLeaveDays ?? 21,
     });
     setOpen(true);
   };
@@ -87,18 +110,29 @@ function StaffPage() {
       commissionPct: form.commissionPct,
       salary: form.salary,
       active: form.active,
+      gender: form.gender || undefined,
+      nationalId: form.nationalId || undefined,
+      birthDate: form.birthDate || undefined,
+      nationality: form.nationality || undefined,
+      address: form.address || undefined,
+      emergencyName: form.emergencyName || undefined,
+      emergencyPhone: form.emergencyPhone || undefined,
+      jobTitle: form.jobTitle || undefined,
+      contractType: form.contractType,
+      annualLeaveDays: form.annualLeaveDays,
     };
     if (editingId) {
       actions.updateStaff(editingId, patch);
       toast.success("تم التحديث");
     } else {
-      actions.addStaff({ ...patch, services: [], notes: [], allowances: [], points: 0, pointsLog: [] });
+      actions.addStaff({ ...patch, services: [], notes: [], allowances: [], points: 0, pointsLog: [], leaves: [] });
       toast.success("تمت الإضافة");
     }
     setOpen(false);
     setEditingId(null);
     setForm(emptyForm);
   };
+
 
   const detail = detailId ? staff.find((s) => s.id === detailId) ?? null : null;
 
@@ -219,51 +253,59 @@ function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const set = <K extends keyof FormShape>(k: K, v: FormShape[K]) => setForm({ ...form, [k]: v });
+  const inp = "w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm";
+  const lbl = "text-xs font-semibold text-muted-foreground mb-2 block";
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card rounded-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="glass-card rounded-2xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="p-5 border-b border-border flex items-center justify-between">
           <h3 className="font-bold text-lg">{editing ? "تعديل الموظف" : "موظف جديد"}</h3>
           <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
         </div>
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">الاسم</label>
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">المسمى</label>
-              <input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+        <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+          <section>
+            <h4 className="text-xs font-bold text-primary mb-3">البيانات الشخصية</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={lbl}>الاسم الكامل *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الجنس</label>
+                <select value={form.gender} onChange={(e) => set("gender", e.target.value as any)} className={inp}>
+                  <option value="female">أنثى</option><option value="male">ذكر</option>
+                </select>
+              </div>
+              <div><label className={lbl}>الجوال *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>البريد الإلكتروني</label><input value={form.email} onChange={(e) => set("email", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>رقم الهوية / الإقامة</label><input value={form.nationalId} onChange={(e) => set("nationalId", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>تاريخ الميلاد</label><input type="date" value={form.birthDate} onChange={(e) => set("birthDate", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الجنسية</label><input value={form.nationality} onChange={(e) => set("nationality", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>العنوان</label><input value={form.address} onChange={(e) => set("address", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>جهة اتصال طوارئ</label><input value={form.emergencyName} onChange={(e) => set("emergencyName", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>جوال الطوارئ</label><input value={form.emergencyPhone} onChange={(e) => set("emergencyPhone", e.target.value)} className={inp} /></div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الجوال</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+          </section>
+
+          <section>
+            <h4 className="text-xs font-bold text-primary mb-3">البيانات التعاقدية</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={lbl}>المسمى الوظيفي</label><input value={form.role} onChange={(e) => set("role", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>المسمى التفصيلي</label><input value={form.jobTitle} onChange={(e) => set("jobTitle", e.target.value)} className={inp} placeholder="مثال: كبير الأخصائيين" /></div>
+              <div><label className={lbl}>نوع العقد</label>
+                <select value={form.contractType} onChange={(e) => set("contractType", e.target.value as any)} className={inp}>
+                  <option value="full_time">دوام كامل</option>
+                  <option value="part_time">دوام جزئي</option>
+                  <option value="contract">عقد مؤقت</option>
+                </select>
+              </div>
+              <div><label className={lbl}>تاريخ التعيين *</label><input type="date" required value={form.hireDate} onChange={(e) => set("hireDate", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الراتب الأساسي</label><input type="number" value={form.salary} onChange={(e) => set("salary", Number(e.target.value))} className={inp} /></div>
+              <div><label className={lbl}>نسبة العمولة %</label><input type="number" value={form.commissionPct} onChange={(e) => set("commissionPct", Number(e.target.value))} className={inp} /></div>
+              <div><label className={lbl}>رصيد الإجازات السنوي (يوم)</label><input type="number" value={form.annualLeaveDays} onChange={(e) => set("annualLeaveDays", Number(e.target.value))} className={inp} /></div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">البريد</label>
-              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-                تاريخ التعيين <span className="text-destructive">*</span>
-                <span className="text-[10px] text-muted-foreground/70 mr-1">(يُستخدم لاحتساب الراتب)</span>
-              </label>
-              <input type="date" required value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الراتب الأساسي</label>
-              <input type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">نسبة العمولة %</label>
-              <input type="number" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
-            نشط
-          </label>
+            <label className="flex items-center gap-2 text-sm mt-3">
+              <input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} />
+              نشط
+            </label>
+          </section>
         </div>
         <div className="p-5 border-t border-border flex items-center justify-end gap-2">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
@@ -274,13 +316,18 @@ function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
   );
 }
 
+
 function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
   staff: Staff;
   bookingsCount: number;
   revenue: number;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "allowances" | "notes" | "points">("overview");
+  const [tab, setTab] = useState<"overview" | "allowances" | "leaves" | "notes" | "points">("overview");
+  const [leaveFrom, setLeaveFrom] = useState("");
+  const [leaveTo, setLeaveTo] = useState("");
+  const [leaveReason, setLeaveReason] = useState("");
+
   const [noteText, setNoteText] = useState("");
   const [allowLabel, setAllowLabel] = useState("");
   const [allowAmount, setAllowAmount] = useState(0);
@@ -330,9 +377,11 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
           {([
             ["overview", "نظرة عامة", TrendingUp],
             ["allowances", "البدلات", Wallet],
+            ["leaves", "الإجازات", CalendarDaysIcon],
             ["notes", "الملاحظات", StickyNote],
             ["points", "النقاط", Award],
           ] as const).map(([k, label, Icon]) => (
+
             <button
               key={k}
               onClick={() => setTab(k)}
@@ -362,14 +411,64 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
                 <div className="border-t border-border my-2" />
                 <Row label="الإجمالي" value={formatSAR(totalPay)} bold />
               </div>
-              <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                <div>الجوال: <span className="text-foreground">{staff.phone}</span></div>
-                {staff.email && <div>البريد: <span className="text-foreground">{staff.email}</span></div>}
-                {staff.hireDate && <div>تاريخ التعيين: <span className="text-foreground">{staff.hireDate}</span></div>}
-                <div>الحالة: <span className="text-foreground">{staff.active ? "نشط" : "غير نشط"}</span></div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                <InfoRow label="الجوال" value={staff.phone} />
+                <InfoRow label="الحالة" value={staff.active ? "نشط" : "غير نشط"} />
+                {staff.email && <InfoRow label="البريد" value={staff.email} />}
+                {staff.hireDate && <InfoRow label="تاريخ التعيين" value={staff.hireDate} />}
+                {staff.jobTitle && <InfoRow label="المسمى التفصيلي" value={staff.jobTitle} />}
+                {staff.contractType && <InfoRow label="نوع العقد" value={staff.contractType === "full_time" ? "دوام كامل" : staff.contractType === "part_time" ? "دوام جزئي" : "عقد مؤقت"} />}
+                {staff.gender && <InfoRow label="الجنس" value={staff.gender === "female" ? "أنثى" : "ذكر"} />}
+                {staff.nationalId && <InfoRow label="رقم الهوية" value={staff.nationalId} />}
+                {staff.birthDate && <InfoRow label="تاريخ الميلاد" value={staff.birthDate} />}
+                {staff.nationality && <InfoRow label="الجنسية" value={staff.nationality} />}
+                {staff.address && <InfoRow label="العنوان" value={staff.address} />}
+                {staff.emergencyName && <InfoRow label="جهة الطوارئ" value={`${staff.emergencyName} — ${staff.emergencyPhone ?? ""}`} />}
               </div>
             </div>
           )}
+
+          {tab === "leaves" && (() => {
+            const used = (staff.leaves ?? []).reduce((a, l) => a + l.days, 0);
+            const total = staff.annualLeaveDays ?? 0;
+            const remaining = Math.max(0, total - used);
+            const addLeave = () => {
+              if (!leaveFrom || !leaveTo) return toast.error("حدد الفترة");
+              const from = new Date(leaveFrom); const to = new Date(leaveTo);
+              const days = Math.max(1, Math.round((+to - +from) / 86400000) + 1);
+              actions.addStaffLeave(staff.id, { from: leaveFrom, to: leaveTo, days, reason: leaveReason.trim() || undefined });
+              setLeaveFrom(""); setLeaveTo(""); setLeaveReason("");
+              toast.success("تمت إضافة الإجازة");
+            };
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <Stat label="الرصيد السنوي" value={`${total} يوم`} />
+                  <Stat label="مستخدم" value={`${used} يوم`} />
+                  <Stat label="متبقٍ" value={`${remaining} يوم`} highlight />
+                </div>
+                <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2">
+                  <input type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <input type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <input placeholder="السبب" value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <button onClick={addLeave} className="px-4 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">إضافة</button>
+                </div>
+                <div className="space-y-2">
+                  {(staff.leaves ?? []).length === 0 && <div className="text-center py-8 text-sm text-muted-foreground">لا توجد إجازات مسجلة</div>}
+                  {(staff.leaves ?? []).map((l) => (
+                    <div key={l.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3 text-sm">
+                      <div>
+                        <div className="font-semibold">{l.from} → {l.to} <span className="text-xs text-muted-foreground">({l.days} يوم)</span></div>
+                        {l.reason && <div className="text-xs text-muted-foreground mt-0.5">{l.reason}</div>}
+                      </div>
+                      <button onClick={() => { actions.removeStaffLeave(staff.id, l.id); toast.success("حُذفت"); }} className="size-8 rounded-lg hover:bg-destructive/10 hover:text-destructive grid place-items-center"><Trash2 className="size-4" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
 
           {tab === "allowances" && (
             <div className="space-y-3">
@@ -472,3 +571,12 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
     </div>
   );
 }
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-border/50 py-1.5">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold text-foreground text-right truncate">{value}</span>
+    </div>
+  );
+}
+

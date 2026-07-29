@@ -86,6 +86,14 @@ export interface StaffPointLog {
   reason: string;
   at: string;
 }
+export interface StaffLeave {
+  id: string;
+  from: string;      // YYYY-MM-DD
+  to: string;        // YYYY-MM-DD
+  days: number;
+  reason?: string;
+  at: string;
+}
 export interface Staff {
   id: string;
   name: string;
@@ -101,8 +109,33 @@ export interface Staff {
   pointsLog?: StaffPointLog[];
   services: string[];
   active: boolean;
+  // Personal (optional, backward compatible)
+  gender?: "female" | "male";
+  nationalId?: string;
+  birthDate?: string;
+  nationality?: string;
+  address?: string;
+  emergencyName?: string;
+  emergencyPhone?: string;
+  jobTitle?: string;
+  contractType?: "full_time" | "part_time" | "contract";
+  // Leaves
+  annualLeaveDays?: number;   // yearly entitlement
+  leaves?: StaffLeave[];
 }
 
+export interface LoyaltyLog {
+  id: string;
+  delta: number;      // + earned, - redeemed
+  reason: string;
+  at: string;
+}
+export interface WalletLog {
+  id: string;
+  delta: number;      // + top-up/refund, - deduction
+  reason: string;
+  at: string;
+}
 export interface Customer {
   id: string;
   name: string;
@@ -112,7 +145,32 @@ export interface Customer {
   visits: number;
   totalSpent: number;
   createdAt: string;
+  // Personal
+  birthDate?: string;
+  address?: string;
+  email?: string;
+  // Wallet & loyalty
+  walletBalance?: number;
+  walletLog?: WalletLog[];
+  loyaltyPoints?: number;
+  loyaltyLog?: LoyaltyLog[];
+  // Referral marketing
+  referralCode?: string;
+  referredBy?: string;         // referral code that referred this customer
+  referralEarnings?: number;   // total SAR earned from referrals
 }
+
+// Loyalty & referral defaults (can be adjusted later via settings)
+export const LOYALTY_RATE = 0.1;         // points per SAR spent
+export const LOYALTY_REDEEM_RATE = 1;    // SAR value per point when redeemed
+export const REFERRAL_COMMISSION_PCT = 5; // % of invoice total awarded to referrer's wallet
+
+function genReferralCode(name: string) {
+  const base = (name || "REF").replace(/[^\p{L}\p{N}]/gu, "").slice(0, 3).toUpperCase() || "REF";
+  const n = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${base}${n}`;
+}
+
 
 export interface Booking {
   id: string;
@@ -293,19 +351,85 @@ function load(): SalonState {
           if (b.bookingDate) counters.byDay[b.bookingDate] = Math.max(counters.byDay[b.bookingDate] ?? 0, b.dailyNo || 0);
         }
       }
+      // Normalize + dedupe customers by phone; recompute visits/totalSpent from invoices
+      const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
+      const rawCustomers = (parsed.customers ?? []) as any[];
+      const byPhone = new Map<string, Customer>();
+      const idRemap = new Map<string, string>();
+      for (const c of rawCustomers) {
+        const key = normPhone(c.phone) || c.id;
+        const existing = byPhone.get(key);
+        if (existing) {
+          idRemap.set(c.id, existing.id);
+          // Merge: keep richer fields
+          existing.name = existing.name || c.name;
+          existing.email = existing.email || c.email;
+          existing.address = existing.address || c.address;
+          existing.notes = existing.notes || c.notes;
+          existing.birthDate = existing.birthDate || c.birthDate;
+          existing.walletBalance = (existing.walletBalance ?? 0) + (c.walletBalance ?? 0);
+          existing.loyaltyPoints = (existing.loyaltyPoints ?? 0) + (c.loyaltyPoints ?? 0);
+          existing.referralEarnings = (existing.referralEarnings ?? 0) + (c.referralEarnings ?? 0);
+        } else {
+          byPhone.set(key, {
+            id: c.id,
+            name: c.name ?? "",
+            phone: c.phone ?? "",
+            gender: c.gender,
+            notes: c.notes,
+            visits: 0,
+            totalSpent: 0,
+            createdAt: c.createdAt ?? new Date().toISOString(),
+            birthDate: c.birthDate,
+            address: c.address,
+            email: c.email,
+            walletBalance: c.walletBalance ?? 0,
+            walletLog: c.walletLog ?? [],
+            loyaltyPoints: c.loyaltyPoints ?? 0,
+            loyaltyLog: c.loyaltyLog ?? [],
+            referralCode: c.referralCode ?? genReferralCode(c.name ?? ""),
+            referredBy: c.referredBy,
+            referralEarnings: c.referralEarnings ?? 0,
+          });
+        }
+      }
+      // Remap bookings/invoices to merged customer ids
+      const remap = (id: string) => idRemap.get(id) ?? id;
+      const remappedBookings = bookings.map((b) => ({ ...b, customerId: remap(b.customerId) }));
+      const remappedInvoices = (parsed.invoices ?? []).map((i: any) => ({ ...i, customerId: remap(i.customerId) }));
+      // Recompute visits/totalSpent from invoices
+      const stats = new Map<string, { visits: number; total: number }>();
+      for (const inv of remappedInvoices) {
+        const cur = stats.get(inv.customerId) ?? { visits: 0, total: 0 };
+        cur.visits += 1; cur.total += inv.total ?? 0;
+        stats.set(inv.customerId, cur);
+      }
+      const customers = Array.from(byPhone.values()).map((c) => {
+        const s = stats.get(c.id);
+        return { ...c, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
+      });
+
+      // Normalize staff with new optional fields
+      const staff = (parsed.staff ?? []).map((s: any) => ({
+        annualLeaveDays: 21,
+        leaves: [],
+        ...s,
+      })) as Staff[];
+
       return {
         services: (parsed.services ?? []).map((s: any) => ({
           prepMin: 0, cleanupMin: 0, materials: [], ...s,
         })),
-        staff: parsed.staff ?? [],
-        customers: parsed.customers ?? [],
-        bookings,
-        invoices: parsed.invoices ?? [],
+        staff,
+        customers,
+        bookings: remappedBookings,
+        invoices: remappedInvoices,
         inventory: (parsed.inventory ?? []).map((i: any) => ({
           measure: i.measure ?? "count", sizePerUnit: i.sizePerUnit ?? 1, ...i,
         })),
         counters,
       };
+
     }
   } catch {}
   const s = seed();
@@ -480,12 +604,98 @@ export const actions = {
   },
 
   // Customers
-  addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt">) {
-    const newC: Customer = { ...c, id: uid(), visits: 0, totalSpent: 0, createdAt: new Date().toISOString() };
+  addCustomer(c: Omit<Customer, "id" | "visits" | "totalSpent" | "createdAt" | "referralCode"> & { referralCode?: string }) {
+    // Dedupe by phone
+    const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
+    const key = normPhone(c.phone);
+    if (key) {
+      const existing = state.customers.find((x) => normPhone(x.phone) === key);
+      if (existing) return existing;
+    }
+    const newC: Customer = {
+      ...c,
+      id: uid(),
+      visits: 0,
+      totalSpent: 0,
+      createdAt: new Date().toISOString(),
+      walletBalance: c.walletBalance ?? 0,
+      walletLog: c.walletLog ?? [],
+      loyaltyPoints: c.loyaltyPoints ?? 0,
+      loyaltyLog: c.loyaltyLog ?? [],
+      referralCode: c.referralCode ?? genReferralCode(c.name),
+      referralEarnings: c.referralEarnings ?? 0,
+    };
     state = { ...state, customers: [...state.customers, newC] }; persist();
     return newC;
   },
+  updateCustomer(id: string, patch: Partial<Customer>) {
+    state = { ...state, customers: state.customers.map((x) => x.id === id ? { ...x, ...patch } : x) };
+    persist();
+  },
   removeCustomer(id: string) { state = { ...state, customers: state.customers.filter((x) => x.id !== id) }; persist(); },
+
+  // Wallet
+  walletAdjust(customerId: string, delta: number, reason: string) {
+    if (!delta) return;
+    const log: WalletLog = { id: uid(), delta, reason, at: new Date().toISOString() };
+    state = {
+      ...state,
+      customers: state.customers.map((c) => c.id === customerId ? {
+        ...c,
+        walletBalance: Math.max(0, (c.walletBalance ?? 0) + delta),
+        walletLog: [log, ...(c.walletLog ?? [])],
+      } : c),
+    };
+    persist();
+  },
+
+  // Loyalty
+  loyaltyAdjust(customerId: string, delta: number, reason: string) {
+    if (!delta) return;
+    const log: LoyaltyLog = { id: uid(), delta, reason, at: new Date().toISOString() };
+    state = {
+      ...state,
+      customers: state.customers.map((c) => c.id === customerId ? {
+        ...c,
+        loyaltyPoints: Math.max(0, (c.loyaltyPoints ?? 0) + delta),
+        loyaltyLog: [log, ...(c.loyaltyLog ?? [])],
+      } : c),
+    };
+    persist();
+  },
+  redeemLoyalty(customerId: string, points: number) {
+    const c = state.customers.find((x) => x.id === customerId);
+    if (!c) return 0;
+    const p = Math.min(points, c.loyaltyPoints ?? 0);
+    if (p <= 0) return 0;
+    const value = p * LOYALTY_REDEEM_RATE;
+    const lLog: LoyaltyLog = { id: uid(), delta: -p, reason: `استبدال ${p} نقطة`, at: new Date().toISOString() };
+    const wLog: WalletLog = { id: uid(), delta: value, reason: `استبدال ${p} نقطة ولاء`, at: new Date().toISOString() };
+    state = {
+      ...state,
+      customers: state.customers.map((x) => x.id === customerId ? {
+        ...x,
+        loyaltyPoints: (x.loyaltyPoints ?? 0) - p,
+        loyaltyLog: [lLog, ...(x.loyaltyLog ?? [])],
+        walletBalance: (x.walletBalance ?? 0) + value,
+        walletLog: [wLog, ...(x.walletLog ?? [])],
+      } : x),
+    };
+    persist();
+    return value;
+  },
+
+  // Staff leaves
+  addStaffLeave(id: string, leave: Omit<StaffLeave, "id" | "at">) {
+    const l: StaffLeave = { ...leave, id: uid(), at: new Date().toISOString() };
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, leaves: [l, ...(x.leaves ?? [])] } : x) };
+    persist();
+  },
+  removeStaffLeave(id: string, leaveId: string) {
+    state = { ...state, staff: state.staff.map((x) => x.id === id ? { ...x, leaves: (x.leaves ?? []).filter((l) => l.id !== leaveId) } : x) };
+    persist();
+  },
+
 
   // Bookings
   addBooking(b: Omit<Booking, "id" | "code" | "createdAt" | "status" | "payStatus" | "globalNo" | "branchNo" | "dailyNo" | "bookingDate" | "serviceQueue">) {
@@ -546,15 +756,45 @@ export const actions = {
       const used = consumed.find((c) => c.itemId === it.id);
       return used ? { ...it, stock: Math.max(0, it.stock - used.qty) } : it;
     });
+    // Loyalty points earned by the paying customer
+    const earnedPoints = Math.round(total * LOYALTY_RATE * 100) / 100;
+    const lLog: LoyaltyLog = { id: uid(), delta: earnedPoints, reason: `فاتورة ${num}`, at: new Date().toISOString() };
+
+    // Referral commission → paid into the referrer's wallet
+    const buyer = state.customers.find((c) => c.id === b.customerId);
+    const referrer = buyer?.referredBy ? state.customers.find((c) => c.referralCode === buyer.referredBy) : undefined;
+    const refAmount = referrer ? Math.round(total * (REFERRAL_COMMISSION_PCT / 100) * 100) / 100 : 0;
+
     state = {
       ...state,
       invoices: [...state.invoices, inv],
       inventory: nextInv,
       bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
-      customers: state.customers.map((c) => c.id === b.customerId ? { ...c, visits: c.visits + 1, totalSpent: c.totalSpent + total } : c),
+      customers: state.customers.map((c) => {
+        if (c.id === b.customerId) {
+          return {
+            ...c,
+            visits: c.visits + 1,
+            totalSpent: Math.round((c.totalSpent + total) * 100) / 100,
+            loyaltyPoints: Math.round(((c.loyaltyPoints ?? 0) + earnedPoints) * 100) / 100,
+            loyaltyLog: [lLog, ...(c.loyaltyLog ?? [])],
+          };
+        }
+        if (referrer && c.id === referrer.id && refAmount > 0) {
+          const wLog: WalletLog = { id: uid(), delta: refAmount, reason: `عمولة إحالة (فاتورة ${num})`, at: new Date().toISOString() };
+          return {
+            ...c,
+            walletBalance: (c.walletBalance ?? 0) + refAmount,
+            walletLog: [wLog, ...(c.walletLog ?? [])],
+            referralEarnings: Math.round(((c.referralEarnings ?? 0) + refAmount) * 100) / 100,
+          };
+        }
+        return c;
+      }),
     };
     persist();
     return inv;
+
   },
 };
 

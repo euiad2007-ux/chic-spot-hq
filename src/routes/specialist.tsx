@@ -485,18 +485,30 @@ function MyAttendanceHistory({ staffId }: { staffId: string }) {
 
 function ProfileSection({ staff }: { staff: any }) {
   const totalAllowances = (staff.allowances ?? []).reduce((a: number, x: any) => a + x.amount, 0);
+  const leavesUsed = (staff.leaves ?? []).reduce((a: number, l: any) => a + l.days, 0);
+  const leaveTotal = staff.annualLeaveDays ?? 0;
+  const leaveRemaining = Math.max(0, leaveTotal - leavesUsed);
+  const contractLabel = staff.contractType === "part_time" ? "دوام جزئي" : staff.contractType === "contract" ? "عقد مؤقت" : "دوام كامل";
   return (
     <section className="grid gap-4 md:grid-cols-2">
       <div className="glass-card rounded-2xl p-5 space-y-3">
         <h3 className="font-bold text-sm mb-1">البيانات الشخصية</h3>
         <Field label="الاسم" value={staff.name} />
-        <Field label="الدور" value={staff.role} />
+        {staff.gender && <Field label="الجنس" value={staff.gender === "female" ? "أنثى" : "ذكر"} />}
         <Field label="الجوال" value={staff.phone} />
         {staff.email && <Field label="البريد" value={staff.email} />}
-        {staff.hireDate && <Field label="تاريخ التعيين" value={formatDate(staff.hireDate)} />}
+        {staff.nationalId && <Field label="رقم الهوية" value={staff.nationalId} />}
+        {staff.birthDate && <Field label="تاريخ الميلاد" value={staff.birthDate} />}
+        {staff.nationality && <Field label="الجنسية" value={staff.nationality} />}
+        {staff.address && <Field label="العنوان" value={staff.address} />}
+        {staff.emergencyName && <Field label="جهة الطوارئ" value={`${staff.emergencyName} — ${staff.emergencyPhone ?? ""}`} />}
       </div>
       <div className="glass-card rounded-2xl p-5 space-y-3">
-        <h3 className="font-bold text-sm mb-1">الراتب والحوافز</h3>
+        <h3 className="font-bold text-sm mb-1">التعاقد والراتب</h3>
+        <Field label="المسمى" value={staff.role} />
+        {staff.jobTitle && <Field label="المسمى التفصيلي" value={staff.jobTitle} />}
+        <Field label="نوع العقد" value={contractLabel} />
+        {staff.hireDate && <Field label="تاريخ التعيين" value={formatDate(staff.hireDate)} />}
         <Field label="الراتب الأساسي" value={formatSAR(staff.salary ?? 0)} />
         <Field label="نسبة العمولة" value={`${staff.commissionPct}%`} />
         <Field label="إجمالي البدلات" value={formatSAR(totalAllowances)} />
@@ -508,6 +520,33 @@ function ProfileSection({ staff }: { staff: any }) {
               <div key={a.id} className="flex items-center justify-between text-xs rounded-md bg-muted/30 px-2 py-1.5">
                 <span>{a.label}</span>
                 <b>{formatSAR(a.amount)}</b>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="glass-card rounded-2xl p-5 md:col-span-2">
+        <h3 className="font-bold text-sm mb-3">رصيد الإجازات</h3>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border p-3 text-center">
+            <div className="text-[11px] text-muted-foreground">الرصيد السنوي</div>
+            <div className="text-2xl font-bold mt-1">{leaveTotal}</div>
+          </div>
+          <div className="rounded-xl border border-border p-3 text-center">
+            <div className="text-[11px] text-muted-foreground">مستخدم</div>
+            <div className="text-2xl font-bold mt-1">{leavesUsed}</div>
+          </div>
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10 p-3 text-center">
+            <div className="text-[11px] text-muted-foreground">متبقٍ</div>
+            <div className="text-2xl font-bold mt-1 gradient-text">{leaveRemaining}</div>
+          </div>
+        </div>
+        {(staff.leaves ?? []).length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            {(staff.leaves ?? []).map((l: any) => (
+              <div key={l.id} className="text-xs rounded-md bg-muted/30 px-3 py-2 flex justify-between">
+                <span>{l.from} → {l.to} ({l.days} يوم)</span>
+                {l.reason && <span className="text-muted-foreground">{l.reason}</span>}
               </div>
             ))}
           </div>
@@ -529,6 +568,7 @@ function ProfileSection({ staff }: { staff: any }) {
     </section>
   );
 }
+
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
