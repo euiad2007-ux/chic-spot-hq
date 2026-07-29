@@ -259,6 +259,33 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
     navigator.clipboard.writeText(customer.referralCode);
     toast.success("تم النسخ");
   };
+  const copyWalletId = () => {
+    if (!customer.walletId) return;
+    navigator.clipboard.writeText(customer.walletId);
+    toast.success("تم نسخ رقم المحفظة");
+  };
+  const doTopupCard = () => {
+    if (!cardAmt || cardAmt <= 0) return toast.error("أدخل المبلغ");
+    const digits = cardNum.replace(/\s/g, "");
+    if (!/^\d{12,19}$/.test(digits)) return toast.error("رقم البطاقة غير صحيح");
+    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExp)) return toast.error("تاريخ الانتهاء MM/YY");
+    if (!/^\d{3,4}$/.test(cardCvv)) return toast.error("CVV غير صحيح");
+    if (!cardName.trim()) return toast.error("أدخل اسم حامل البطاقة");
+    const last4 = digits.slice(-4);
+    actions.walletAdjust(customer.id, cardAmt, `شحن ببطاقة ****${last4}`);
+    setCardAmt(0); setCardNum(""); setCardExp(""); setCardCvv(""); setCardName("");
+    toast.success(`تم شحن ${formatSAR(cardAmt)} إلى المحفظة`);
+  };
+  const doTransfer = () => {
+    if (!xferAmt || xferAmt <= 0) return toast.error("أدخل المبلغ");
+    const target = xferTo.trim().toUpperCase();
+    if (!isValidWalletId(target)) return toast.error("رقم المحفظة: حرفان + 10 أرقام");
+    const r = actions.walletTransfer(customer.id, target, xferAmt, xferNote || undefined);
+    if (!r.ok) return toast.error(r.error ?? "تعذر التحويل");
+    setXferAmt(0); setXferTo(""); setXferNote("");
+    toast.success("تم تحويل الرصيد بنجاح");
+  };
+
   const del = () => {
     if (confirm(`حذف العميل ${customer.name}؟`)) {
       actions.removeCustomer(customer.id);
