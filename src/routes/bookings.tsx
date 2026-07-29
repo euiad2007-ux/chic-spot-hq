@@ -218,6 +218,10 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   const [time, setTime] = useState<string>("");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
+  const [couponInput, setCouponInput] = useState("");
+  const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number } | null>(null);
+  const [useWallet, setUseWallet] = useState(false);
+  const [walletAmt, setWalletAmt] = useState(0);
 
   const totals = useMemo(() => {
     const chosen = services.filter((s) => selectedServices.includes(s.id));
@@ -247,6 +251,29 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   );
   const dayLimitReached = settings.maxDailyBookings > 0 && dayBookingsCount >= settings.maxDailyBookings;
 
+  const currentCustomer = customers.find((c) => c.id === customerId) ?? null;
+  const walletAvailable = currentCustomer?.walletBalance ?? 0;
+
+  // Recompute coupon discount when subtotal changes
+  const subtotalAfterManual = Math.max(0, totals.price - discount);
+  const couponDiscount = useMemo(() => {
+    if (!couponApplied) return 0;
+    const r = evalCoupon(couponApplied.code, subtotalAfterManual);
+    return r.ok ? r.discount : 0;
+  }, [couponApplied, subtotalAfterManual]);
+
+  const afterDiscounts = Math.max(0, subtotalAfterManual - couponDiscount);
+  const walletUsed = useWallet ? Math.min(walletAmt || 0, walletAvailable, afterDiscounts) : 0;
+  const remaining = Math.max(0, afterDiscounts - walletUsed);
+
+  const applyCoupon = () => {
+    const r = evalCoupon(couponInput, subtotalAfterManual);
+    if (!r.ok || !r.coupon) return toast.error(r.error ?? "كود غير صالح");
+    setCouponApplied({ code: r.coupon.code, discount: r.discount });
+    toast.success(`تم تطبيق ${r.coupon.code} — خصم ${formatSAR(r.discount)}`);
+  };
+  const clearCoupon = () => { setCouponApplied(null); setCouponInput(""); };
+
   const submit = () => {
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     let cid = customerId;
@@ -258,6 +285,15 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     if (!time || !startsAt) return toast.error("اختر وقتاً متاحاً");
     if (conflict) return toast.error(conflict.message);
     if (dayLimitReached) return toast.error(`تم بلوغ الحد الأقصى للحجوزات اليومية (${settings.maxDailyBookings})`);
+    // Re-validate coupon at submit
+    let finalCouponDiscount = 0;
+    let finalCouponCode: string | undefined;
+    if (couponApplied) {
+      const r = evalCoupon(couponApplied.code, subtotalAfterManual);
+      if (!r.ok || !r.coupon) return toast.error(r.error ?? "الكوبون لم يعد صالحاً");
+      finalCouponDiscount = r.discount;
+      finalCouponCode = r.coupon.code;
+    }
     const nb = actions.addBooking({
       customerId: cid,
       staffId,
@@ -265,12 +301,17 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       startsAt,
       durationMin: totals.durationMin,
       price: totals.price,
-      discount,
+      discount: discount + finalCouponDiscount,
+      couponCode: finalCouponCode,
+      couponDiscount: finalCouponDiscount || undefined,
+      walletUsed: walletUsed > 0 ? walletUsed : undefined,
       notes,
     });
     toast.success(`تم إنشاء الحجز ${nb.code}`);
     onClose();
   };
+
+
 
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
