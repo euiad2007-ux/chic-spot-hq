@@ -26,6 +26,7 @@ export interface BookingSettings {
   minLeadMin: number;
   maxDailyBookings: number; // 0 = unlimited
   foundingDate: string;     // "YYYY-MM-DD" — reference for sequential numbering
+  holdGraceMin: number;     // minutes past appointment before hold auto-cancels
 }
 
 const STORAGE_KEY = "lamsa_booking_settings_v1";
