@@ -408,6 +408,7 @@ function load(): SalonState {
             birthDate: c.birthDate,
             address: c.address,
             email: c.email,
+            walletId: c.walletId,
             walletBalance: c.walletBalance ?? 0,
             walletLog: c.walletLog ?? [],
             loyaltyPoints: c.loyaltyPoints ?? 0,
@@ -418,6 +419,7 @@ function load(): SalonState {
           });
         }
       }
+
       // Remap bookings/invoices to merged customer ids
       const remap = (id: string) => idRemap.get(id) ?? id;
       const remappedBookings = bookings.map((b) => ({ ...b, customerId: remap(b.customerId) }));
