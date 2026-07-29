@@ -682,6 +682,33 @@ export const actions = {
     persist();
   },
 
+  // Transfer wallet balance from one customer to another by wallet ID
+  walletTransfer(fromCustomerId: string, toWalletId: string, amount: number, note?: string): { ok: boolean; error?: string } {
+    if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "قيمة غير صحيحة" };
+    const from = state.customers.find((c) => c.id === fromCustomerId);
+    if (!from) return { ok: false, error: "المرسل غير موجود" };
+    const target = (toWalletId || "").trim().toUpperCase();
+    if (!isValidWalletId(target)) return { ok: false, error: "رقم المحفظة غير صالح (حرفان + 10 أرقام)" };
+    if (from.walletId === target) return { ok: false, error: "لا يمكن التحويل لنفس المحفظة" };
+    const to = state.customers.find((c) => (c.walletId ?? "").toUpperCase() === target);
+    if (!to) return { ok: false, error: "لا توجد محفظة بهذا الرقم" };
+    if ((from.walletBalance ?? 0) < amount) return { ok: false, error: "الرصيد غير كافٍ" };
+    const now = new Date().toISOString();
+    const outLog: WalletLog = { id: uid(), delta: -amount, reason: `تحويل إلى ${to.name} (${target})${note ? " · " + note : ""}`, at: now };
+    const inLog: WalletLog = { id: uid(), delta: amount, reason: `تحويل من ${from.name} (${from.walletId})${note ? " · " + note : ""}`, at: now };
+    state = {
+      ...state,
+      customers: state.customers.map((c) => {
+        if (c.id === from.id) return { ...c, walletBalance: (c.walletBalance ?? 0) - amount, walletLog: [outLog, ...(c.walletLog ?? [])] };
+        if (c.id === to.id) return { ...c, walletBalance: (c.walletBalance ?? 0) + amount, walletLog: [inLog, ...(c.walletLog ?? [])] };
+        return c;
+      }),
+    };
+    persist();
+    return { ok: true };
+  },
+
+
   // Loyalty
   loyaltyAdjust(customerId: string, delta: number, reason: string) {
     if (!delta) return;
