@@ -404,248 +404,267 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="p-5 border-b border-border flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur z-10">
-          <div>
-            <h3 className="font-bold text-lg flex items-center gap-2"><Sparkles className="size-5 text-primary" /> حجز جديد</h3>
-            <p className="text-xs text-muted-foreground mt-1">ابحث عن العميل، اختر الخدمات، ثم حدد طريقة الدفع</p>
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col" onClick={onClose}>
+      <div className="glass-card flex-1 w-full flex flex-col overflow-hidden rounded-none sm:m-3 sm:rounded-2xl sm:flex-none sm:h-[calc(100vh-1.5rem)]" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-card/95 backdrop-blur shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center shrink-0">
+              <Sparkles className="size-5 text-primary-foreground" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-lg truncate">حجز جديد</h3>
+              <p className="text-xs text-muted-foreground truncate">ابحث عن العميل، اختر الخدمات، وحدد طريقة الدفع</p>
+            </div>
           </div>
-          <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
+          <button onClick={onClose} className="size-9 rounded-lg hover:bg-muted grid place-items-center shrink-0"><X className="size-4" /></button>
         </div>
 
-        <div className="p-5 space-y-5">
-          {/* ================ CUSTOMER STEP ================ */}
-          <section className="rounded-xl border border-border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-bold flex items-center gap-2"><Search className="size-4 text-primary" /> بيانات العميل</div>
-              <button onClick={() => { setShowNew((v) => !v); setCustomerId(""); }} className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
-                <UserPlus className="size-3.5" /> {showNew ? "بحث بعميل موجود" : "عميل جديد"}
-              </button>
-            </div>
-
-            {!showNew ? (
-              <>
-                <input
-                  value={custQuery}
-                  onChange={(e) => setCustQuery(e.target.value)}
-                  placeholder="ابحث برقم الحجز، الاسم، الجوال، أو رقم المحفظة"
-                  className="w-full h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm"
-                />
-                {custQuery && (
-                  <div className="rounded-lg border border-border divide-y divide-border max-h-56 overflow-y-auto">
-                    {custMatches.length === 0 ? (
-                      <div className="p-3 text-xs text-muted-foreground text-center">لا نتائج — <button className="text-primary hover:underline" onClick={() => { setShowNew(true); setNewCust({ name: custQuery, phone: "" }); }}>إضافة عميل جديد</button></div>
-                    ) : custMatches.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => { setCustomerId(c.id); setCustQuery(""); }}
-                        className={cn("w-full text-right p-2.5 hover:bg-muted/40 text-sm transition", customerId === c.id && "bg-primary/10")}
-                      >
-                        <div className="font-semibold">{c.name}</div>
-                        <div className="text-[11px] text-muted-foreground flex gap-2 items-center">
-                          <span dir="ltr">{c.phone}</span>
-                          {c.walletId && <span className="font-mono">· {c.walletId}</span>}
-                          <span>· رصيد {formatSAR(c.walletBalance ?? 0)}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {currentCustomer && (
-                  <div className="rounded-lg bg-primary/5 border border-primary/30 p-3 flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-sm">{currentCustomer.name}</div>
-                      <div className="text-xs text-muted-foreground" dir="ltr">{currentCustomer.phone}</div>
-                    </div>
-                    <div className="text-left">
-                      <div className="text-[10px] text-muted-foreground">رصيد المحفظة</div>
-                      <div className="font-bold text-sm text-success">{formatSAR(walletAvailable)}</div>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <input value={newCust.name} onChange={(e) => setNewCust({ ...newCust, name: e.target.value })} placeholder="اسم العميل" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-                <input value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} placeholder="رقم الجوال" dir="ltr" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-                <p className="col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء.</p>
+        {/* Body: 2-column on desktop */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_380px] overflow-hidden">
+          {/* LEFT — customer + services */}
+          <div className="overflow-y-auto p-5 space-y-5 min-w-0">
+            {/* CUSTOMER */}
+            <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-bold flex items-center gap-2"><Search className="size-4 text-primary" /> بيانات العميل</div>
+                <button onClick={() => { setShowNew((v) => !v); setCustomerId(""); }} className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
+                  <UserPlus className="size-3.5" /> {showNew ? "بحث بعميل موجود" : "عميل جديد"}
+                </button>
               </div>
-            )}
-          </section>
 
-          {/* ================ SERVICES STEP ================ */}
-          <section className="rounded-xl border border-border p-4 space-y-3">
-            <div className="text-sm font-bold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> الخدمات المتاحة</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[420px] overflow-y-auto pr-1">
-              {services.filter((s) => s.active).map((s) => {
-                const sel = selectedServices.includes(s.id);
-                const eligNames = eligibleStaffNames(s);
-                const earliest = earliestByService.get(s.id);
-                const total = serviceTotalMin(s);
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => toggleService(s.id)}
-                    disabled={eligNames.length === 0}
-                    className={cn(
-                      "text-right p-3 rounded-xl border transition text-sm",
-                      sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
-                      eligNames.length === 0 && "opacity-50 cursor-not-allowed",
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="font-bold">{s.name}</div>
-                      <div className="text-primary font-bold whitespace-nowrap">{formatSAR(s.price)}</div>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
-                      <Clock className="size-3" /> {total} دقيقة
-                      <span className="text-muted-foreground/50">·</span>
-                      <span>{s.category}</span>
-                    </div>
-                    <div className="mt-1.5 text-[11px]">
-                      <span className="text-muted-foreground">المؤهلون: </span>
-                      {eligNames.length === 0 ? <span className="text-destructive">لا يوجد</span> : <span className="text-foreground">{eligNames.join("، ")}</span>}
-                    </div>
-                    {earliest ? (
-                      <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success border border-success/30 px-2 py-0.5 text-[11px] font-semibold">
-                        <CheckCircle2 className="size-3" /> أقرب وقت: {formatDateShort(earliest.startsAt)} — {formatTime(earliest.startsAt)} · {earliest.staffName}
-                      </div>
-                    ) : (
-                      <div className="mt-2 text-[11px] text-warning">لا يوجد وقت متاح قريب</div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* ================ COMBINED SCHEDULE ================ */}
-          {selectedServices.length > 0 && (
-            <section className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-2">
-              <div className="text-sm font-bold flex items-center gap-2"><Clock className="size-4 text-primary" /> جدولة الحجز</div>
-              {combined?.earliest ? (
+              {!showNew ? (
                 <>
-                  <div className="text-sm">
-                    الأخصائية: <span className="font-bold">{combined.earliest.staffName}</span>
-                  </div>
-                  <div className="text-sm">
-                    الوقت: <span className="font-bold">{formatDateShort(combined.earliest.startsAt)} — {formatTime(combined.earliest.startsAt)}</span>
-                    <span className="text-muted-foreground mr-2">مدة إجمالية {combined.durationMin} دقيقة</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">يتم حجز هذا الوقت للعميل والموظف تلقائياً — لن يتمكن أي طرف من الحجز في نفس الوقت.</p>
+                  <input
+                    value={custQuery}
+                    onChange={(e) => setCustQuery(e.target.value)}
+                    placeholder="ابحث برقم الحجز، الاسم، الجوال، أو رقم المحفظة"
+                    className="w-full h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                  />
+                  {custQuery && (
+                    <div className="rounded-lg border border-border divide-y divide-border max-h-56 overflow-y-auto">
+                      {custMatches.length === 0 ? (
+                        <div className="p-3 text-xs text-muted-foreground text-center">لا نتائج — <button className="text-primary hover:underline" onClick={() => { setShowNew(true); setNewCust({ name: custQuery, phone: "" }); }}>إضافة عميل جديد</button></div>
+                      ) : custMatches.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => { setCustomerId(c.id); setCustQuery(""); }}
+                          className={cn("w-full text-right p-2.5 hover:bg-muted/40 text-sm transition", customerId === c.id && "bg-primary/10")}
+                        >
+                          <div className="font-semibold">{c.name}</div>
+                          <div className="text-[11px] text-muted-foreground flex gap-2 items-center">
+                            <span dir="ltr">{c.phone}</span>
+                            {c.walletId && <span className="font-mono">· {c.walletId}</span>}
+                            <span>· رصيد {formatSAR(c.walletBalance ?? 0)}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {currentCustomer && (
+                    <div className="rounded-lg bg-primary/5 border border-primary/30 p-3 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm truncate">{currentCustomer.name}</div>
+                        <div className="text-xs text-muted-foreground truncate" dir="ltr">{currentCustomer.phone}</div>
+                      </div>
+                      <div className="text-left shrink-0">
+                        <div className="text-[10px] text-muted-foreground">رصيد المحفظة</div>
+                        <div className="font-bold text-sm text-success">{formatSAR(walletAvailable)}</div>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
-                <div className="rounded-lg border border-destructive/40 bg-destructive/10 text-destructive p-2 text-xs flex items-start gap-2">
-                  <AlertTriangle className="size-4 mt-0.5" />
-                  لا يوجد موظف مشترك مؤهل لكل هذه الخدمات، أو لا يوجد وقت متاح.
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input value={newCust.name} onChange={(e) => setNewCust({ ...newCust, name: e.target.value })} placeholder="اسم العميل" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <input value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} placeholder="رقم الجوال" dir="ltr" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <p className="sm:col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء.</p>
                 </div>
               )}
             </section>
-          )}
 
-          {/* ================ DISCOUNTS ================ */}
-          <section className="rounded-xl border border-border p-4 space-y-3">
-            <div className="text-sm font-bold flex items-center gap-2"><Ticket className="size-4 text-primary" /> الخصومات</div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground mb-1.5 block">خصم يدوي</label>
-                <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value) || 0)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+            {/* SERVICES */}
+            <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-bold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> الخدمات المتاحة</div>
+                <div className="text-[11px] text-muted-foreground">{selectedServices.length} مختارة</div>
               </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground mb-1.5 block">كود كوبون</label>
-                {couponApplied ? (
-                  <div className="flex items-center justify-between h-10 rounded-lg bg-primary/10 border border-primary/30 px-3 text-sm">
-                    <span className="font-mono font-bold">{couponApplied.code}</span>
-                    <button onClick={clearCoupon} className="text-xs text-destructive hover:underline">إزالة</button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {services.filter((s) => s.active).map((s) => {
+                  const sel = selectedServices.includes(s.id);
+                  const eligNames = eligibleStaffNames(s);
+                  const earliest = earliestByService.get(s.id);
+                  const total = serviceTotalMin(s);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggleService(s.id)}
+                      disabled={eligNames.length === 0}
+                      className={cn(
+                        "text-right p-3 rounded-xl border transition text-sm",
+                        sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
+                        eligNames.length === 0 && "opacity-50 cursor-not-allowed",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-bold">{s.name}</div>
+                        <div className="text-primary font-bold whitespace-nowrap">{formatSAR(s.price)}</div>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
+                        <Clock className="size-3" /> {total} دقيقة
+                        <span className="text-muted-foreground/50">·</span>
+                        <span>{s.category}</span>
+                      </div>
+                      <div className="mt-1.5 text-[11px]">
+                        <span className="text-muted-foreground">المؤهلون: </span>
+                        {eligNames.length === 0 ? <span className="text-destructive">لا يوجد</span> : <span className="text-foreground">{eligNames.join("، ")}</span>}
+                      </div>
+                      {earliest ? (
+                        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success border border-success/30 px-2 py-0.5 text-[11px] font-semibold">
+                          <CheckCircle2 className="size-3" /> {formatDateShort(earliest.startsAt)} — {formatTime(earliest.startsAt)} · {earliest.staffName}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-[11px] text-warning">لا يوجد وقت متاح قريب</div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* NOTES */}
+            <section className="rounded-xl border border-border bg-card/40 p-4 space-y-2">
+              <label className="text-sm font-bold block">ملاحظات</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full rounded-lg bg-muted/40 border border-border px-3 py-2 text-sm" placeholder="أي ملاحظات إضافية..." />
+            </section>
+          </div>
+
+          {/* RIGHT — summary sidebar */}
+          <aside className="border-t lg:border-t-0 lg:border-r border-border bg-muted/20 overflow-y-auto p-5 space-y-4">
+            {/* SCHEDULE */}
+            {selectedServices.length > 0 && (
+              <section className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-2">
+                <div className="text-sm font-bold flex items-center gap-2"><Clock className="size-4 text-primary" /> جدولة الحجز</div>
+                {combined?.earliest ? (
+                  <>
+                    <div className="text-sm">الأخصائية: <span className="font-bold">{combined.earliest.staffName}</span></div>
+                    <div className="text-sm">
+                      <div>الوقت: <span className="font-bold">{formatDateShort(combined.earliest.startsAt)} — {formatTime(combined.earliest.startsAt)}</span></div>
+                      <div className="text-muted-foreground text-xs mt-0.5">مدة إجمالية {combined.durationMin} دقيقة</div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">يتم حجز هذا الوقت تلقائياً للطرفين.</p>
+                  </>
                 ) : (
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono uppercase" />
-                    <button onClick={applyCoupon} className="px-3 h-10 rounded-lg border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">تطبيق</button>
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 text-destructive p-2 text-xs flex items-start gap-2">
+                    <AlertTriangle className="size-4 mt-0.5" />
+                    لا يوجد موظف مشترك مؤهل لكل هذه الخدمات، أو لا يوجد وقت متاح.
                   </div>
                 )}
-              </div>
-            </div>
-          </section>
+              </section>
+            )}
 
-          {/* ================ PAYMENT ================ */}
-          <section className="rounded-xl border border-border p-4 space-y-3">
-            <div className="text-sm font-bold flex items-center gap-2"><CreditCard className="size-4 text-primary" /> طريقة الدفع</div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {PAY_METHOD_OPTIONS.map((opt) => {
-                const Icon = opt.icon;
-                const disabled = opt.id === "wallet" && (!currentCustomer || walletAvailable < afterDiscounts);
-                const active = payMethod === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => setPayMethod(opt.id)}
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg border p-3 text-xs font-semibold transition text-right",
-                      active ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
-                      disabled && "opacity-40 cursor-not-allowed",
-                    )}
-                  >
-                    <Icon className="size-4 text-primary" />
-                    <span className="flex-1">{opt.label}</span>
-                    {active && <CheckCircle2 className="size-4 text-success" />}
-                  </button>
-                );
-              })}
-            </div>
-            {payMethod === "wallet" && (
-              <div className="rounded-lg border border-warning/40 bg-warning/10 text-warning-foreground p-3 text-xs flex items-start gap-2">
-                <AlertTriangle className="size-4 mt-0.5 text-warning" />
+            {/* DISCOUNTS */}
+            <section className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+              <div className="text-sm font-bold flex items-center gap-2"><Ticket className="size-4 text-primary" /> الخصومات</div>
+              <div className="space-y-2">
                 <div>
-                  سيتم إنشاء الحجز بحالة "بانتظار موافقة العميل". يظهر للعميل في حسابه الشخصي طلب اعتماد الخصم من محفظته، ثم يمكن إصدار الفاتورة.
+                  <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">خصم يدوي</label>
+                  <input type="number" min={0} value={discount} onChange={(e) => setDiscount(Number(e.target.value) || 0)} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">كود كوبون</label>
+                  {couponApplied ? (
+                    <div className="flex items-center justify-between h-10 rounded-lg bg-primary/10 border border-primary/30 px-3 text-sm">
+                      <span className="font-mono font-bold">{couponApplied.code}</span>
+                      <button onClick={clearCoupon} className="text-xs text-destructive hover:underline">إزالة</button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-[1fr_auto] gap-2">
+                      <input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono uppercase" />
+                      <button onClick={applyCoupon} className="px-3 h-10 rounded-lg border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">تطبيق</button>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </section>
+            </section>
 
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">ملاحظات</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full rounded-lg bg-muted/40 border border-border px-3 py-2 text-sm" />
-          </div>
+            {/* PAYMENT */}
+            <section className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+              <div className="text-sm font-bold flex items-center gap-2"><CreditCard className="size-4 text-primary" /> طريقة الدفع</div>
+              <div className="grid grid-cols-2 gap-2">
+                {PAY_METHOD_OPTIONS.map((opt) => {
+                  const Icon = opt.icon;
+                  const disabled = opt.id === "wallet" && (!currentCustomer || walletAvailable < afterDiscounts);
+                  const active = payMethod === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setPayMethod(opt.id)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border p-2.5 text-xs font-semibold transition text-right",
+                        active ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
+                        disabled && "opacity-40 cursor-not-allowed",
+                      )}
+                    >
+                      <Icon className="size-4 text-primary shrink-0" />
+                      <span className="flex-1 truncate">{opt.label}</span>
+                      {active && <CheckCircle2 className="size-4 text-success shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+              {payMethod === "wallet" && (
+                <div className="rounded-lg border border-warning/40 bg-warning/10 text-warning-foreground p-3 text-[11px] flex items-start gap-2">
+                  <AlertTriangle className="size-4 mt-0.5 text-warning shrink-0" />
+                  <div>سيتم إنشاء الحجز بحالة "بانتظار موافقة العميل" لخصم المحفظة.</div>
+                </div>
+              )}
+            </section>
 
-          {/* ================ TOTALS ================ */}
-          <div className="glass-card rounded-xl p-4 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">المجموع الفرعي</span>
-              <span className="font-mono">{formatSAR(combined?.price ?? 0)}</span>
-            </div>
-            {discount > 0 && (
+            {/* TOTALS */}
+            <section className="rounded-xl border border-primary/40 bg-gradient-to-br from-primary/10 to-accent/5 p-4 space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">خصم يدوي</span>
-                <span className="font-mono text-emerald-500">− {formatSAR(discount)}</span>
+                <span className="text-muted-foreground">المجموع الفرعي</span>
+                <span className="font-mono">{formatSAR(combined?.price ?? 0)}</span>
               </div>
-            )}
-            {couponDiscount > 0 && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">كوبون {couponApplied?.code}</span>
-                <span className="font-mono text-emerald-500">− {formatSAR(couponDiscount)}</span>
+              {discount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">خصم يدوي</span>
+                  <span className="font-mono text-emerald-500">− {formatSAR(discount)}</span>
+                </div>
+              )}
+              {couponDiscount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">كوبون {couponApplied?.code}</span>
+                  <span className="font-mono text-emerald-500">− {formatSAR(couponDiscount)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <span className="text-xs text-muted-foreground">الإجمالي</span>
+                <span className="text-2xl font-bold gradient-text">{formatSAR(afterDiscounts)}</span>
               </div>
-            )}
-            <div className="flex items-center justify-between pt-2 border-t border-border">
-              <span className="text-xs text-muted-foreground">الإجمالي (فاتورة واحدة)</span>
-              <span className="text-2xl font-bold gradient-text">{formatSAR(afterDiscounts)}</span>
-            </div>
-          </div>
+            </section>
+          </aside>
         </div>
 
-        <div className="p-5 border-t border-border flex items-center justify-end gap-2 sticky bottom-0 bg-card/95 backdrop-blur">
-          <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
-          <button
-            onClick={submit}
-            disabled={selectedServices.length === 0 || !combined?.earliest}
-            className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            تأكيد الحجز
-          </button>
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-2 bg-card/95 backdrop-blur shrink-0">
+          <div className="text-xs text-muted-foreground hidden sm:block">
+            {selectedServices.length > 0 ? `${selectedServices.length} خدمة · ${combined?.durationMin ?? 0} دقيقة` : "اختر خدمة واحدة على الأقل"}
+          </div>
+          <div className="flex items-center gap-2 flex-1 sm:flex-none justify-end">
+            <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
+            <button
+              onClick={submit}
+              disabled={selectedServices.length === 0 || !combined?.earliest}
+              className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              تأكيد الحجز
+            </button>
+          </div>
         </div>
       </div>
     </div>
