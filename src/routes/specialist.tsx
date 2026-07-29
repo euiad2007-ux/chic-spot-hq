@@ -16,6 +16,7 @@ import {
   CalendarDays, LogOut, Scissors, TrendingUp, Users2, CheckCircle2, Phone,
   MapPin, LogIn, LogOut as LogOutIcon, Clock, User2, History, AlertTriangle,
 } from "lucide-react";
+import { BookingCalendar } from "@/components/salon/booking-calendar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { BookingStatus } from "@/lib/salon-store";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/specialist")({
   component: SpecialistPage,
 });
 
-type Tab = "today" | "profile" | "schedule" | "history" | "attendance";
+type Tab = "today" | "calendar" | "profile" | "schedule" | "history" | "attendance";
 
 function SpecialistPage() {
   const session = useSession();
@@ -71,6 +72,7 @@ function SpecialistPage() {
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "today", label: "اليوم", icon: <CalendarDays className="size-4" /> },
+    { key: "calendar", label: "التقويم", icon: <CalendarDays className="size-4" /> },
     { key: "attendance", label: "الحضور", icon: <MapPin className="size-4" /> },
     { key: "profile", label: "بياناتي", icon: <User2 className="size-4" /> },
     { key: "schedule", label: "الدوام", icon: <Clock className="size-4" /> },
@@ -144,6 +146,10 @@ function SpecialistPage() {
 
         {tab === "today" && (
           <TodaySection today={today} upcoming={upcoming} services={services} customers={customers} setStatus={setStatus} />
+        )}
+
+        {tab === "calendar" && (
+          <BookingCalendar bookings={mine} services={services} staff={staff} customers={customers} variant="staff" meId={me.id} />
         )}
 
         {tab === "attendance" && (

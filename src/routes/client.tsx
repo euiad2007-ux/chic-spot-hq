@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { BookingCalendar } from "@/components/salon/booking-calendar";
 
 export const Route = createFileRoute("/client")({
   head: () => ({
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/client")({
   component: ClientPage,
 });
 
-type TabKey = "overview" | "wallet" | "loyalty" | "coupons" | "referral" | "bookings" | "account";
+type TabKey = "overview" | "wallet" | "loyalty" | "coupons" | "referral" | "bookings" | "calendar" | "account";
 
 function ClientPage() {
   const session = useSession();
@@ -63,6 +64,7 @@ function ClientPage() {
 
   const tabs: { key: TabKey; label: string; icon: typeof Wallet }[] = [
     { key: "overview", label: "نظرة عامة", icon: Sparkles },
+    { key: "calendar", label: "التقويم", icon: CalendarDays },
     { key: "wallet", label: "المحفظة", icon: Wallet },
     { key: "loyalty", label: "نقاط الولاء", icon: Gift },
     { key: "coupons", label: "الكوبونات", icon: Ticket },
@@ -149,6 +151,7 @@ function ClientPage() {
         {tab === "coupons" && <CouponsTab coupons={activeCoupons} />}
         {tab === "referral" && <ReferralTab me={me} referredCount={referredCount} />}
         {tab === "bookings" && <BookingsTab upcoming={upcoming} past={past} services={services} staff={staff} invoices={myInvoices} />}
+        {tab === "calendar" && <BookingCalendar bookings={myBookings} services={services} staff={staff} customers={customers} variant="client" />}
         {tab === "account" && <AccountTab me={me} />}
       </main>
 
