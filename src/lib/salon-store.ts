@@ -756,15 +756,45 @@ export const actions = {
       const used = consumed.find((c) => c.itemId === it.id);
       return used ? { ...it, stock: Math.max(0, it.stock - used.qty) } : it;
     });
+    // Loyalty points earned by the paying customer
+    const earnedPoints = Math.round(total * LOYALTY_RATE * 100) / 100;
+    const lLog: LoyaltyLog = { id: uid(), delta: earnedPoints, reason: `فاتورة ${num}`, at: new Date().toISOString() };
+
+    // Referral commission → paid into the referrer's wallet
+    const buyer = state.customers.find((c) => c.id === b.customerId);
+    const referrer = buyer?.referredBy ? state.customers.find((c) => c.referralCode === buyer.referredBy) : undefined;
+    const refAmount = referrer ? Math.round(total * (REFERRAL_COMMISSION_PCT / 100) * 100) / 100 : 0;
+
     state = {
       ...state,
       invoices: [...state.invoices, inv],
       inventory: nextInv,
       bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
-      customers: state.customers.map((c) => c.id === b.customerId ? { ...c, visits: c.visits + 1, totalSpent: c.totalSpent + total } : c),
+      customers: state.customers.map((c) => {
+        if (c.id === b.customerId) {
+          return {
+            ...c,
+            visits: c.visits + 1,
+            totalSpent: Math.round((c.totalSpent + total) * 100) / 100,
+            loyaltyPoints: Math.round(((c.loyaltyPoints ?? 0) + earnedPoints) * 100) / 100,
+            loyaltyLog: [lLog, ...(c.loyaltyLog ?? [])],
+          };
+        }
+        if (referrer && c.id === referrer.id && refAmount > 0) {
+          const wLog: WalletLog = { id: uid(), delta: refAmount, reason: `عمولة إحالة (فاتورة ${num})`, at: new Date().toISOString() };
+          return {
+            ...c,
+            walletBalance: (c.walletBalance ?? 0) + refAmount,
+            walletLog: [wLog, ...(c.walletLog ?? [])],
+            referralEarnings: Math.round(((c.referralEarnings ?? 0) + refAmount) * 100) / 100,
+          };
+        }
+        return c;
+      }),
     };
     persist();
     return inv;
+
   },
 };
 
