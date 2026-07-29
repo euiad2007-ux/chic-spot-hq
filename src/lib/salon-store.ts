@@ -149,6 +149,8 @@ export interface Customer {
   birthDate?: string;
   address?: string;
   email?: string;
+  password?: string;            // optional login password
+
   // Wallet & loyalty
   walletId?: string;           // 2 letters + 10 digits (e.g. "LM1234567890")
   walletBalance?: number;
