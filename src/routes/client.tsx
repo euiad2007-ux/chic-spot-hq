@@ -143,7 +143,7 @@ function ClientPage() {
           </div>
         </div>
 
-        {tab === "overview" && <OverviewTab me={me} upcoming={upcoming} services={services} staff={staff} onNew={() => setOpenBooking(true)} />}
+        {tab === "overview" && <OverviewTab me={me} upcoming={upcoming} services={services} staff={staff} bookings={bookings} onNew={() => setOpenBooking(true)} />}
         {tab === "wallet" && <WalletTab me={me} />}
         {tab === "loyalty" && <LoyaltyTab me={me} />}
         {tab === "coupons" && <CouponsTab coupons={activeCoupons} />}
@@ -167,55 +167,129 @@ function MiniStat({ label, value, icon }: { label: string; value: string; icon: 
 }
 
 /* ==================== OVERVIEW ==================== */
-function OverviewTab({ me, upcoming, services, staff, onNew }: any) {
+function OverviewTab({ me, upcoming, services, staff, bookings, onNew }: any) {
+  const pendingApprovals = (bookings ?? []).filter(
+    (b: any) =>
+      b.customerId === me.id &&
+      b.paymentMethod === "wallet" &&
+      !b.walletApproved &&
+      b.status !== "cancelled" &&
+      b.status !== "completed",
+  );
+
+  const approve = (b: any) => {
+    const res = actions.approveWalletPayment(b.id);
+    if (!res.ok) return toast.error(res.error ?? "تعذّر الاعتماد");
+    // After approval, issue invoice from wallet immediately
+    const inv = actions.createInvoice(b.id, "cash");
+    if (inv) toast.success(`تم اعتماد الدفع وإصدار الفاتورة ${inv.number}`);
+    else toast.success("تمت الموافقة على الخصم");
+  };
+  const reject = (b: any) => {
+    actions.rejectWalletPayment(b.id);
+    toast.info("تم رفض الخصم من المحفظة");
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="md:col-span-2 space-y-4">
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold">حجوزاتك القادمة</h2>
-            <button onClick={onNew} className="text-xs font-semibold text-primary hover:underline">+ حجز جديد</button>
-          </div>
-          {upcoming.length === 0 ? (
-            <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground text-sm">لا توجد حجوزات قادمة</div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {upcoming.slice(0, 4).map((b: any) => {
-                const st = staff.find((s: any) => s.id === b.staffId);
-                return (
-                  <div key={b.id} className="glass-card rounded-2xl p-4">
-                    <div className="text-[10px] font-mono text-muted-foreground tracking-wider">{b.code}</div>
-                    <div className="mt-1 flex flex-wrap gap-1">
+    <div className="space-y-4">
+      {pendingApprovals.length > 0 && (
+        <section className="glass-card rounded-2xl p-5 border-2 border-warning/40 bg-warning/5">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <ShieldCheck className="size-5 text-warning" /> طلبات اعتماد دفع من المحفظة
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            الصالون طلب خصم قيمة حجوزات التالية من محفظتك. يمكنك الموافقة أو الرفض.
+          </p>
+          <div className="mt-4 space-y-2">
+            {pendingApprovals.map((b: any) => {
+              const total = b.price - (b.discount ?? 0);
+              const canAfford = (me.walletBalance ?? 0) >= total;
+              return (
+                <div key={b.id} className="rounded-xl border border-border bg-background/50 p-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-mono text-muted-foreground">{b.code}</div>
+                    <div className="flex flex-wrap gap-1 mt-1">
                       {b.serviceIds.map((sid: string) => {
                         const svc = services.find((s: any) => s.id === sid);
-                        return <span key={sid} className="text-xs rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5">{svc?.name}</span>;
+                        return <span key={sid} className="text-[11px] rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5">{svc?.name}</span>;
                       })}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-2">مع {st?.name} — {formatDate(b.startsAt)}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{formatDate(b.startsAt)}</div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <div className="text-left">
+                    <div className="text-lg font-bold gradient-text">{formatSAR(total)}</div>
+                    {!canAfford && <div className="text-[10px] text-destructive">الرصيد لا يكفي</div>}
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => approve(b)}
+                      disabled={!canAfford}
+                      className="flex-1 sm:flex-none h-9 px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold inline-flex items-center justify-center gap-1 disabled:opacity-50"
+                    >
+                      <Check className="size-3.5" /> اعتماد
+                    </button>
+                    <button
+                      onClick={() => reject(b)}
+                      className="flex-1 sm:flex-none h-9 px-4 rounded-lg border border-destructive/40 text-destructive text-xs font-bold hover:bg-destructive/10"
+                    >
+                      رفض
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-2 space-y-4">
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold">حجوزاتك القادمة</h2>
+              <button onClick={onNew} className="text-xs font-semibold text-primary hover:underline">+ حجز جديد</button>
+            </div>
+            {upcoming.length === 0 ? (
+              <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground text-sm">لا توجد حجوزات قادمة</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {upcoming.slice(0, 4).map((b: any) => {
+                  const st = staff.find((s: any) => s.id === b.staffId);
+                  return (
+                    <div key={b.id} className="glass-card rounded-2xl p-4">
+                      <div className="text-[10px] font-mono text-muted-foreground tracking-wider">{b.code}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {b.serviceIds.map((sid: string) => {
+                          const svc = services.find((s: any) => s.id === sid);
+                          return <span key={sid} className="text-xs rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5">{svc?.name}</span>;
+                        })}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">مع {st?.name} — {formatDate(b.startsAt)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+        <aside className="space-y-3">
+          <div className="glass-card rounded-2xl p-5">
+            <div className="text-xs text-muted-foreground">رقم محفظتك</div>
+            <div className="mt-2 text-lg font-mono font-bold tracking-wider">{me.walletId}</div>
+            <button
+              onClick={() => { navigator.clipboard?.writeText(me.walletId ?? ""); toast.success("تم نسخ الرقم"); }}
+              className="mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg border border-border text-xs hover:bg-muted"
+            >
+              <Copy className="size-3.5" /> نسخ
+            </button>
+          </div>
+          <div className="glass-card rounded-2xl p-5">
+            <div className="text-xs text-muted-foreground">كود الإحالة</div>
+            <div className="mt-2 text-lg font-mono font-bold tracking-wider gradient-text">{me.referralCode}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">شاركيه لتحصلي على عمولة من كل فاتورة</div>
+          </div>
+        </aside>
       </div>
-      <aside className="space-y-3">
-        <div className="glass-card rounded-2xl p-5">
-          <div className="text-xs text-muted-foreground">رقم محفظتك</div>
-          <div className="mt-2 text-lg font-mono font-bold tracking-wider">{me.walletId}</div>
-          <button
-            onClick={() => { navigator.clipboard?.writeText(me.walletId ?? ""); toast.success("تم نسخ الرقم"); }}
-            className="mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg border border-border text-xs hover:bg-muted"
-          >
-            <Copy className="size-3.5" /> نسخ
-          </button>
-        </div>
-        <div className="glass-card rounded-2xl p-5">
-          <div className="text-xs text-muted-foreground">كود الإحالة</div>
-          <div className="mt-2 text-lg font-mono font-bold tracking-wider gradient-text">{me.referralCode}</div>
-          <div className="mt-1 text-[11px] text-muted-foreground">شاركيه لتحصلي على عمولة من كل فاتورة</div>
-        </div>
-      </aside>
     </div>
   );
 }
