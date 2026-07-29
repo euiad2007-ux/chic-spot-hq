@@ -323,7 +323,11 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
   revenue: number;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "allowances" | "notes" | "points">("overview");
+  const [tab, setTab] = useState<"overview" | "allowances" | "leaves" | "notes" | "points">("overview");
+  const [leaveFrom, setLeaveFrom] = useState("");
+  const [leaveTo, setLeaveTo] = useState("");
+  const [leaveReason, setLeaveReason] = useState("");
+
   const [noteText, setNoteText] = useState("");
   const [allowLabel, setAllowLabel] = useState("");
   const [allowAmount, setAllowAmount] = useState(0);
