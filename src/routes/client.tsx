@@ -28,7 +28,7 @@ export const Route = createFileRoute("/client")({
   component: ClientPage,
 });
 
-type TabKey = "overview" | "wallet" | "loyalty" | "coupons" | "referral" | "bookings" | "account";
+type TabKey = "overview" | "wallet" | "loyalty" | "coupons" | "referral" | "bookings" | "calendar" | "account";
 
 function ClientPage() {
   const session = useSession();
@@ -64,6 +64,7 @@ function ClientPage() {
 
   const tabs: { key: TabKey; label: string; icon: typeof Wallet }[] = [
     { key: "overview", label: "نظرة عامة", icon: Sparkles },
+    { key: "calendar", label: "التقويم", icon: CalendarDays },
     { key: "wallet", label: "المحفظة", icon: Wallet },
     { key: "loyalty", label: "نقاط الولاء", icon: Gift },
     { key: "coupons", label: "الكوبونات", icon: Ticket },
