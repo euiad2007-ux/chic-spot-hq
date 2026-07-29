@@ -220,6 +220,7 @@ const defaults: SiteSettings = {
   waTemplateBooking: "مرحبًا {name} 🌸\nتم تأكيد حجزك في {salon} بتاريخ {date} الساعة {time}.\nبانتظارك 💜",
   waTemplateReminder: "تذكير 💜 لديك موعد في {salon} غدًا الساعة {time}. نتشرّف بحضورك.",
   waTemplatePromo: "عرض خاص من {salon} 🎁 خصم حصري لعميلاتنا المميزات هذا الأسبوع فقط!",
+  paymentMethods: ["mada", "visa", "mastercard", "applepay", "googlepay", "stcpay", "amex", "cash"],
 };
 
 let state: SiteSettings = defaults;
