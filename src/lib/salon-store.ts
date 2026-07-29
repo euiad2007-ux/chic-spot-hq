@@ -150,6 +150,7 @@ export interface Customer {
   address?: string;
   email?: string;
   // Wallet & loyalty
+  walletId?: string;           // 2 letters + 10 digits (e.g. "LM1234567890")
   walletBalance?: number;
   walletLog?: WalletLog[];
   loyaltyPoints?: number;
@@ -170,6 +171,24 @@ function genReferralCode(name: string) {
   const n = Math.random().toString(36).slice(2, 6).toUpperCase();
   return `${base}${n}`;
 }
+
+// Wallet ID: 2 uppercase letters + 10 digits
+function genWalletId(existing: Set<string>): string {
+  const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  for (let i = 0; i < 20; i++) {
+    const a = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    const b = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    let d = "";
+    for (let k = 0; k < 10; k++) d += Math.floor(Math.random() * 10);
+    const id = `${a}${b}${d}`;
+    if (!existing.has(id)) { existing.add(id); return id; }
+  }
+  return `LM${Date.now().toString().slice(-10)}`;
+}
+export function isValidWalletId(id: string) {
+  return /^[A-Z]{2}\d{10}$/.test(id.trim().toUpperCase());
+}
+
 
 
 export interface Booking {
