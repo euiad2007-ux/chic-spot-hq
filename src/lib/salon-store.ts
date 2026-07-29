@@ -150,6 +150,7 @@ export interface Customer {
   address?: string;
   email?: string;
   // Wallet & loyalty
+  walletId?: string;           // 2 letters + 10 digits (e.g. "LM1234567890")
   walletBalance?: number;
   walletLog?: WalletLog[];
   loyaltyPoints?: number;
@@ -171,6 +172,24 @@ function genReferralCode(name: string) {
   return `${base}${n}`;
 }
 
+// Wallet ID: 2 uppercase letters + 10 digits
+function genWalletId(existing: Set<string>): string {
+  const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  for (let i = 0; i < 20; i++) {
+    const a = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    const b = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    let d = "";
+    for (let k = 0; k < 10; k++) d += Math.floor(Math.random() * 10);
+    const id = `${a}${b}${d}`;
+    if (!existing.has(id)) { existing.add(id); return id; }
+  }
+  return `LM${Date.now().toString().slice(-10)}`;
+}
+export function isValidWalletId(id: string) {
+  return /^[A-Z]{2}\d{10}$/.test(id.trim().toUpperCase());
+}
+
+
 
 export interface Booking {
   id: string;
@@ -187,11 +206,17 @@ export interface Booking {
   durationMin: number;
   price: number;
   discount: number;
+  // Applied coupon (increases discount)
+  couponCode?: string;
+  couponDiscount?: number;
+  // Wallet applied at booking time (deducted from customer wallet at invoice)
+  walletUsed?: number;
   status: BookingStatus;
   payStatus: PayStatus;
   notes?: string;
   createdAt: string;
 }
+
 
 export interface Invoice {
   id: string;
@@ -383,6 +408,7 @@ function load(): SalonState {
             birthDate: c.birthDate,
             address: c.address,
             email: c.email,
+            walletId: c.walletId,
             walletBalance: c.walletBalance ?? 0,
             walletLog: c.walletLog ?? [],
             loyaltyPoints: c.loyaltyPoints ?? 0,
@@ -393,6 +419,7 @@ function load(): SalonState {
           });
         }
       }
+
       // Remap bookings/invoices to merged customer ids
       const remap = (id: string) => idRemap.get(id) ?? id;
       const remappedBookings = bookings.map((b) => ({ ...b, customerId: remap(b.customerId) }));
@@ -404,10 +431,13 @@ function load(): SalonState {
         cur.visits += 1; cur.total += inv.total ?? 0;
         stats.set(inv.customerId, cur);
       }
+      const walletIdSet = new Set<string>(Array.from(byPhone.values()).map((c) => c.walletId).filter(Boolean) as string[]);
       const customers = Array.from(byPhone.values()).map((c) => {
         const s = stats.get(c.id);
-        return { ...c, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
+        const walletId = c.walletId ?? genWalletId(walletIdSet);
+        return { ...c, walletId, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
       });
+
 
       // Normalize staff with new optional fields
       const staff = (parsed.staff ?? []).map((s: any) => ({
@@ -612,12 +642,14 @@ export const actions = {
       const existing = state.customers.find((x) => normPhone(x.phone) === key);
       if (existing) return existing;
     }
+    const walletIdSet = new Set<string>(state.customers.map((x) => x.walletId).filter(Boolean) as string[]);
     const newC: Customer = {
       ...c,
       id: uid(),
       visits: 0,
       totalSpent: 0,
       createdAt: new Date().toISOString(),
+      walletId: c.walletId ?? genWalletId(walletIdSet),
       walletBalance: c.walletBalance ?? 0,
       walletLog: c.walletLog ?? [],
       loyaltyPoints: c.loyaltyPoints ?? 0,
@@ -628,6 +660,7 @@ export const actions = {
     state = { ...state, customers: [...state.customers, newC] }; persist();
     return newC;
   },
+
   updateCustomer(id: string, patch: Partial<Customer>) {
     state = { ...state, customers: state.customers.map((x) => x.id === id ? { ...x, ...patch } : x) };
     persist();
@@ -648,6 +681,33 @@ export const actions = {
     };
     persist();
   },
+
+  // Transfer wallet balance from one customer to another by wallet ID
+  walletTransfer(fromCustomerId: string, toWalletId: string, amount: number, note?: string): { ok: boolean; error?: string } {
+    if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: "قيمة غير صحيحة" };
+    const from = state.customers.find((c) => c.id === fromCustomerId);
+    if (!from) return { ok: false, error: "المرسل غير موجود" };
+    const target = (toWalletId || "").trim().toUpperCase();
+    if (!isValidWalletId(target)) return { ok: false, error: "رقم المحفظة غير صالح (حرفان + 10 أرقام)" };
+    if (from.walletId === target) return { ok: false, error: "لا يمكن التحويل لنفس المحفظة" };
+    const to = state.customers.find((c) => (c.walletId ?? "").toUpperCase() === target);
+    if (!to) return { ok: false, error: "لا توجد محفظة بهذا الرقم" };
+    if ((from.walletBalance ?? 0) < amount) return { ok: false, error: "الرصيد غير كافٍ" };
+    const now = new Date().toISOString();
+    const outLog: WalletLog = { id: uid(), delta: -amount, reason: `تحويل إلى ${to.name} (${target})${note ? " · " + note : ""}`, at: now };
+    const inLog: WalletLog = { id: uid(), delta: amount, reason: `تحويل من ${from.name} (${from.walletId})${note ? " · " + note : ""}`, at: now };
+    state = {
+      ...state,
+      customers: state.customers.map((c) => {
+        if (c.id === from.id) return { ...c, walletBalance: (c.walletBalance ?? 0) - amount, walletLog: [outLog, ...(c.walletLog ?? [])] };
+        if (c.id === to.id) return { ...c, walletBalance: (c.walletBalance ?? 0) + amount, walletLog: [inLog, ...(c.walletLog ?? [])] };
+        return c;
+      }),
+    };
+    persist();
+    return { ok: true };
+  },
+
 
   // Loyalty
   loyaltyAdjust(customerId: string, delta: number, reason: string) {
@@ -772,10 +832,16 @@ export const actions = {
       bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
       customers: state.customers.map((c) => {
         if (c.id === b.customerId) {
+          const walletUsed = Math.max(0, Math.min(b.walletUsed ?? 0, c.walletBalance ?? 0));
+          const wLogs = walletUsed > 0
+            ? [{ id: uid(), delta: -walletUsed, reason: `دفع فاتورة ${num}`, at: new Date().toISOString() } as WalletLog, ...(c.walletLog ?? [])]
+            : (c.walletLog ?? []);
           return {
             ...c,
             visits: c.visits + 1,
             totalSpent: Math.round((c.totalSpent + total) * 100) / 100,
+            walletBalance: Math.max(0, (c.walletBalance ?? 0) - walletUsed),
+            walletLog: wLogs,
             loyaltyPoints: Math.round(((c.loyaltyPoints ?? 0) + earnedPoints) * 100) / 100,
             loyaltyLog: [lLog, ...(c.loyaltyLog ?? [])],
           };
@@ -791,6 +857,7 @@ export const actions = {
         }
         return c;
       }),
+
     };
     persist();
     return inv;

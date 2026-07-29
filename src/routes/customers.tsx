@@ -1,16 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import {
-  useSalon, actions, formatSAR, formatDate, LOYALTY_REDEEM_RATE, REFERRAL_COMMISSION_PCT,
+  useSalon, actions, formatSAR, formatDate, LOYALTY_REDEEM_RATE, REFERRAL_COMMISSION_PCT, isValidWalletId,
   type Customer,
 } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
 import {
   Plus, Search, Phone, Trash2, X, MessageCircle, Pencil, Wallet, Star, Gift, Users2, Copy, Eye,
+  CreditCard, Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/customers")({
   head: () => ({
@@ -221,6 +223,17 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
   const [walletAmt, setWalletAmt] = useState(0);
   const [walletReason, setWalletReason] = useState("");
   const [redeemPts, setRedeemPts] = useState(0);
+  // Card top-up (mock)
+  const [cardAmt, setCardAmt] = useState(0);
+  const [cardNum, setCardNum] = useState("");
+  const [cardExp, setCardExp] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardName, setCardName] = useState("");
+  // Peer transfer
+  const [xferTo, setXferTo] = useState("");
+  const [xferAmt, setXferAmt] = useState(0);
+  const [xferNote, setXferNote] = useState("");
+
 
   const myBookings = bookings.filter((b) => b.customerId === customer.id).sort((a, b) => (a.startsAt < b.startsAt ? 1 : -1));
   const myInvoices = invoices.filter((i) => i.customerId === customer.id).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -246,6 +259,33 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
     navigator.clipboard.writeText(customer.referralCode);
     toast.success("تم النسخ");
   };
+  const copyWalletId = () => {
+    if (!customer.walletId) return;
+    navigator.clipboard.writeText(customer.walletId);
+    toast.success("تم نسخ رقم المحفظة");
+  };
+  const doTopupCard = () => {
+    if (!cardAmt || cardAmt <= 0) return toast.error("أدخل المبلغ");
+    const digits = cardNum.replace(/\s/g, "");
+    if (!/^\d{12,19}$/.test(digits)) return toast.error("رقم البطاقة غير صحيح");
+    if (!/^\d{2}\s*\/\s*\d{2}$/.test(cardExp)) return toast.error("تاريخ الانتهاء MM/YY");
+    if (!/^\d{3,4}$/.test(cardCvv)) return toast.error("CVV غير صحيح");
+    if (!cardName.trim()) return toast.error("أدخل اسم حامل البطاقة");
+    const last4 = digits.slice(-4);
+    actions.walletAdjust(customer.id, cardAmt, `شحن ببطاقة ****${last4}`);
+    setCardAmt(0); setCardNum(""); setCardExp(""); setCardCvv(""); setCardName("");
+    toast.success(`تم شحن ${formatSAR(cardAmt)} إلى المحفظة`);
+  };
+  const doTransfer = () => {
+    if (!xferAmt || xferAmt <= 0) return toast.error("أدخل المبلغ");
+    const target = xferTo.trim().toUpperCase();
+    if (!isValidWalletId(target)) return toast.error("رقم المحفظة: حرفان + 10 أرقام");
+    const r = actions.walletTransfer(customer.id, target, xferAmt, xferNote || undefined);
+    if (!r.ok) return toast.error(r.error ?? "تعذر التحويل");
+    setXferAmt(0); setXferTo(""); setXferNote("");
+    toast.success("تم تحويل الرصيد بنجاح");
+  };
+
   const del = () => {
     if (confirm(`حذف العميل ${customer.name}؟`)) {
       actions.removeCustomer(customer.id);
@@ -306,7 +346,9 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
                 {customer.gender && <Field2 label="الجنس" value={customer.gender === "female" ? "أنثى" : "ذكر"} />}
                 {customer.birthDate && <Field2 label="تاريخ الميلاد" value={customer.birthDate} />}
                 {customer.address && <Field2 label="العنوان" value={customer.address} />}
+                <Field2 label="رقم المحفظة" value={customer.walletId ?? "—"} />
                 <Field2 label="كود الإحالة" value={customer.referralCode ?? "—"} />
+
                 {referrer && <Field2 label="أُحيل عبر" value={`${referrer.name} (${referrer.referralCode})`} />}
               </div>
               {customer.notes && (
@@ -320,11 +362,115 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
 
           {tab === "wallet" && (
             <div className="space-y-4">
-              <div className="rounded-xl bg-gradient-to-br from-success/10 to-emerald-500/10 border border-success/30 p-5 text-center">
-                <div className="text-xs text-muted-foreground">رصيد المحفظة</div>
-                <div className="text-4xl font-bold text-success mt-1">{formatSAR(customer.walletBalance ?? 0)}</div>
+              {/* Wallet ID card */}
+              <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 border border-primary/30 p-4 relative overflow-hidden">
+                <div className="absolute -top-10 -left-10 size-32 rounded-full bg-primary/20 blur-3xl" />
+                <div className="relative flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest">رقم المحفظة</div>
+                    <div className="font-mono font-black text-2xl mt-1 tracking-wider">{customer.walletId ?? "—"}</div>
+                    <div className="text-[10px] text-muted-foreground mt-1">شاركيه لاستقبال تحويلات من الأصدقاء</div>
+                  </div>
+                  <button onClick={copyWalletId} className="size-10 rounded-xl border border-border bg-background/60 hover:bg-muted grid place-items-center" title="نسخ">
+                    <Copy className="size-4" />
+                  </button>
+                </div>
               </div>
+
+              <div className="rounded-xl bg-gradient-to-br from-success/10 to-emerald-500/10 border border-success/30 p-5 text-center">
+                <div className="text-xs text-muted-foreground">الرصيد المتاح</div>
+                <div className="text-4xl font-bold text-success mt-1">{formatSAR(customer.walletBalance ?? 0)}</div>
+                <div className="text-[11px] text-muted-foreground mt-1">يمكن استخدامه في الحجوزات وشراء المنتجات</div>
+              </div>
+
+              {/* Top-up by credit card (mock) */}
               <div className="rounded-xl border border-border p-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <CreditCard className="size-4 text-primary" /> شحن ببطاقة ائتمانية
+                </div>
+                <input
+                  placeholder="اسم حامل البطاقة"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                />
+                <input
+                  placeholder="رقم البطاقة (16 رقم)"
+                  inputMode="numeric"
+                  value={cardNum}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 19);
+                    setCardNum(v.replace(/(\d{4})(?=\d)/g, "$1 ").trim());
+                  }}
+                  className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono tracking-wider"
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  <input
+                    placeholder="MM/YY"
+                    value={cardExp}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setCardExp(v.length > 2 ? `${v.slice(0, 2)}/${v.slice(2)}` : v);
+                    }}
+                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono"
+                  />
+                  <input
+                    placeholder="CVV"
+                    inputMode="numeric"
+                    value={cardCvv}
+                    onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono"
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    placeholder="المبلغ"
+                    value={cardAmt || ""}
+                    onChange={(e) => setCardAmt(Number(e.target.value))}
+                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                  />
+                </div>
+                <button onClick={doTopupCard} className="w-full h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2">
+                  <CreditCard className="size-4" /> شحن الرصيد
+                </button>
+                <div className="text-[10px] text-muted-foreground text-center">
+                  المدفوعات معالجة عبر بوابة الدفع الآمنة · لن تُخزَّن بيانات البطاقة.
+                </div>
+              </div>
+
+              {/* Transfer to friend by wallet ID */}
+              <div className="rounded-xl border border-border p-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <Send className="size-4 text-accent" /> تحويل إلى محفظة صديق
+                </div>
+                <input
+                  placeholder="رقم المحفظة (حرفان + 10 أرقام)"
+                  value={xferTo}
+                  onChange={(e) => setXferTo(e.target.value.toUpperCase().replace(/\s/g, "").slice(0, 12))}
+                  className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono tracking-wider uppercase"
+                />
+                <div className="grid grid-cols-[120px_1fr] gap-2">
+                  <input
+                    type="number" min={1} placeholder="المبلغ"
+                    value={xferAmt || ""}
+                    onChange={(e) => setXferAmt(Number(e.target.value))}
+                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                  />
+                  <input
+                    placeholder="ملاحظة (اختياري)"
+                    value={xferNote}
+                    onChange={(e) => setXferNote(e.target.value)}
+                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                  />
+                </div>
+                <button onClick={doTransfer} className="w-full h-10 rounded-lg bg-accent/20 text-accent hover:bg-accent/30 text-sm font-semibold flex items-center justify-center gap-2">
+                  <Send className="size-4" /> تحويل
+                </button>
+              </div>
+
+              {/* Manual adjust (admin) */}
+              <div className="rounded-xl border border-border p-3 space-y-2">
+                <div className="text-xs font-semibold text-muted-foreground">تعديل يدوي (إداري)</div>
                 <div className="grid grid-cols-[120px_1fr] gap-2">
                   <input type="number" placeholder="المبلغ" value={walletAmt || ""} onChange={(e) => setWalletAmt(Number(e.target.value))} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
                   <input placeholder="السبب" value={walletReason} onChange={(e) => setWalletReason(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
@@ -334,9 +480,12 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
                   <button onClick={() => doWallet(-1)} className="flex-1 h-10 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 text-sm font-semibold">− خصم</button>
                 </div>
               </div>
+
               <LogList items={customer.walletLog ?? []} format={(d) => formatSAR(Math.abs(d))} />
             </div>
           )}
+
+
 
           {tab === "loyalty" && (
             <div className="space-y-4">
