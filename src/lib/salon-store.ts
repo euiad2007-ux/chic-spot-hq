@@ -206,11 +206,17 @@ export interface Booking {
   durationMin: number;
   price: number;
   discount: number;
+  // Applied coupon (increases discount)
+  couponCode?: string;
+  couponDiscount?: number;
+  // Wallet applied at booking time (deducted from customer wallet at invoice)
+  walletUsed?: number;
   status: BookingStatus;
   payStatus: PayStatus;
   notes?: string;
   createdAt: string;
 }
+
 
 export interface Invoice {
   id: string;
