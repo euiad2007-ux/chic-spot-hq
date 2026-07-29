@@ -411,14 +411,64 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
                 <div className="border-t border-border my-2" />
                 <Row label="الإجمالي" value={formatSAR(totalPay)} bold />
               </div>
-              <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                <div>الجوال: <span className="text-foreground">{staff.phone}</span></div>
-                {staff.email && <div>البريد: <span className="text-foreground">{staff.email}</span></div>}
-                {staff.hireDate && <div>تاريخ التعيين: <span className="text-foreground">{staff.hireDate}</span></div>}
-                <div>الحالة: <span className="text-foreground">{staff.active ? "نشط" : "غير نشط"}</span></div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                <InfoRow label="الجوال" value={staff.phone} />
+                <InfoRow label="الحالة" value={staff.active ? "نشط" : "غير نشط"} />
+                {staff.email && <InfoRow label="البريد" value={staff.email} />}
+                {staff.hireDate && <InfoRow label="تاريخ التعيين" value={staff.hireDate} />}
+                {staff.jobTitle && <InfoRow label="المسمى التفصيلي" value={staff.jobTitle} />}
+                {staff.contractType && <InfoRow label="نوع العقد" value={staff.contractType === "full_time" ? "دوام كامل" : staff.contractType === "part_time" ? "دوام جزئي" : "عقد مؤقت"} />}
+                {staff.gender && <InfoRow label="الجنس" value={staff.gender === "female" ? "أنثى" : "ذكر"} />}
+                {staff.nationalId && <InfoRow label="رقم الهوية" value={staff.nationalId} />}
+                {staff.birthDate && <InfoRow label="تاريخ الميلاد" value={staff.birthDate} />}
+                {staff.nationality && <InfoRow label="الجنسية" value={staff.nationality} />}
+                {staff.address && <InfoRow label="العنوان" value={staff.address} />}
+                {staff.emergencyName && <InfoRow label="جهة الطوارئ" value={`${staff.emergencyName} — ${staff.emergencyPhone ?? ""}`} />}
               </div>
             </div>
           )}
+
+          {tab === "leaves" && (() => {
+            const used = (staff.leaves ?? []).reduce((a, l) => a + l.days, 0);
+            const total = staff.annualLeaveDays ?? 0;
+            const remaining = Math.max(0, total - used);
+            const addLeave = () => {
+              if (!leaveFrom || !leaveTo) return toast.error("حدد الفترة");
+              const from = new Date(leaveFrom); const to = new Date(leaveTo);
+              const days = Math.max(1, Math.round((+to - +from) / 86400000) + 1);
+              actions.addStaffLeave(staff.id, { from: leaveFrom, to: leaveTo, days, reason: leaveReason.trim() || undefined });
+              setLeaveFrom(""); setLeaveTo(""); setLeaveReason("");
+              toast.success("تمت إضافة الإجازة");
+            };
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <Stat label="الرصيد السنوي" value={`${total} يوم`} />
+                  <Stat label="مستخدم" value={`${used} يوم`} />
+                  <Stat label="متبقٍ" value={`${remaining} يوم`} highlight />
+                </div>
+                <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2">
+                  <input type="date" value={leaveFrom} onChange={(e) => setLeaveFrom(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <input type="date" value={leaveTo} onChange={(e) => setLeaveTo(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <input placeholder="السبب" value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+                  <button onClick={addLeave} className="px-4 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold">إضافة</button>
+                </div>
+                <div className="space-y-2">
+                  {(staff.leaves ?? []).length === 0 && <div className="text-center py-8 text-sm text-muted-foreground">لا توجد إجازات مسجلة</div>}
+                  {(staff.leaves ?? []).map((l) => (
+                    <div key={l.id} className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3 text-sm">
+                      <div>
+                        <div className="font-semibold">{l.from} → {l.to} <span className="text-xs text-muted-foreground">({l.days} يوم)</span></div>
+                        {l.reason && <div className="text-xs text-muted-foreground mt-0.5">{l.reason}</div>}
+                      </div>
+                      <button onClick={() => { actions.removeStaffLeave(staff.id, l.id); toast.success("حُذفت"); }} className="size-8 rounded-lg hover:bg-destructive/10 hover:text-destructive grid place-items-center"><Trash2 className="size-4" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
 
           {tab === "allowances" && (
             <div className="space-y-3">
