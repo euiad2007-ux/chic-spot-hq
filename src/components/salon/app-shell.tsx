@@ -15,6 +15,7 @@ import {
   Package,
   Fingerprint,
   Wallet,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,9 +29,11 @@ const nav = [
   { to: "/payroll", label: "الرواتب", icon: Wallet },
   { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint },
   { to: "/customers", label: "العملاء", icon: UserCircle },
+  { to: "/coupons", label: "الكوبونات", icon: Ticket },
   { to: "/invoices", label: "الفواتير", icon: Receipt },
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog },
 ] as const;
+
 
 export function AppShell({ children, title, subtitle, action }: {
   children: ReactNode;
