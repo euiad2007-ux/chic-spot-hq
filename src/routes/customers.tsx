@@ -346,7 +346,9 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
                 {customer.gender && <Field2 label="الجنس" value={customer.gender === "female" ? "أنثى" : "ذكر"} />}
                 {customer.birthDate && <Field2 label="تاريخ الميلاد" value={customer.birthDate} />}
                 {customer.address && <Field2 label="العنوان" value={customer.address} />}
+                <Field2 label="رقم المحفظة" value={customer.walletId ?? "—"} />
                 <Field2 label="كود الإحالة" value={customer.referralCode ?? "—"} />
+
                 {referrer && <Field2 label="أُحيل عبر" value={`${referrer.name} (${referrer.referralCode})`} />}
               </div>
               {customer.notes && (
