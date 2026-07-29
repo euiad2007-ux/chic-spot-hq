@@ -16,6 +16,7 @@ import {
   CalendarDays, LogOut, Scissors, TrendingUp, Users2, CheckCircle2, Phone,
   MapPin, LogIn, LogOut as LogOutIcon, Clock, User2, History, AlertTriangle,
 } from "lucide-react";
+import { BookingCalendar } from "@/components/salon/booking-calendar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { BookingStatus } from "@/lib/salon-store";
