@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
-import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus } from "lucide-react";
+import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, CalendarDays as CalendarDaysIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
