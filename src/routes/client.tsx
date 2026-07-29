@@ -151,6 +151,7 @@ function ClientPage() {
         {tab === "coupons" && <CouponsTab coupons={activeCoupons} />}
         {tab === "referral" && <ReferralTab me={me} referredCount={referredCount} />}
         {tab === "bookings" && <BookingsTab upcoming={upcoming} past={past} services={services} staff={staff} invoices={myInvoices} />}
+        {tab === "calendar" && <BookingCalendar bookings={myBookings} services={services} staff={staff} customers={customers} variant="client" />}
         {tab === "account" && <AccountTab me={me} />}
       </main>
 
