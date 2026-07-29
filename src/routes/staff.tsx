@@ -253,51 +253,59 @@ function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const set = <K extends keyof FormShape>(k: K, v: FormShape[K]) => setForm({ ...form, [k]: v });
+  const inp = "w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm";
+  const lbl = "text-xs font-semibold text-muted-foreground mb-2 block";
   return (
     <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card rounded-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="glass-card rounded-2xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="p-5 border-b border-border flex items-center justify-between">
           <h3 className="font-bold text-lg">{editing ? "تعديل الموظف" : "موظف جديد"}</h3>
           <button onClick={onClose} className="size-8 rounded-lg hover:bg-muted grid place-items-center"><X className="size-4" /></button>
         </div>
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">الاسم</label>
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">المسمى</label>
-              <input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+        <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+          <section>
+            <h4 className="text-xs font-bold text-primary mb-3">البيانات الشخصية</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={lbl}>الاسم الكامل *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الجنس</label>
+                <select value={form.gender} onChange={(e) => set("gender", e.target.value as any)} className={inp}>
+                  <option value="female">أنثى</option><option value="male">ذكر</option>
+                </select>
+              </div>
+              <div><label className={lbl}>الجوال *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>البريد الإلكتروني</label><input value={form.email} onChange={(e) => set("email", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>رقم الهوية / الإقامة</label><input value={form.nationalId} onChange={(e) => set("nationalId", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>تاريخ الميلاد</label><input type="date" value={form.birthDate} onChange={(e) => set("birthDate", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الجنسية</label><input value={form.nationality} onChange={(e) => set("nationality", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>العنوان</label><input value={form.address} onChange={(e) => set("address", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>جهة اتصال طوارئ</label><input value={form.emergencyName} onChange={(e) => set("emergencyName", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>جوال الطوارئ</label><input value={form.emergencyPhone} onChange={(e) => set("emergencyPhone", e.target.value)} className={inp} /></div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الجوال</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
+          </section>
+
+          <section>
+            <h4 className="text-xs font-bold text-primary mb-3">البيانات التعاقدية</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={lbl}>المسمى الوظيفي</label><input value={form.role} onChange={(e) => set("role", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>المسمى التفصيلي</label><input value={form.jobTitle} onChange={(e) => set("jobTitle", e.target.value)} className={inp} placeholder="مثال: كبير الأخصائيين" /></div>
+              <div><label className={lbl}>نوع العقد</label>
+                <select value={form.contractType} onChange={(e) => set("contractType", e.target.value as any)} className={inp}>
+                  <option value="full_time">دوام كامل</option>
+                  <option value="part_time">دوام جزئي</option>
+                  <option value="contract">عقد مؤقت</option>
+                </select>
+              </div>
+              <div><label className={lbl}>تاريخ التعيين *</label><input type="date" required value={form.hireDate} onChange={(e) => set("hireDate", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الراتب الأساسي</label><input type="number" value={form.salary} onChange={(e) => set("salary", Number(e.target.value))} className={inp} /></div>
+              <div><label className={lbl}>نسبة العمولة %</label><input type="number" value={form.commissionPct} onChange={(e) => set("commissionPct", Number(e.target.value))} className={inp} /></div>
+              <div><label className={lbl}>رصيد الإجازات السنوي (يوم)</label><input type="number" value={form.annualLeaveDays} onChange={(e) => set("annualLeaveDays", Number(e.target.value))} className={inp} /></div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">البريد</label>
-              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-                تاريخ التعيين <span className="text-destructive">*</span>
-                <span className="text-[10px] text-muted-foreground/70 mr-1">(يُستخدم لاحتساب الراتب)</span>
-              </label>
-              <input type="date" required value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">الراتب الأساسي</label>
-              <input type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">نسبة العمولة %</label>
-              <input type="number" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: Number(e.target.value) })} className="w-full h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
-            نشط
-          </label>
+            <label className="flex items-center gap-2 text-sm mt-3">
+              <input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} />
+              نشط
+            </label>
+          </section>
         </div>
         <div className="p-5 border-t border-border flex items-center justify-end gap-2">
           <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
@@ -307,6 +315,7 @@ function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
     </div>
   );
 }
+
 
 function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
   staff: Staff;
