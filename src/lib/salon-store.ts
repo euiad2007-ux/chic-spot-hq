@@ -741,7 +741,7 @@ export const actions = {
     if (!c) return 0;
     const p = Math.min(points, c.loyaltyPoints ?? 0);
     if (p <= 0) return 0;
-    const value = p * LOYALTY_REDEEM_RATE;
+    const value = p * getRewardsSettings().loyaltyRedeemRate;
     const lLog: LoyaltyLog = { id: uid(), delta: -p, reason: `استبدال ${p} نقطة`, at: new Date().toISOString() };
     const wLog: WalletLog = { id: uid(), delta: value, reason: `استبدال ${p} نقطة ولاء`, at: new Date().toISOString() };
     state = {
