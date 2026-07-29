@@ -208,15 +208,15 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   const newEnd = end.getTime();
   for (const b of bookings) {
     if (b.id === input.ignoreBookingId) continue;
-    if (b.staffId !== input.staffId) continue;
     if (b.status === "cancelled" || b.status === "no_show") continue;
     const r = bookingRange(b, settings.bufferMin);
-    if (newStart < r.end && newEnd > r.start) {
-      return {
-        type: "overlap",
-        message: "الموظف مشغول في هذا الوقت مع حجز آخر",
-        bookingId: b.id,
-      };
+    const overlaps = newStart < r.end && newEnd > r.start;
+    if (!overlaps) continue;
+    if (b.staffId === input.staffId) {
+      return { type: "overlap", message: "الموظف مشغول في هذا الوقت مع حجز آخر", bookingId: b.id };
+    }
+    if (input.customerId && b.customerId === input.customerId) {
+      return { type: "customer_busy", message: "لديك حجز آخر في نفس هذا الوقت — اختر وقتاً لاحقاً", bookingId: b.id };
     }
   }
   return null;
@@ -229,6 +229,7 @@ export interface SlotQuery {
   staffId: string;
   durationMin: number;
   ignoreBookingId?: string;
+  customerId?: string;
 }
 
 export interface Slot {
@@ -246,6 +247,7 @@ export function getSlotReasonLabel(reason?: Slot["reason"]) {
     outside_hours: "خارج ساعات الدوام",
     break: "وقت استراحة",
     overlap: "محجوز مسبقاً",
+    customer_busy: "لديك حجز آخر",
   };
   return reason ? labels[reason] : "غير متاح";
 }
