@@ -168,7 +168,12 @@ function BookingsPage() {
                         {b.status !== "completed" && b.status !== "cancelled" && (
                           <button
                             title="إتمام وإصدار فاتورة"
-                            onClick={() => { actions.createInvoice(b.id, "mada"); toast.success("تم إصدار الفاتورة"); }}
+                            onClick={() => {
+                              const inv = actions.createInvoice(b.id, "mada");
+                              if (inv && b.couponCode) couponActions.markUsed(b.couponCode);
+                              toast.success("تم إصدار الفاتورة");
+                            }}
+
                             className="size-8 rounded-lg border border-border hover:border-success/50 hover:text-success grid place-items-center"
                           >
                             <CheckCircle2 className="size-4" />
