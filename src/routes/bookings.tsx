@@ -411,16 +411,99 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full rounded-lg bg-muted/40 border border-border px-3 py-2 text-sm" />
           </div>
 
-          <div className="glass-card rounded-xl p-4 flex items-center justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground">المدة المحجوزة</div>
-              <div className="font-bold">{totals.durationMin} دقيقة <span className="text-xs font-normal text-muted-foreground">(خدمة {totals.serviceMin} د)</span></div>
+          {/* Coupon */}
+          <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <Ticket className="size-4 text-primary" /> كود خصم
             </div>
-            <div className="text-left">
-              <div className="text-xs text-muted-foreground">الإجمالي</div>
-              <div className="text-2xl font-bold gradient-text">{formatSAR(totals.price - discount)}</div>
+            {couponApplied ? (
+              <div className="flex items-center justify-between rounded-lg bg-primary/10 border border-primary/30 px-3 py-2 text-sm">
+                <div>
+                  <span className="font-mono font-bold">{couponApplied.code}</span>
+                  <span className="text-muted-foreground text-xs mr-2">− {formatSAR(couponDiscount)}</span>
+                </div>
+                <button onClick={clearCoupon} className="text-xs text-destructive hover:underline">إزالة</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <input
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  placeholder="أدخل كود الخصم"
+                  className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm font-mono uppercase"
+                />
+                <button onClick={applyCoupon} className="px-4 h-10 rounded-lg border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">
+                  تطبيق
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Wallet apply */}
+          {currentCustomer && walletAvailable > 0 && (
+            <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                <input type="checkbox" checked={useWallet} onChange={(e) => {
+                  const v = e.target.checked; setUseWallet(v);
+                  if (v) setWalletAmt(Math.min(walletAvailable, afterDiscounts));
+                  else setWalletAmt(0);
+                }} className="accent-primary" />
+                <Wallet className="size-4 text-success" />
+                استخدام رصيد المحفظة
+                <span className="text-muted-foreground font-normal mr-1">(المتاح: {formatSAR(walletAvailable)})</span>
+              </label>
+              {useWallet && (
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <input
+                    type="number" min={0} max={Math.min(walletAvailable, afterDiscounts)}
+                    value={walletAmt || ""} onChange={(e) => setWalletAmt(Number(e.target.value))}
+                    className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-sm"
+                  />
+                  <button
+                    onClick={() => setWalletAmt(Math.min(walletAvailable, afterDiscounts))}
+                    className="px-3 h-10 rounded-lg border border-border text-xs hover:bg-muted"
+                  >
+                    الأقصى
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Totals summary */}
+          <div className="glass-card rounded-xl p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">المدة المحجوزة</span>
+              <span className="font-bold">{totals.durationMin} دقيقة <span className="text-muted-foreground font-normal">(خدمة {totals.serviceMin} د)</span></span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">المجموع الفرعي</span>
+              <span className="font-mono">{formatSAR(totals.price)}</span>
+            </div>
+            {discount > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">خصم يدوي</span>
+                <span className="font-mono text-emerald-500">− {formatSAR(discount)}</span>
+              </div>
+            )}
+            {couponDiscount > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">كوبون {couponApplied?.code}</span>
+                <span className="font-mono text-emerald-500">− {formatSAR(couponDiscount)}</span>
+              </div>
+            )}
+            {walletUsed > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">مدفوع من المحفظة</span>
+                <span className="font-mono text-success">− {formatSAR(walletUsed)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <span className="text-xs text-muted-foreground">المتبقي للدفع</span>
+              <span className="text-2xl font-bold gradient-text">{formatSAR(remaining)}</span>
             </div>
           </div>
+
 
           <div className={cn(
             "rounded-xl border p-3 text-xs flex items-center justify-between",
