@@ -1,16 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import {
-  useSalon, actions, formatSAR, formatDate, LOYALTY_REDEEM_RATE, REFERRAL_COMMISSION_PCT,
+  useSalon, actions, formatSAR, formatDate, LOYALTY_REDEEM_RATE, REFERRAL_COMMISSION_PCT, isValidWalletId,
   type Customer,
 } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
 import {
   Plus, Search, Phone, Trash2, X, MessageCircle, Pencil, Wallet, Star, Gift, Users2, Copy, Eye,
+  CreditCard, Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/customers")({
   head: () => ({
