@@ -832,10 +832,16 @@ export const actions = {
       bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
       customers: state.customers.map((c) => {
         if (c.id === b.customerId) {
+          const walletUsed = Math.max(0, Math.min(b.walletUsed ?? 0, c.walletBalance ?? 0));
+          const wLogs = walletUsed > 0
+            ? [{ id: uid(), delta: -walletUsed, reason: `دفع فاتورة ${num}`, at: new Date().toISOString() } as WalletLog, ...(c.walletLog ?? [])]
+            : (c.walletLog ?? []);
           return {
             ...c,
             visits: c.visits + 1,
             totalSpent: Math.round((c.totalSpent + total) * 100) / 100,
+            walletBalance: Math.max(0, (c.walletBalance ?? 0) - walletUsed),
+            walletLog: wLogs,
             loyaltyPoints: Math.round(((c.loyaltyPoints ?? 0) + earnedPoints) * 100) / 100,
             loyaltyLog: [lLog, ...(c.loyaltyLog ?? [])],
           };
@@ -851,6 +857,7 @@ export const actions = {
         }
         return c;
       }),
+
     };
     persist();
     return inv;
