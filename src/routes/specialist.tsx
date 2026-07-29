@@ -72,6 +72,7 @@ function SpecialistPage() {
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "today", label: "اليوم", icon: <CalendarDays className="size-4" /> },
+    { key: "calendar", label: "التقويم", icon: <CalendarDays className="size-4" /> },
     { key: "attendance", label: "الحضور", icon: <MapPin className="size-4" /> },
     { key: "profile", label: "بياناتي", icon: <User2 className="size-4" /> },
     { key: "schedule", label: "الدوام", icon: <Clock className="size-4" /> },
