@@ -114,141 +114,146 @@ function BookingsPage() {
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/30 text-xs text-muted-foreground">
-              <tr>
-                <th className="text-right p-3 font-medium">أولوية</th>
-                <th className="text-right p-3 font-medium">رقم الحجز</th>
-                <th className="text-right p-3 font-medium">العميل</th>
-                <th className="text-right p-3 font-medium">الخدمات</th>
-                <th className="text-right p-3 font-medium">الموظف</th>
-                <th className="text-right p-3 font-medium">التاريخ</th>
-                <th className="text-right p-3 font-medium">المبلغ</th>
-                <th className="text-right p-3 font-medium">الحالة</th>
-                <th className="text-right p-3 font-medium">الدفع</th>
-                <th className="p-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && (
-                <tr><td colSpan={10} className="p-12 text-center text-muted-foreground">لا توجد حجوزات مطابقة</td></tr>
-              )}
-              {rows.map((b, idx) => {
-                const c = customers.find((x) => x.id === b.customerId);
-                const st = staff.find((x) => x.id === b.staffId);
-                const parts = b.code.split("-");
-                const needsApproval = b.paymentMethod === "wallet" && !b.walletApproved && b.status !== "cancelled" && b.status !== "completed";
-                const isHold = b.paymentMethod === "hold" && b.status !== "cancelled" && b.status !== "completed";
-                return (
-                  <tr key={b.id} className="border-t border-border hover:bg-muted/20">
-                    <td className="p-3">
-                      <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/15 text-primary font-bold text-xs border border-primary/30">
+      {rows.length === 0 ? (
+        <div className="glass-card rounded-2xl p-16 text-center text-muted-foreground">لا توجد حجوزات مطابقة</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {rows.map((b, idx) => {
+            const c = customers.find((x) => x.id === b.customerId);
+            const st = staff.find((x) => x.id === b.staffId);
+            const parts = b.code.split("-");
+            const needsApproval = b.paymentMethod === "wallet" && !b.walletApproved && b.status !== "cancelled" && b.status !== "completed";
+            const isHold = b.paymentMethod === "hold" && b.status !== "cancelled" && b.status !== "completed";
+            const total = b.price - b.discount;
+            const canComplete = b.status !== "completed" && b.status !== "cancelled";
+
+            return (
+              <div key={b.id} className="glass-card rounded-2xl p-4 relative overflow-hidden group hover:shadow-[var(--shadow-glow)] transition">
+                <div className="absolute -top-14 -left-14 size-40 rounded-full bg-primary/10 blur-3xl opacity-60" />
+                <div className="relative">
+                  {/* Header row: priority + status + code */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-xs shadow-[var(--shadow-glow)]">
                         {idx + 1}
                       </span>
-                    </td>
-                    <td className="p-3 font-mono text-[11px]">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <span className="text-muted-foreground">{parts[0]}</span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="text-accent">{parts[1]}</span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="text-primary font-bold">{parts[2]}</span>
+                      <div className="font-mono text-[11px] leading-tight">
+                        <span className="text-muted-foreground">{parts[0]}·{parts[1]}·</span>
+                        <span className="text-primary font-black">{parts[2]}</span>
                       </div>
-                    </td>
-                    <td className="p-3">
-                      <div className="font-semibold">{c?.name}</div>
-                      <div className="text-xs text-muted-foreground">{c?.phone}</div>
-                    </td>
-                    <td className="p-3 max-w-[260px]">
-                      <div className="flex flex-wrap gap-1">
-                        {b.serviceIds.map((sid) => {
-                          const svc = services.find((s) => s.id === sid);
-                          const q = b.serviceQueue?.[sid];
-                          return (
-                            <span key={sid} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px]">
-                              <span className="font-bold text-primary">#{String(q ?? 0).padStart(3, "0")}</span>
-                              <span>{svc?.name}</span>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </td>
-                    <td className="p-3">{st?.name}</td>
-                    <td className="p-3 whitespace-nowrap">
-                      <div>{formatDateShort(b.startsAt)}</div>
-                      <div className="text-xs text-muted-foreground">{formatTime(b.startsAt)}</div>
-                    </td>
-                    <td className="p-3 font-bold">{formatSAR(b.price - b.discount)}</td>
-                    <td className="p-3">
-                      <div className="flex flex-col gap-1">
-                        <span className={cn("text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap w-max", STATUS_TONE[b.status])}>
-                          {STATUS_LABEL[b.status]}
+                    </div>
+                    <span className={cn("text-[10px] font-bold px-2 py-1 rounded-full border whitespace-nowrap", STATUS_TONE[b.status])}>
+                      {STATUS_LABEL[b.status]}
+                    </span>
+                  </div>
+
+                  {/* Customer */}
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className="size-9 rounded-full bg-primary/15 grid place-items-center text-primary font-bold text-sm flex-shrink-0">
+                      {c?.name?.charAt(0) ?? "?"}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm truncate">{c?.name ?? "—"}</div>
+                      <div className="text-[11px] text-muted-foreground" dir="ltr">{c?.phone ?? ""}</div>
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {b.serviceIds.map((sid) => {
+                      const svc = services.find((s) => s.id === sid);
+                      const q = b.serviceQueue?.[sid];
+                      return (
+                        <span key={sid} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px]">
+                          <span className="font-bold text-primary">#{String(q ?? 0).padStart(3, "0")}</span>
+                          <span>{svc?.name}</span>
                         </span>
-                        {needsApproval && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-warning/40 bg-warning/10 text-warning w-max">
-                            بانتظار موافقة العميل
-                          </span>
-                        )}
-                        {isHold && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-accent/40 bg-accent/10 text-accent w-max inline-flex items-center gap-1">
-                            <Hourglass className="size-3" /> حجز مؤقت
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-3 text-xs">{PAY_LABEL[b.payStatus]}</td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-1 justify-end">
-                        {b.status !== "completed" && b.status !== "cancelled" && (
-                          <button
-                            title="إتمام وإصدار فاتورة"
-                            onClick={() => {
-                              // Choose invoice method
-                              const method = (b.paymentMethod === "wallet" && b.walletApproved)
-                                ? "cash"
-                                : (b.paymentMethod && b.paymentMethod !== "hold" && b.paymentMethod !== "wallet")
-                                  ? b.paymentMethod as any
-                                  : "cash";
-                              if (b.paymentMethod === "wallet" && !b.walletApproved) {
-                                toast.error("لم يوافق العميل على الخصم من المحفظة بعد");
-                                return;
-                              }
-                              const inv = actions.createInvoice(b.id, method);
-                              if (inv && b.couponCode) couponActions.markUsed(b.couponCode);
-                              toast.success("تم إصدار الفاتورة");
-                            }}
-                            className="size-8 rounded-lg border border-border hover:border-success/50 hover:text-success grid place-items-center"
-                          >
-                            <CheckCircle2 className="size-4" />
-                          </button>
-                        )}
-                        {b.status !== "cancelled" && b.status !== "completed" && (
-                          <button
-                            title="إلغاء"
-                            onClick={() => { actions.updateBooking(b.id, { status: "cancelled" }); toast.info("تم إلغاء الحجز"); }}
-                            className="size-8 rounded-lg border border-border hover:border-destructive/50 hover:text-destructive grid place-items-center"
-                          >
-                            <X className="size-4" />
-                          </button>
-                        )}
+                      );
+                    })}
+                  </div>
+
+                  {/* Details */}
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="rounded-lg bg-muted/40 border border-border px-2.5 py-1.5">
+                      <div className="text-muted-foreground text-[10px]">الموظف</div>
+                      <div className="font-semibold truncate">{st?.name ?? "—"}</div>
+                    </div>
+                    <div className="rounded-lg bg-muted/40 border border-border px-2.5 py-1.5">
+                      <div className="text-muted-foreground text-[10px] flex items-center gap-1"><Clock className="size-3" /> الوقت</div>
+                      <div className="font-semibold whitespace-nowrap">{formatDateShort(b.startsAt)} · {formatTime(b.startsAt)}</div>
+                    </div>
+                  </div>
+
+                  {/* Flags */}
+                  {(needsApproval || isHold) && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {needsApproval && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-warning/40 bg-warning/10 text-warning inline-flex items-center gap-1">
+                          <Wallet className="size-3" /> بانتظار موافقة العميل
+                        </span>
+                      )}
+                      {isHold && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-accent/40 bg-accent/10 text-accent inline-flex items-center gap-1">
+                          <Hourglass className="size-3" /> حجز مؤقت
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Footer: total + actions */}
+                  <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-2">
+                    <div>
+                      <div className="text-[10px] text-muted-foreground">{PAY_LABEL[b.payStatus]}</div>
+                      <div className="text-lg font-bold gradient-text leading-tight">{formatSAR(total)}</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {canComplete && (
                         <button
-                          title="حذف"
-                          onClick={() => { if (confirm("حذف الحجز؟")) { actions.removeBooking(b.id); toast.success("تم الحذف"); } }}
-                          className="size-8 rounded-lg border border-border hover:border-destructive/50 hover:text-destructive grid place-items-center"
+                          title="إتمام وإصدار فاتورة"
+                          onClick={() => {
+                            const method = (b.paymentMethod === "wallet" && b.walletApproved)
+                              ? "cash"
+                              : (b.paymentMethod && b.paymentMethod !== "hold" && b.paymentMethod !== "wallet")
+                                ? b.paymentMethod as any
+                                : "cash";
+                            if (b.paymentMethod === "wallet" && !b.walletApproved) {
+                              toast.error("لم يوافق العميل على الخصم من المحفظة بعد");
+                              return;
+                            }
+                            const inv = actions.createInvoice(b.id, method);
+                            if (inv && b.couponCode) couponActions.markUsed(b.couponCode);
+                            toast.success("تم إصدار الفاتورة");
+                          }}
+                          className="size-9 rounded-lg border border-border hover:border-success/50 hover:text-success grid place-items-center transition"
                         >
-                          <Trash2 className="size-4" />
+                          <CheckCircle2 className="size-4" />
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      )}
+                      {canComplete && (
+                        <button
+                          title="إلغاء"
+                          onClick={() => { actions.updateBooking(b.id, { status: "cancelled" }); toast.info("تم إلغاء الحجز"); }}
+                          className="size-9 rounded-lg border border-border hover:border-destructive/50 hover:text-destructive grid place-items-center transition"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      )}
+                      <button
+                        title="حذف"
+                        onClick={() => { if (confirm("حذف الحجز؟")) { actions.removeBooking(b.id); toast.success("تم الحذف"); } }}
+                        className="size-9 rounded-lg border border-border hover:border-destructive/50 hover:text-destructive grid place-items-center transition"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
+
 
       {openNew && <NewBookingDialog onClose={() => setOpenNew(false)} />}
     </AppShell>

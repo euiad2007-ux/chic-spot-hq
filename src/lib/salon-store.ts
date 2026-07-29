@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { getRewardsSettings } from "@/lib/rewards-settings";
 
 export type BookingStatus =
   | "new"
@@ -740,7 +741,7 @@ export const actions = {
     if (!c) return 0;
     const p = Math.min(points, c.loyaltyPoints ?? 0);
     if (p <= 0) return 0;
-    const value = p * LOYALTY_REDEEM_RATE;
+    const value = p * getRewardsSettings().loyaltyRedeemRate;
     const lLog: LoyaltyLog = { id: uid(), delta: -p, reason: `استبدال ${p} نقطة`, at: new Date().toISOString() };
     const wLog: WalletLog = { id: uid(), delta: value, reason: `استبدال ${p} نقطة ولاء`, at: new Date().toISOString() };
     state = {
@@ -863,14 +864,19 @@ export const actions = {
       const used = consumed.find((c) => c.itemId === it.id);
       return used ? { ...it, stock: Math.max(0, it.stock - used.qty) } : it;
     });
-    // Loyalty points earned by the paying customer
-    const earnedPoints = Math.round(total * LOYALTY_RATE * 100) / 100;
+    // Loyalty points earned by the paying customer (uses configurable rate)
+    const rewards = getRewardsSettings();
+    const earnedPoints = rewards.loyaltyEnabled
+      ? Math.round(total * rewards.loyaltyRate * 100) / 100
+      : 0;
     const lLog: LoyaltyLog = { id: uid(), delta: earnedPoints, reason: `فاتورة ${num}`, at: new Date().toISOString() };
 
-    // Referral commission → paid into the referrer's wallet
+    // Referral commission → paid into the referrer's wallet (uses configurable %)
     const buyer = state.customers.find((c) => c.id === b.customerId);
-    const referrer = buyer?.referredBy ? state.customers.find((c) => c.referralCode === buyer.referredBy) : undefined;
-    const refAmount = referrer ? Math.round(total * (REFERRAL_COMMISSION_PCT / 100) * 100) / 100 : 0;
+    const referrer = (rewards.referralEnabled && buyer?.referredBy)
+      ? state.customers.find((c) => c.referralCode === buyer.referredBy)
+      : undefined;
+    const refAmount = referrer ? Math.round(total * (rewards.referralCommissionPct / 100) * 100) / 100 : 0;
 
     state = {
       ...state,
