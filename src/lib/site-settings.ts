@@ -8,6 +8,15 @@ import nails1 from "@/assets/showcase/nails-1.jpg";
 import spa1 from "@/assets/showcase/spa-1.jpg";
 
 export type LayoutStyle = "elegant" | "minimal" | "bold";
+export type PaymentMethodId =
+  | "visa"
+  | "mastercard"
+  | "mada"
+  | "applepay"
+  | "googlepay"
+  | "amex"
+  | "stcpay"
+  | "cash";
 
 export interface ShowcaseItem {
   label: string;
@@ -46,6 +55,8 @@ export interface SiteSettings {
   waTemplateBooking: string;
   waTemplateReminder: string;
   waTemplatePromo: string;
+  // Payment methods shown on the public site
+  paymentMethods: PaymentMethodId[];
 }
 
 /* ---------------- Fonts ---------------- */
