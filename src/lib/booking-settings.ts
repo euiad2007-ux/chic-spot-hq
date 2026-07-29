@@ -60,6 +60,7 @@ function defaults(): BookingSettings {
     minLeadMin: 0,
     maxDailyBookings: 0,
     foundingDate: new Date().toISOString().slice(0, 10),
+    holdGraceMin: 5,
   };
 }
 
@@ -113,6 +114,7 @@ export const bookingSettingsActions = {
   setSlotStep(min: number) { state = { ...state, slotStepMin: Math.max(5, min) }; persist(); },
   setMinLead(min: number) { state = { ...state, minLeadMin: Math.max(0, min) }; persist(); },
   setMaxDaily(n: number) { state = { ...state, maxDailyBookings: Math.max(0, Math.floor(n)) }; persist(); },
+  setHoldGrace(min: number) { state = { ...state, holdGraceMin: Math.max(0, Math.floor(min)) }; persist(); },
   setFoundingDate(d: string) { state = { ...state, foundingDate: d }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
     const id = "brk-" + Math.random().toString(36).slice(2, 8);
@@ -137,6 +139,7 @@ export interface ConflictCheckInput {
   startsAt: string; // ISO
   durationMin: number;
   ignoreBookingId?: string;
+  customerId?: string;
 }
 
 export type ConflictReason =
@@ -145,7 +148,8 @@ export type ConflictReason =
   | { type: "lead"; message: string }
   | { type: "outside_hours"; message: string }
   | { type: "break"; message: string; label: string }
-  | { type: "overlap"; message: string; bookingId: string };
+  | { type: "overlap"; message: string; bookingId: string }
+  | { type: "customer_busy"; message: string; bookingId: string };
 
 function toMin(hhmm: string) {
   const [h, m] = hhmm.split(":").map(Number);
