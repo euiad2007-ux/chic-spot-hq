@@ -512,9 +512,35 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input value={newCust.name} onChange={(e) => setNewCust({ ...newCust, name: e.target.value })} placeholder="اسم العميل" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-                  <input value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} placeholder="رقم الجوال" dir="ltr" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-                  <p className="sm:col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء.</p>
+                  <input
+                    value={newCust.phone}
+                    onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })}
+                    placeholder="رقم الجوال"
+                    dir="ltr"
+                    className={cn(
+                      "h-11 rounded-lg bg-muted/40 border px-3 text-sm",
+                      duplicateCustomer ? "border-destructive" : "border-border",
+                    )}
+                  />
+                  {duplicateCustomer ? (
+                    <div className="sm:col-span-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs space-y-2">
+                      <div className="flex items-start gap-2 text-destructive font-semibold">
+                        <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                        <span>بيانات العميل موجودة مسبقاً برقم الجوال هذا: {duplicateCustomer.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => goToExisting(duplicateCustomer)}
+                        className="w-full h-9 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold"
+                      >
+                        الذهاب إلى بيانات العميل
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="sm:col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء. رقم الجوال قيمة فريدة لا تتكرر.</p>
+                  )}
                 </div>
+
               )}
             </section>
 
