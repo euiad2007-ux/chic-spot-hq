@@ -276,6 +276,23 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   const [customerId, setCustomerId] = useState<string>("");
   const [newCust, setNewCust] = useState({ name: "", phone: "" });
   const [showNew, setShowNew] = useState(false);
+  const [preferredStaffId, setPreferredStaffId] = useState<string>("");
+
+  const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
+  const duplicateCustomer = useMemo(() => {
+    const key = normPhone(newCust.phone);
+    if (!showNew || key.length < 6) return null;
+    return customers.find((c) => normPhone(c.phone) === key) ?? null;
+  }, [newCust.phone, showNew, customers]);
+
+  const goToExisting = (c: Customer) => {
+    setShowNew(false);
+    setCustomerId(c.id);
+    setCustQuery("");
+    setNewCust({ name: "", phone: "" });
+    toast.info(`تم اختيار العميل المسجل: ${c.name}`);
+  };
+
 
   const custMatches = useMemo(() => {
     const q = custQuery.trim().toLowerCase();
@@ -317,6 +334,11 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   }, [services, staff, customerId]);
 
   // ==== Compute a single combined staff + startsAt (all selected must share one staff — earliest common) ====
+  const staffPool = useMemo(
+    () => (preferredStaffId ? staff.filter((s) => s.id === preferredStaffId) : staff),
+    [staff, preferredStaffId],
+  );
+
   const combined = useMemo(() => {
     if (selectedServices.length === 0) return null;
     const chosen = services.filter((s) => selectedServices.includes(s.id));
@@ -324,12 +346,13 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     const price = chosen.reduce((a, s) => a + s.price, 0);
     const earliest = findEarliestSlot({
       serviceIds: selectedServices,
-      staffPool: staff,
+      staffPool,
       durationMin,
       customerId: customerId || undefined,
     });
     return { durationMin, price, earliest, chosen };
-  }, [selectedServices, services, staff, customerId]);
+  }, [selectedServices, services, staffPool, customerId]);
+
 
   const toggleService = (id: string) => {
     setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
@@ -353,12 +376,24 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
   const eligibleStaffNames = (svc: Service) => staff.filter((st) => st.active && st.services.includes(svc.id)).map((s) => s.name);
 
+  // Qualification of every staff member for the currently selected services
+  const staffQualification = useMemo(() => staff.map((st) => ({
+    st,
+    qualified: st.active && selectedServices.length > 0 && selectedServices.every((sid) => st.services.includes(sid)),
+    missing: selectedServices.filter((sid) => !st.services.includes(sid)).length,
+  })), [staff, selectedServices]);
+
   const submit = () => {
     let cid = customerId;
     if (showNew && newCust.name && newCust.phone) {
+      if (duplicateCustomer) {
+        toast.error("رقم الجوال مسجل مسبقاً لعميل آخر");
+        return;
+      }
       const c = actions.addCustomer({ name: newCust.name.trim(), phone: newCust.phone.trim(), gender: "female" });
       cid = c.id;
     }
+
     if (!cid) return toast.error("اختر عميلاً أو أضف جديداً");
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     if (!combined?.earliest) return toast.error("لا يوجد موظف/وقت متاح لهذه الخدمات");
@@ -477,9 +512,35 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input value={newCust.name} onChange={(e) => setNewCust({ ...newCust, name: e.target.value })} placeholder="اسم العميل" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-                  <input value={newCust.phone} onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })} placeholder="رقم الجوال" dir="ltr" className="h-11 rounded-lg bg-muted/40 border border-border px-3 text-sm" />
-                  <p className="sm:col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء.</p>
+                  <input
+                    value={newCust.phone}
+                    onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })}
+                    placeholder="رقم الجوال"
+                    dir="ltr"
+                    className={cn(
+                      "h-11 rounded-lg bg-muted/40 border px-3 text-sm",
+                      duplicateCustomer ? "border-destructive" : "border-border",
+                    )}
+                  />
+                  {duplicateCustomer ? (
+                    <div className="sm:col-span-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs space-y-2">
+                      <div className="flex items-start gap-2 text-destructive font-semibold">
+                        <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                        <span>بيانات العميل موجودة مسبقاً برقم الجوال هذا: {duplicateCustomer.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => goToExisting(duplicateCustomer)}
+                        className="w-full h-9 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold"
+                      >
+                        الذهاب إلى بيانات العميل
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="sm:col-span-2 text-[11px] text-muted-foreground">سيتم حفظ العميل تلقائياً في قائمة العملاء. رقم الجوال قيمة فريدة لا تتكرر.</p>
+                  )}
                 </div>
+
               )}
             </section>
 
@@ -531,6 +592,58 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                   );
                 })}
               </div>
+            </section>
+
+            {/* STAFF PICKER */}
+            <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-bold flex items-center gap-2"><UserPlus className="size-4 text-primary" /> اختيار الموظفة</div>
+                <button
+                  type="button"
+                  onClick={() => setPreferredStaffId("")}
+                  className={cn("text-xs font-semibold", preferredStaffId ? "text-primary hover:underline" : "text-muted-foreground")}
+                >
+                  أي موظفة متاحة (تلقائي)
+                </button>
+              </div>
+              {selectedServices.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">اختر الخدمات أولاً لعرض المؤهلين.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {staffQualification.map(({ st, qualified, missing }) => {
+                    const active = preferredStaffId === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        disabled={!qualified}
+                        onClick={() => setPreferredStaffId(active ? "" : st.id)}
+                        className={cn(
+                          "text-right p-3 rounded-xl border transition text-sm",
+                          active ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
+                          !qualified && "opacity-60 cursor-not-allowed",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold truncate">{st.name}</span>
+                          {qualified ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-success/15 text-success border border-success/30">
+                              <CheckCircle2 className="size-3" /> مؤهلة
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/30">
+                              <AlertTriangle className="size-3" /> غير مؤهلة
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          {!st.active ? "غير نشطة" : qualified ? st.role ?? "أخصائية" : `ينقصها ${missing} خدمة من المختارة`}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </section>
 
             {/* NOTES */}
