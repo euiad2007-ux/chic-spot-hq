@@ -334,6 +334,11 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   }, [services, staff, customerId]);
 
   // ==== Compute a single combined staff + startsAt (all selected must share one staff — earliest common) ====
+  const staffPool = useMemo(
+    () => (preferredStaffId ? staff.filter((s) => s.id === preferredStaffId) : staff),
+    [staff, preferredStaffId],
+  );
+
   const combined = useMemo(() => {
     if (selectedServices.length === 0) return null;
     const chosen = services.filter((s) => selectedServices.includes(s.id));
@@ -341,12 +346,13 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     const price = chosen.reduce((a, s) => a + s.price, 0);
     const earliest = findEarliestSlot({
       serviceIds: selectedServices,
-      staffPool: staff,
+      staffPool,
       durationMin,
       customerId: customerId || undefined,
     });
     return { durationMin, price, earliest, chosen };
-  }, [selectedServices, services, staff, customerId]);
+  }, [selectedServices, services, staffPool, customerId]);
+
 
   const toggleService = (id: string) => {
     setSelectedServices((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
