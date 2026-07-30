@@ -594,6 +594,58 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
               </div>
             </section>
 
+            {/* STAFF PICKER */}
+            <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-bold flex items-center gap-2"><UserPlus className="size-4 text-primary" /> اختيار الموظفة</div>
+                <button
+                  type="button"
+                  onClick={() => setPreferredStaffId("")}
+                  className={cn("text-xs font-semibold", preferredStaffId ? "text-primary hover:underline" : "text-muted-foreground")}
+                >
+                  أي موظفة متاحة (تلقائي)
+                </button>
+              </div>
+              {selectedServices.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">اختر الخدمات أولاً لعرض المؤهلين.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {staffQualification.map(({ st, qualified, missing }) => {
+                    const active = preferredStaffId === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        disabled={!qualified}
+                        onClick={() => setPreferredStaffId(active ? "" : st.id)}
+                        className={cn(
+                          "text-right p-3 rounded-xl border transition text-sm",
+                          active ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
+                          !qualified && "opacity-60 cursor-not-allowed",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold truncate">{st.name}</span>
+                          {qualified ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-success/15 text-success border border-success/30">
+                              <CheckCircle2 className="size-3" /> مؤهلة
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/30">
+                              <AlertTriangle className="size-3" /> غير مؤهلة
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          {!st.active ? "غير نشطة" : qualified ? st.role ?? "أخصائية" : `ينقصها ${missing} خدمة من المختارة`}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
             {/* NOTES */}
             <section className="rounded-xl border border-border bg-card/40 p-4 space-y-2">
               <label className="text-sm font-bold block">ملاحظات</label>
