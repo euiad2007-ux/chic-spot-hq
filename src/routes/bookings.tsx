@@ -276,6 +276,23 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
   const [customerId, setCustomerId] = useState<string>("");
   const [newCust, setNewCust] = useState({ name: "", phone: "" });
   const [showNew, setShowNew] = useState(false);
+  const [preferredStaffId, setPreferredStaffId] = useState<string>("");
+
+  const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
+  const duplicateCustomer = useMemo(() => {
+    const key = normPhone(newCust.phone);
+    if (!showNew || key.length < 6) return null;
+    return customers.find((c) => normPhone(c.phone) === key) ?? null;
+  }, [newCust.phone, showNew, customers]);
+
+  const goToExisting = (c: Customer) => {
+    setShowNew(false);
+    setCustomerId(c.id);
+    setCustQuery("");
+    setNewCust({ name: "", phone: "" });
+    toast.info(`تم اختيار العميل المسجل: ${c.name}`);
+  };
+
 
   const custMatches = useMemo(() => {
     const q = custQuery.trim().toLowerCase();
