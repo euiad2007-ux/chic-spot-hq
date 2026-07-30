@@ -376,12 +376,24 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
   const eligibleStaffNames = (svc: Service) => staff.filter((st) => st.active && st.services.includes(svc.id)).map((s) => s.name);
 
+  // Qualification of every staff member for the currently selected services
+  const staffQualification = useMemo(() => staff.map((st) => ({
+    st,
+    qualified: st.active && selectedServices.length > 0 && selectedServices.every((sid) => st.services.includes(sid)),
+    missing: selectedServices.filter((sid) => !st.services.includes(sid)).length,
+  })), [staff, selectedServices]);
+
   const submit = () => {
     let cid = customerId;
     if (showNew && newCust.name && newCust.phone) {
+      if (duplicateCustomer) {
+        toast.error("رقم الجوال مسجل مسبقاً لعميل آخر");
+        return;
+      }
       const c = actions.addCustomer({ name: newCust.name.trim(), phone: newCust.phone.trim(), gender: "female" });
       cid = c.id;
     }
+
     if (!cid) return toast.error("اختر عميلاً أو أضف جديداً");
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     if (!combined?.earliest) return toast.error("لا يوجد موظف/وقت متاح لهذه الخدمات");
