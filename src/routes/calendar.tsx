@@ -3,7 +3,7 @@ import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, formatTime, STATUS_LABEL, STATUS_TONE } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, fmtLongDay } from "@/lib/utils";
 
 export const Route = createFileRoute("/calendar")({
   head: () => ({
@@ -35,7 +35,7 @@ function CalendarPage() {
   return (
     <AppShell
       title="التقويم"
-      subtitle={new Intl.DateTimeFormat("ar-SA", { weekday: "long", year: "numeric", month: "long", day: "numeric" }).format(date)}
+      subtitle={fmtLongDay(date)}
       action={
         <div className="flex items-center gap-1 glass-card rounded-lg p-1">
           <button onClick={() => shift(-1)} className="size-9 rounded-md hover:bg-muted grid place-items-center"><ChevronRight className="size-4" /></button>
