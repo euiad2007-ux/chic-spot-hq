@@ -169,7 +169,7 @@ function CouponsPage() {
               ) : null}
 
               <div className="relative mt-3 text-[10px] text-muted-foreground">
-                من {new Date(c.activeFrom).toLocaleDateString("ar-SA")} إلى {fmtDay(c.expiresAt)}
+                من {fmtDay(c.activeFrom)} إلى {fmtDay(c.expiresAt)}
               </div>
 
               <div className="relative mt-3 flex gap-1.5">
