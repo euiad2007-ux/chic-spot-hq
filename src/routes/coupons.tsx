@@ -5,7 +5,7 @@ import { useRewardsSettings, rewardsActions } from "@/lib/rewards-settings";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, X, Pencil, Copy, Ticket, Percent, Tag, Gift, Users, Settings2 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, fmtDay } from "@/lib/utils";
 import { formatSAR } from "@/lib/salon-store";
 
 export const Route = createFileRoute("/coupons")({
@@ -158,7 +158,7 @@ function CouponsPage() {
                 </div>
                 <div className="rounded-lg bg-muted/30 border border-border px-2 py-2">
                   <div className="text-[9px] text-muted-foreground">ينتهي</div>
-                  <div className="font-bold text-[11px]">{new Date(c.expiresAt).toLocaleDateString("ar-SA")}</div>
+                  <div className="font-bold text-[11px]">{fmtDay(c.expiresAt)}</div>
                 </div>
               </div>
 
@@ -169,7 +169,7 @@ function CouponsPage() {
               ) : null}
 
               <div className="relative mt-3 text-[10px] text-muted-foreground">
-                من {new Date(c.activeFrom).toLocaleDateString("ar-SA")} إلى {new Date(c.expiresAt).toLocaleDateString("ar-SA")}
+                من {fmtDay(c.activeFrom)} إلى {fmtDay(c.expiresAt)}
               </div>
 
               <div className="relative mt-3 flex gap-1.5">

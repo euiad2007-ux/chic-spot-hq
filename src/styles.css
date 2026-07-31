@@ -152,7 +152,6 @@
     background: white !important; color: #111 !important; box-shadow: none !important;
   }
   body.printing-payslip { background: white !important; }
-  body.printing-payslip @page { margin: 12mm; size: A4; }
 }
 
 
