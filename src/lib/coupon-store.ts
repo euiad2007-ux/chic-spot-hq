@@ -54,14 +54,23 @@ function seed(): Coupon[] {
 }
 
 let state: Coupon[] = load();
+const EMPTY: Coupon[] = [];
+let hydrated = false;
 const listeners = new Set<() => void>();
 function emit() { for (const l of listeners) l(); }
 
 export function useCoupons(): Coupon[] {
   return useSyncExternalStore(
-    (cb) => { listeners.add(cb); return () => listeners.delete(cb); },
-    () => state,
-    () => state,
+    (cb) => {
+      listeners.add(cb);
+      if (!hydrated) {
+        hydrated = true;
+        queueMicrotask(() => emit());
+      }
+      return () => listeners.delete(cb);
+    },
+    () => (hydrated ? state : EMPTY),
+    () => EMPTY,
   );
 }
 
