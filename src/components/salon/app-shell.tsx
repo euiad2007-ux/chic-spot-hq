@@ -26,7 +26,14 @@ import { cn } from "@/lib/utils";
 import { useAccount } from "@/hooks/use-account";
 import { canManage, signOutAccount, ROLE_LABEL } from "@/lib/account";
 
-const nav = [
+const nav: {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  manager: boolean;
+  platform?: boolean;
+}[] = [
+  { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true },
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true },
   { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false },
   { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false },
