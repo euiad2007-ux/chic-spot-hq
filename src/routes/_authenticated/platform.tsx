@@ -444,10 +444,34 @@ function SalonsTab() {
                     />
                   </div>
                 </label>
-                <span className="h-10 inline-flex items-center px-3 rounded-xl bg-muted text-xs font-semibold text-muted-foreground">
-                  {s.domain_status === "verified" ? "مربوط" : s.domain_status === "pending" ? "بانتظار التحقق" : s.domain_status === "failed" ? "فشل الربط" : "غير مربوط"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={s.domain_status ?? "not_configured"}
+                    onChange={(e) => update.mutate({ id: s.id, patch: { domain_status: e.target.value } })}
+                    disabled={!s.custom_domain}
+                    className="h-10 rounded-xl border border-input bg-background px-2 text-xs font-semibold disabled:opacity-60"
+                  >
+                    <option value="not_configured">غير مربوط</option>
+                    <option value="pending">بانتظار التحقق</option>
+                    <option value="verified">مربوط ومفعّل</option>
+                    <option value="failed">فشل الربط</option>
+                  </select>
+                  <a
+                    href={`/site?tenant=${encodeURIComponent(s.slug)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="h-10 inline-flex items-center px-3 rounded-xl border border-border text-xs font-semibold hover:bg-muted"
+                  >
+                    معاينة
+                  </a>
+                </div>
               </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                وجّه سجل A للنطاق إلى <span dir="ltr" className="font-mono">185.158.133.1</span> ثم
+                اجعل الحالة «مربوط ومفعّل». الزيارة عبر النطاق تفتح موقع هذا المتجر فقط، وتسجيل
+                الدخول منه يفتح لوحة المتجر لأعضائه فقط.
+              </p>
+
 
               <label className="block">
                 <span className="text-xs font-semibold text-muted-foreground">ملاحظات إدارية</span>
