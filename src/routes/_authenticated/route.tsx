@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_authenticated")({
     const ctx = getDataContext();
     if (
       ctx &&
+      ctx.role !== "platform_owner" &&
       !ctx.salonId &&
       !ctx.customerId &&
       !location.pathname.startsWith("/onboarding")

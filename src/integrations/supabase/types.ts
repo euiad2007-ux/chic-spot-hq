@@ -973,10 +973,12 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          enabled_modules: string[]
           features: string[]
           id: string
           is_active: boolean
           max_branches: number
+          max_customers: number
           max_services: number
           max_staff: number
           name: string
@@ -987,10 +989,12 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          enabled_modules?: string[]
           features?: string[]
           id?: string
           is_active?: boolean
           max_branches?: number
+          max_customers?: number
           max_services?: number
           max_staff?: number
           name: string
@@ -1001,10 +1005,12 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          enabled_modules?: string[]
           features?: string[]
           id?: string
           is_active?: boolean
           max_branches?: number
+          max_customers?: number
           max_services?: number
           max_staff?: number
           name?: string
@@ -1123,6 +1129,8 @@ export type Database = {
           admin_notes: string | null
           created_at: string
           currency: string
+          custom_domain: string | null
+          domain_status: string
           id: string
           is_suspended: boolean
           name: string
@@ -1141,6 +1149,8 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           currency?: string
+          custom_domain?: string | null
+          domain_status?: string
           id?: string
           is_suspended?: boolean
           name: string
@@ -1159,6 +1169,8 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           currency?: string
+          custom_domain?: string | null
+          domain_status?: string
           id?: string
           is_suspended?: boolean
           name?: string

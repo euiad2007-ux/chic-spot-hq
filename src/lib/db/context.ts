@@ -27,11 +27,11 @@ export async function initDataContext(force = false): Promise<DataContext | null
     let salonId = account.salonId;
     // A brand-new signed-in person (e.g. first Google login) has no membership
     // and no customer row yet — provision one so their dashboard is not empty.
-    if (!salonId && !customerId) {
+    if (account.role === "client" && !salonId && !customerId) {
       const { data } = await supabase.rpc("ensure_client_profile");
       if (data) customerId = data as string;
     }
-    if (!salonId && customerId) {
+    if (account.role === "client" && !salonId && customerId) {
       const { data: row } = await supabase
         .from("customers")
         .select("salon_id")

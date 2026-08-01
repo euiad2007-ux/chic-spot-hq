@@ -14,6 +14,7 @@ import {
   Save,
   Trash2,
   Crown,
+  Globe2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -58,6 +59,8 @@ interface SalonRow {
   subscription_ends_at: string | null;
   is_suspended: boolean;
   admin_notes: string | null;
+  custom_domain: string | null;
+  domain_status: string;
   created_at: string;
 }
 
@@ -69,12 +72,21 @@ interface PlanRow {
   max_branches: number;
   max_staff: number;
   max_services: number;
+  max_customers: number;
   features: string[];
+  enabled_modules: string[];
   is_active: boolean;
   sort_order: number;
 }
 
 type Tab = "overview" | "salons" | "plans" | "admins";
+
+const MODULE_OPTIONS = [
+  ["bookings", "الحجوزات"], ["calendar", "التقويم"], ["services", "الخدمات"],
+  ["inventory", "المخزون"], ["staff", "الموظفون"], ["payroll", "الرواتب"],
+  ["attendance", "الحضور"], ["customers", "العملاء"], ["coupons", "الكوبونات"],
+  ["invoices", "الفواتير"], ["booking_settings", "ضبط الحجز"], ["site_settings", "إعدادات الموقع"],
+] as const;
 
 function PlatformPage() {
   const { data: account, isLoading } = useAccount();
@@ -261,7 +273,7 @@ function SalonsTab() {
       const { data, error } = await supabase
         .from("salons")
         .select(
-          "id, name, slug, phone, plan, subscription_status, trial_ends_at, subscription_ends_at, is_suspended, admin_notes, created_at",
+          "id, name, slug, phone, plan, subscription_status, trial_ends_at, subscription_ends_at, is_suspended, admin_notes, custom_domain, domain_status, created_at",
         )
         .order("created_at", { ascending: false })
         .limit(200);
@@ -414,6 +426,29 @@ function SalonsTab() {
                 </label>
               </div>
 
+              <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+                <label className="block">
+                  <span className="text-xs font-semibold text-muted-foreground">النطاق المخصص</span>
+                  <div className="relative mt-1">
+                    <Globe2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      dir="ltr"
+                      defaultValue={s.custom_domain ?? ""}
+                      placeholder="salon.example.com"
+                      onBlur={(e) => {
+                        const domain = e.target.value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+                        if ((s.custom_domain ?? "") !== domain) update.mutate({ id: s.id, patch: { custom_domain: domain || null, domain_status: domain ? "pending" : "not_configured" } });
+                      }}
+                      className="w-full h-10 rounded-xl border border-input bg-background pr-10 pl-3 text-sm"
+                    />
+                  </div>
+                </label>
+                <span className="h-10 inline-flex items-center px-3 rounded-xl bg-muted text-xs font-semibold text-muted-foreground">
+                  {s.domain_status === "verified" ? "مربوط" : s.domain_status === "pending" ? "بانتظار التحقق" : s.domain_status === "failed" ? "فشل الربط" : "غير مربوط"}
+                </span>
+              </div>
+
               <label className="block">
                 <span className="text-xs font-semibold text-muted-foreground">ملاحظات إدارية</span>
                 <textarea
@@ -443,7 +478,9 @@ const EMPTY_PLAN: Omit<PlanRow, "id"> = {
   max_branches: 1,
   max_staff: 5,
   max_services: 30,
+  max_customers: 100,
   features: [],
+  enabled_modules: MODULE_OPTIONS.map(([key]) => key),
   is_active: true,
   sort_order: 10,
 };
@@ -590,6 +627,7 @@ function PlanCard({
         <li>الفروع: {plan.max_branches}</li>
         <li>الموظفون: {plan.max_staff}</li>
         <li>الخدمات: {plan.max_services}</li>
+        <li>العملاء: {plan.max_customers}</li>
         {(plan.features ?? []).map((f) => (
           <li key={f}>• {f}</li>
         ))}
@@ -671,6 +709,11 @@ function PlanForm({
           value={String(value.max_services)}
           onText={(v) => set("max_services", Number(v) || 0)}
         />
+        <Num
+          label="أقصى عدد عملاء"
+          value={String(value.max_customers)}
+          onText={(v) => set("max_customers", Number(v) || 0)}
+        />
         <label className="flex items-end gap-2 pb-2">
           <input
             type="checkbox"
@@ -681,6 +724,22 @@ function PlanForm({
           <span className="text-xs font-semibold">مفعّلة</span>
         </label>
       </div>
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold text-muted-foreground">الأقسام المتاحة في الباقة</legend>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          {MODULE_OPTIONS.map(([key, label]) => (
+            <label key={key} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold">
+              <input
+                type="checkbox"
+                checked={value.enabled_modules.includes(key)}
+                onChange={(e) => set("enabled_modules", e.target.checked ? [...value.enabled_modules, key] : value.enabled_modules.filter((item) => item !== key))}
+                className="size-4 accent-[hsl(var(--primary))]"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <label className="block">
         <span className="text-xs font-semibold text-muted-foreground">
           المزايا (سطر لكل ميزة)
