@@ -9,102 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StaffRouteImport } from './routes/staff'
-import { Route as SpecialistRouteImport } from './routes/specialist'
 import { Route as SiteRouteImport } from './routes/site'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ServicesRouteImport } from './routes/services'
-import { Route as PayrollRouteImport } from './routes/payroll'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as InvoicesRouteImport } from './routes/invoices'
-import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as CustomersRouteImport } from './routes/customers'
-import { Route as CouponsRouteImport } from './routes/coupons'
-import { Route as ClientRouteImport } from './routes/client'
-import { Route as CalendarRouteImport } from './routes/calendar'
-import { Route as BookingsRouteImport } from './routes/bookings'
-import { Route as BookingSettingsRouteImport } from './routes/booking-settings'
-import { Route as AttendanceRouteImport } from './routes/attendance'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
+import { Route as AuthenticatedSpecialistRouteImport } from './routes/_authenticated/specialist'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
+import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedCouponsRouteImport } from './routes/_authenticated/coupons'
+import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
+import { Route as AuthenticatedBookingSettingsRouteImport } from './routes/_authenticated/booking-settings'
+import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 
-const StaffRoute = StaffRouteImport.update({
-  id: '/staff',
-  path: '/staff',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SpecialistRoute = SpecialistRouteImport.update({
-  id: '/specialist',
-  path: '/specialist',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
   path: '/site',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PayrollRoute = PayrollRouteImport.update({
-  id: '/payroll',
-  path: '/payroll',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InvoicesRoute = InvoicesRouteImport.update({
-  id: '/invoices',
-  path: '/invoices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InventoryRoute = InventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CustomersRoute = CustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CouponsRoute = CouponsRouteImport.update({
-  id: '/coupons',
-  path: '/coupons',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientRoute = ClientRouteImport.update({
-  id: '/client',
-  path: '/client',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalendarRoute = CalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookingsRoute = BookingsRouteImport.update({
-  id: '/bookings',
-  path: '/bookings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookingSettingsRoute = BookingSettingsRouteImport.update({
-  id: '/booking-settings',
-  path: '/booking-settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AttendanceRoute = AttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -112,69 +37,146 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
+  id: '/_authenticated/staff',
+  path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSpecialistRoute = AuthenticatedSpecialistRouteImport.update({
+  id: '/_authenticated/specialist',
+  path: '/specialist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/_authenticated/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
+  id: '/_authenticated/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPayrollRoute = AuthenticatedPayrollRouteImport.update({
+  id: '/_authenticated/payroll',
+  path: '/payroll',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
+  id: '/_authenticated/invoices',
+  path: '/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
+  id: '/_authenticated/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/_authenticated/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
+  id: '/_authenticated/customers',
+  path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCouponsRoute = AuthenticatedCouponsRouteImport.update({
+  id: '/_authenticated/coupons',
+  path: '/coupons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
+  id: '/_authenticated/client',
+  path: '/client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/_authenticated/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
+  id: '/_authenticated/bookings',
+  path: '/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedBookingSettingsRoute =
+  AuthenticatedBookingSettingsRouteImport.update({
+    id: '/_authenticated/booking-settings',
+    path: '/booking-settings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
+  id: '/_authenticated/attendance',
+  path: '/attendance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/attendance': typeof AttendanceRoute
-  '/booking-settings': typeof BookingSettingsRoute
-  '/bookings': typeof BookingsRoute
-  '/calendar': typeof CalendarRoute
-  '/client': typeof ClientRoute
-  '/coupons': typeof CouponsRoute
-  '/customers': typeof CustomersRoute
-  '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRoute
-  '/login': typeof LoginRoute
-  '/payroll': typeof PayrollRoute
-  '/services': typeof ServicesRoute
-  '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
-  '/specialist': typeof SpecialistRoute
-  '/staff': typeof StaffRoute
+  '/attendance': typeof AuthenticatedAttendanceRoute
+  '/booking-settings': typeof AuthenticatedBookingSettingsRoute
+  '/bookings': typeof AuthenticatedBookingsRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
+  '/client': typeof AuthenticatedClientRoute
+  '/coupons': typeof AuthenticatedCouponsRoute
+  '/customers': typeof AuthenticatedCustomersRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/invoices': typeof AuthenticatedInvoicesRoute
+  '/payroll': typeof AuthenticatedPayrollRoute
+  '/services': typeof AuthenticatedServicesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/specialist': typeof AuthenticatedSpecialistRoute
+  '/staff': typeof AuthenticatedStaffRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/attendance': typeof AttendanceRoute
-  '/booking-settings': typeof BookingSettingsRoute
-  '/bookings': typeof BookingsRoute
-  '/calendar': typeof CalendarRoute
-  '/client': typeof ClientRoute
-  '/coupons': typeof CouponsRoute
-  '/customers': typeof CustomersRoute
-  '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRoute
-  '/login': typeof LoginRoute
-  '/payroll': typeof PayrollRoute
-  '/services': typeof ServicesRoute
-  '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
-  '/specialist': typeof SpecialistRoute
-  '/staff': typeof StaffRoute
+  '/attendance': typeof AuthenticatedAttendanceRoute
+  '/booking-settings': typeof AuthenticatedBookingSettingsRoute
+  '/bookings': typeof AuthenticatedBookingsRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
+  '/client': typeof AuthenticatedClientRoute
+  '/coupons': typeof AuthenticatedCouponsRoute
+  '/customers': typeof AuthenticatedCustomersRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/invoices': typeof AuthenticatedInvoicesRoute
+  '/payroll': typeof AuthenticatedPayrollRoute
+  '/services': typeof AuthenticatedServicesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/specialist': typeof AuthenticatedSpecialistRoute
+  '/staff': typeof AuthenticatedStaffRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/attendance': typeof AttendanceRoute
-  '/booking-settings': typeof BookingSettingsRoute
-  '/bookings': typeof BookingsRoute
-  '/calendar': typeof CalendarRoute
-  '/client': typeof ClientRoute
-  '/coupons': typeof CouponsRoute
-  '/customers': typeof CustomersRoute
-  '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRoute
-  '/login': typeof LoginRoute
-  '/payroll': typeof PayrollRoute
-  '/services': typeof ServicesRoute
-  '/settings': typeof SettingsRoute
   '/site': typeof SiteRoute
-  '/specialist': typeof SpecialistRoute
-  '/staff': typeof StaffRoute
+  '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
+  '/_authenticated/booking-settings': typeof AuthenticatedBookingSettingsRoute
+  '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
+  '/_authenticated/client': typeof AuthenticatedClientRoute
+  '/_authenticated/coupons': typeof AuthenticatedCouponsRoute
+  '/_authenticated/customers': typeof AuthenticatedCustomersRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
+  '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
+  '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
+  '/_authenticated/services': typeof AuthenticatedServicesRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/specialist': typeof AuthenticatedSpecialistRoute
+  '/_authenticated/staff': typeof AuthenticatedStaffRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/site'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
@@ -182,18 +184,18 @@ export interface FileRouteTypes {
     | '/client'
     | '/coupons'
     | '/customers'
+    | '/dashboard'
     | '/inventory'
     | '/invoices'
-    | '/login'
     | '/payroll'
     | '/services'
     | '/settings'
-    | '/site'
     | '/specialist'
     | '/staff'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/site'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
@@ -201,168 +203,62 @@ export interface FileRouteTypes {
     | '/client'
     | '/coupons'
     | '/customers'
+    | '/dashboard'
     | '/inventory'
     | '/invoices'
-    | '/login'
     | '/payroll'
     | '/services'
     | '/settings'
-    | '/site'
     | '/specialist'
     | '/staff'
   id:
     | '__root__'
     | '/'
-    | '/attendance'
-    | '/booking-settings'
-    | '/bookings'
-    | '/calendar'
-    | '/client'
-    | '/coupons'
-    | '/customers'
-    | '/inventory'
-    | '/invoices'
-    | '/login'
-    | '/payroll'
-    | '/services'
-    | '/settings'
     | '/site'
-    | '/specialist'
-    | '/staff'
+    | '/_authenticated/attendance'
+    | '/_authenticated/booking-settings'
+    | '/_authenticated/bookings'
+    | '/_authenticated/calendar'
+    | '/_authenticated/client'
+    | '/_authenticated/coupons'
+    | '/_authenticated/customers'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/inventory'
+    | '/_authenticated/invoices'
+    | '/_authenticated/payroll'
+    | '/_authenticated/services'
+    | '/_authenticated/settings'
+    | '/_authenticated/specialist'
+    | '/_authenticated/staff'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AttendanceRoute: typeof AttendanceRoute
-  BookingSettingsRoute: typeof BookingSettingsRoute
-  BookingsRoute: typeof BookingsRoute
-  CalendarRoute: typeof CalendarRoute
-  ClientRoute: typeof ClientRoute
-  CouponsRoute: typeof CouponsRoute
-  CustomersRoute: typeof CustomersRoute
-  InventoryRoute: typeof InventoryRoute
-  InvoicesRoute: typeof InvoicesRoute
-  LoginRoute: typeof LoginRoute
-  PayrollRoute: typeof PayrollRoute
-  ServicesRoute: typeof ServicesRoute
-  SettingsRoute: typeof SettingsRoute
   SiteRoute: typeof SiteRoute
-  SpecialistRoute: typeof SpecialistRoute
-  StaffRoute: typeof StaffRoute
+  AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
+  AuthenticatedBookingSettingsRoute: typeof AuthenticatedBookingSettingsRoute
+  AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
+  AuthenticatedClientRoute: typeof AuthenticatedClientRoute
+  AuthenticatedCouponsRoute: typeof AuthenticatedCouponsRoute
+  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
+  AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
+  AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
+  AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSpecialistRoute: typeof AuthenticatedSpecialistRoute
+  AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/staff': {
-      id: '/staff'
-      path: '/staff'
-      fullPath: '/staff'
-      preLoaderRoute: typeof StaffRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/specialist': {
-      id: '/specialist'
-      path: '/specialist'
-      fullPath: '/specialist'
-      preLoaderRoute: typeof SpecialistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/site': {
       id: '/site'
       path: '/site'
       fullPath: '/site'
       preLoaderRoute: typeof SiteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/payroll': {
-      id: '/payroll'
-      path: '/payroll'
-      fullPath: '/payroll'
-      preLoaderRoute: typeof PayrollRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/invoices': {
-      id: '/invoices'
-      path: '/invoices'
-      fullPath: '/invoices'
-      preLoaderRoute: typeof InvoicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inventory': {
-      id: '/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/customers': {
-      id: '/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof CustomersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/coupons': {
-      id: '/coupons'
-      path: '/coupons'
-      fullPath: '/coupons'
-      preLoaderRoute: typeof CouponsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/client': {
-      id: '/client'
-      path: '/client'
-      fullPath: '/client'
-      preLoaderRoute: typeof ClientRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calendar': {
-      id: '/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof CalendarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bookings': {
-      id: '/bookings'
-      path: '/bookings'
-      fullPath: '/bookings'
-      preLoaderRoute: typeof BookingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/booking-settings': {
-      id: '/booking-settings'
-      path: '/booking-settings'
-      fullPath: '/booking-settings'
-      preLoaderRoute: typeof BookingSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/attendance': {
-      id: '/attendance'
-      path: '/attendance'
-      fullPath: '/attendance'
-      preLoaderRoute: typeof AttendanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -372,27 +268,132 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/staff': {
+      id: '/_authenticated/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof AuthenticatedStaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/specialist': {
+      id: '/_authenticated/specialist'
+      path: '/specialist'
+      fullPath: '/specialist'
+      preLoaderRoute: typeof AuthenticatedSpecialistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/services': {
+      id: '/_authenticated/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof AuthenticatedServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/payroll': {
+      id: '/_authenticated/payroll'
+      path: '/payroll'
+      fullPath: '/payroll'
+      preLoaderRoute: typeof AuthenticatedPayrollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/invoices': {
+      id: '/_authenticated/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/customers': {
+      id: '/_authenticated/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/coupons': {
+      id: '/_authenticated/coupons'
+      path: '/coupons'
+      fullPath: '/coupons'
+      preLoaderRoute: typeof AuthenticatedCouponsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/client': {
+      id: '/_authenticated/client'
+      path: '/client'
+      fullPath: '/client'
+      preLoaderRoute: typeof AuthenticatedClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/bookings': {
+      id: '/_authenticated/bookings'
+      path: '/bookings'
+      fullPath: '/bookings'
+      preLoaderRoute: typeof AuthenticatedBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/booking-settings': {
+      id: '/_authenticated/booking-settings'
+      path: '/booking-settings'
+      fullPath: '/booking-settings'
+      preLoaderRoute: typeof AuthenticatedBookingSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/attendance': {
+      id: '/_authenticated/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AttendanceRoute: AttendanceRoute,
-  BookingSettingsRoute: BookingSettingsRoute,
-  BookingsRoute: BookingsRoute,
-  CalendarRoute: CalendarRoute,
-  ClientRoute: ClientRoute,
-  CouponsRoute: CouponsRoute,
-  CustomersRoute: CustomersRoute,
-  InventoryRoute: InventoryRoute,
-  InvoicesRoute: InvoicesRoute,
-  LoginRoute: LoginRoute,
-  PayrollRoute: PayrollRoute,
-  ServicesRoute: ServicesRoute,
-  SettingsRoute: SettingsRoute,
   SiteRoute: SiteRoute,
-  SpecialistRoute: SpecialistRoute,
-  StaffRoute: StaffRoute,
+  AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
+  AuthenticatedBookingSettingsRoute: AuthenticatedBookingSettingsRoute,
+  AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
+  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
+  AuthenticatedClientRoute: AuthenticatedClientRoute,
+  AuthenticatedCouponsRoute: AuthenticatedCouponsRoute,
+  AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
+  AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
+  AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
+  AuthenticatedServicesRoute: AuthenticatedServicesRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSpecialistRoute: AuthenticatedSpecialistRoute,
+  AuthenticatedStaffRoute: AuthenticatedStaffRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
