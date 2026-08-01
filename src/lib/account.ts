@@ -140,7 +140,7 @@ export async function loadAccount(): Promise<Account | null> {
 
   // No membership and no client profile yet (e.g. first Google sign-in):
   // provision the client profile so their dashboard has real data to show.
-  if (!salonId && !customerRow) {
+  if (role === "client" && !salonId && !customerRow) {
     const { data: newCustomerId } = await supabase.rpc("ensure_client_profile");
     if (newCustomerId) customerRow = { id: newCustomerId as string };
   }
