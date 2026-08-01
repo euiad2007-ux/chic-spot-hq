@@ -22,13 +22,21 @@ let done: Promise<void> | null = null;
 export function hydratePublicSite(): Promise<void> {
   if (done) return done;
   done = (async () => {
-    const { data: salon } = await supabase
-      .from("salons")
-      .select("id, name")
-      .eq("is_suspended", false)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    const tenant = await resolveTenant();
+    let salon: { id: string; name: string } | null = null;
+    if (tenant && !tenant.isSuspended) {
+      salon = { id: tenant.id, name: tenant.name };
+    } else if (!tenant) {
+      const { data } = await supabase
+        .from("salons")
+        .select("id, name")
+        .eq("is_suspended", false)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      salon = data ?? null;
+    }
+
     if (!salon) {
       hydrateSalonStore(emptyState([], []));
       hydrateSiteSettings(null);
