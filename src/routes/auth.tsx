@@ -4,7 +4,6 @@ import { Scissors, Loader2, Store, User } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { signIn, signUp, homeForRole, loadAccount } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 
@@ -94,16 +93,6 @@ function AuthPage() {
       toast.error(err instanceof Error ? err.message : "تعذّر إكمال العملية");
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function onGoogle() {
-    try {
-      await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/auth",
-      });
-    } catch {
-      toast.error("تعذّر الدخول بحساب جوجل");
     }
   }
 
@@ -244,20 +233,6 @@ function AuthPage() {
                 {mode === "signin" ? "دخول" : "إنشاء الحساب"}
               </button>
 
-              <div className="relative py-1 text-center">
-                <span className="relative z-10 bg-card px-3 text-[11px] text-muted-foreground">
-                  أو
-                </span>
-                <span className="absolute inset-x-0 top-1/2 h-px bg-border" />
-              </div>
-
-              <button
-                type="button"
-                onClick={onGoogle}
-                className="w-full h-11 rounded-xl border border-border bg-background text-sm font-semibold hover:bg-muted/60"
-              >
-                المتابعة بحساب Google
-              </button>
             </form>
           )}
         </div>
@@ -270,18 +245,13 @@ function AuthPage() {
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  ...rest
-}: {
+type FieldProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> & {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  type?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
+};
+
+function Field({ label, value, onChange, type = "text", ...rest }: FieldProps) {
   return (
     <label className="block">
       <span className="text-xs font-semibold text-muted-foreground">{label}</span>
