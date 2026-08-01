@@ -93,7 +93,9 @@ function AuthPage() {
       toast.error(err instanceof Error ? err.message : "تعذّر إكمال العملية");
     } finally {
       setBusy(false);
+    }
   }
+
 
   async function onGoogle() {
     if (busy) return;
