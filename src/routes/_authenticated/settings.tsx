@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PAYMENT_METHODS, PaymentIcon } from "@/components/salon/payment-icons";
 
-export const Route = createFileRoute("/settings")({
+export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
       { title: "إعدادات الموقع — لمسة" },

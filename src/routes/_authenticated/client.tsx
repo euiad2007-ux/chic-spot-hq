@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { BookingCalendar } from "@/components/salon/booking-calendar";
 
-export const Route = createFileRoute("/client")({
+export const Route = createFileRoute("/_authenticated/client")({
   head: () => ({
     meta: [
       { title: "حسابي — صالون لمسة" },

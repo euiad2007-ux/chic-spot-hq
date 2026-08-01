@@ -14,7 +14,7 @@ import {
   Download, Fingerprint, Navigation, MapPinned, Filter, Radius,
 } from "lucide-react";
 
-export const Route = createFileRoute("/attendance")({
+export const Route = createFileRoute("/_authenticated/attendance")({
   head: () => ({
     meta: [
       { title: "الحضور والانصراف — لمسة" },

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/bookings")({
+export const Route = createFileRoute("/_authenticated/bookings")({
   head: () => ({
     meta: [
       { title: "الحجوزات — لمسة" },

@@ -6,7 +6,7 @@ import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, A
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/staff")({
+export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({
     meta: [
       { title: "الموظفون — لمسة" },

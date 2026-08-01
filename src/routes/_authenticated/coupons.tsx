@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { cn, fmtDay } from "@/lib/utils";
 import { formatSAR } from "@/lib/salon-store";
 
-export const Route = createFileRoute("/coupons")({
+export const Route = createFileRoute("/_authenticated/coupons")({
   head: () => ({
     meta: [
       { title: "الكوبونات — لمسة" },

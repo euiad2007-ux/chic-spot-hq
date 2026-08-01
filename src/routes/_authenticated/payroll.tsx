@@ -17,7 +17,7 @@ import {
   Printer, FileDown, Search,
 } from "lucide-react";
 
-export const Route = createFileRoute("/payroll")({
+export const Route = createFileRoute("/_authenticated/payroll")({
   head: () => ({
     meta: [
       { title: "الرواتب — لمسة" },
