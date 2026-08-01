@@ -78,6 +78,9 @@ function ClientPage() {
             سجّلي الخروج ثم الدخول مرة أخرى.
           </p>
           <div className="flex items-center justify-center gap-2 pt-1">
+            <Link to="/onboarding" className="h-10 px-4 rounded-xl border border-input text-sm font-semibold inline-flex items-center">
+              تجهيز الحساب
+            </Link>
             <Link to="/site" className="h-10 px-4 rounded-xl border border-input text-sm font-semibold inline-flex items-center">
               الموقع
             </Link>

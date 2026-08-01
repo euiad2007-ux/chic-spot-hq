@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
-import { signIn, signUp, homeForRole, loadAccount } from "@/lib/account";
+import { signIn, signUp, homeForRole, loadAccount, resendConfirmation } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 
 export const Route = createFileRoute("/auth")({
@@ -162,6 +162,25 @@ function AuthPage() {
               </p>
               <button
                 type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await resendConfirmation(email);
+                    toast.success("أعدنا إرسال رابط التأكيد");
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "تعذّر إرسال الرابط");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                className="w-full h-11 rounded-xl border border-input text-sm font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {busy && <Loader2 className="size-4 animate-spin" />}
+                إعادة إرسال رابط التأكيد
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setSent(false);
                   setMode("signin");
@@ -169,6 +188,7 @@ function AuthPage() {
                 className="text-sm font-semibold text-primary hover:underline"
               >
                 الانتقال لتسجيل الدخول
+
               </button>
             </div>
           ) : (

@@ -171,6 +171,35 @@ export async function signOutAccount() {
   await supabase.auth.signOut();
 }
 
+/** Resends the sign-up confirmation email. */
+export async function resendConfirmation(email: string) {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.trim(),
+    options: { emailRedirectTo: window.location.origin + "/auth" },
+  });
+  if (error) throw new Error(translateAuthError(error.message));
+}
+
+/** Creates a salon for the signed-in user and makes them its owner. */
+export async function createSalonForCurrentUser(name: string, phone?: string): Promise<string> {
+  const { data, error } = await supabase.rpc("create_salon", {
+    _name: name.trim(),
+    _slug: slugify(name),
+    _phone: phone?.trim() || undefined,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+/** Creates the client profile for the signed-in user. Returns null when no salon exists yet. */
+export async function ensureClientProfile(): Promise<string | null> {
+  const { data, error } = await supabase.rpc("ensure_client_profile");
+  if (error) throw new Error(error.message);
+  return (data as string | null) ?? null;
+}
+
+
 export function translateAuthError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("invalid login credentials")) return "البريد الإلكتروني أو كلمة المرور غير صحيحة";

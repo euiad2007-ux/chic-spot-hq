@@ -19,6 +19,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -77,6 +78,11 @@ const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
 const AuthenticatedPayrollRoute = AuthenticatedPayrollRouteImport.update({
   id: '/payroll',
   path: '/payroll',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/services': typeof AuthenticatedServicesRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/services': typeof AuthenticatedServicesRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/invoices'
+    | '/onboarding'
     | '/payroll'
     | '/platform'
     | '/services'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/invoices'
+    | '/onboarding'
     | '/payroll'
     | '/platform'
     | '/services'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/inventory'
     | '/_authenticated/invoices'
+    | '/_authenticated/onboarding'
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
     | '/_authenticated/services'
@@ -342,6 +354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPayrollRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/invoices': {
       id: '/_authenticated/invoices'
       path: '/invoices'
@@ -426,6 +445,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
@@ -445,6 +465,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
