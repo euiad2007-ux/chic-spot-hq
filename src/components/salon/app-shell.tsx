@@ -67,7 +67,9 @@ export function AppShell({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const manager = canManage(account?.role);
-  const items = nav.filter((n) => (n.manager ? manager : true));
+  const items = nav.filter((n) =>
+    n.platform ? account?.role === "platform_owner" : n.manager ? manager : true,
+  );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
   async function handleSignOut() {
