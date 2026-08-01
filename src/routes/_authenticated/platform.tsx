@@ -52,8 +52,8 @@ interface SalonRow {
   name: string;
   slug: string;
   phone: string | null;
-  plan: string | null;
-  subscription_status: string | null;
+  plan: string;
+  subscription_status: string;
   trial_ends_at: string | null;
   subscription_ends_at: string | null;
   is_suspended: boolean;
