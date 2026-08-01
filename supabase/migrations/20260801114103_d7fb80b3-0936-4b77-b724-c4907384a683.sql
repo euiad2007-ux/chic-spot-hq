@@ -1,0 +1,1 @@
+ALTER TABLE public.salons ALTER COLUMN plan SET DEFAULT 'basic';
