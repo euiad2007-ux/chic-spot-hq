@@ -74,11 +74,14 @@ export function hydratePublicSite(): Promise<void> {
 
     hydrateSalonStore(emptyState(services, staff));
     const siteDoc = settingsRes.data?.site;
-    hydrateSiteSettings(
+    const stored =
       siteDoc && typeof siteDoc === "object" && !Array.isArray(siteDoc)
-        ? { name: salon.name, ...(siteDoc as Record<string, unknown>) }
-        : { name: salon.name },
-    );
+        ? (siteDoc as Record<string, unknown>)
+        : {};
+    // The salon's own record wins over the template default branding name.
+    const salonName = typeof stored["salonName"] === "string" && stored["salonName"] ? stored["salonName"] : salon.name;
+    hydrateSiteSettings({ ...stored, salonName });
+
   })();
   return done;
 }
