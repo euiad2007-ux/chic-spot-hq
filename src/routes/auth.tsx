@@ -4,6 +4,8 @@ import { Scissors, Loader2, Store, User } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+
 import { signIn, signUp, homeForRole, loadAccount } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 
