@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { num, str } from "@/lib/db/sync";
 import { hydrateSalonStore, type SalonState, type Service, type Staff } from "@/lib/salon-store";
 import { hydrateSiteSettings } from "@/lib/site-settings";
+import { resolveTenant } from "@/lib/tenant-domain";
+
 
 const emptyState = (services: Service[], staff: Staff[]): SalonState => ({
   services,
