@@ -13,7 +13,7 @@ export interface RewardsSettings {
   referralCouponCode?: string;   // optional coupon code auto-associated with referrals
 }
 
-const KEY = "lamsa_rewards_v1";
+const UNUSED_KEY = "lamsa_rewards_v1";
 
 const defaults: RewardsSettings = {
   loyaltyRate: 0.1,
@@ -32,16 +32,21 @@ let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensure() {
-  if (initialized || typeof window === "undefined") return;
   initialized = true;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) state = { ...defaults, ...JSON.parse(raw) };
-  } catch {}
 }
 
 function persist() {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(state));
+  listeners.forEach((l) => l());
+  if (typeof window === "undefined") return;
+  const doc = state;
+  void import("@/lib/db/settings-repo").then((m) => m.scheduleSettingsSave("rewards", doc));
+}
+
+/** Called once by the data layer with the salon's stored rewards document. */
+export function hydrateRewardsSettings(doc: Record<string, unknown> | null) {
+  state = doc ? { ...defaults, ...(doc as Partial<RewardsSettings>) } : defaults;
+  initialized = true;
+  hydrated = true;
   listeners.forEach((l) => l());
 }
 

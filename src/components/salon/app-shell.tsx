@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -25,7 +25,33 @@ import {
 
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/hooks/use-account";
-import { canManage, signOutAccount, ROLE_LABEL } from "@/lib/account";
+import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
+
+/** Which roles may open each area. Anything not listed is open to any signed-in user. */
+const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
+  { prefix: "/platform", roles: ["platform_owner"] },
+  { prefix: "/dashboard", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/services", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/inventory", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/staff", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/payroll", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/attendance", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/customers", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/coupons", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/invoices", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/booking-settings", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/settings", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/bookings", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
+  { prefix: "/calendar", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
+  { prefix: "/specialist", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
+  { prefix: "/client", roles: ["client"] },
+];
+
+function allowedForPath(pathname: string, role: AppRole | undefined): boolean {
+  const rule = ROUTE_ROLES.find((r) => pathname === r.prefix || pathname.startsWith(r.prefix + "/"));
+  if (!rule) return true;
+  return !!role && rule.roles.includes(role);
+}
 
 const nav: {
   to: string;
@@ -63,8 +89,17 @@ export function AppShell({
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: account } = useAccount();
+  const { data: account, isLoading: accountLoading } = useAccount();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const permitted = accountLoading || !account ? null : allowedForPath(pathname, account.role);
+
+  // Roles that cannot open this area are sent back to their own home page.
+  useEffect(() => {
+    if (permitted === false && account) {
+      navigate({ to: homeForRole(account.role), replace: true });
+    }
+  }, [permitted, account, navigate]);
 
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
@@ -101,6 +136,14 @@ export function AppShell({
         </Link>
       );
     });
+
+  if (permitted === false) {
+    return (
+      <div className="min-h-screen grid place-items-center px-6 text-center" dir="rtl">
+        <p className="text-sm text-muted-foreground">لا تملك صلاحية الوصول إلى هذه الصفحة…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex" dir="rtl">

@@ -37,8 +37,6 @@ interface State {
   payments: PayrollPayment[];
 }
 
-const KEY = "lamsa_payroll_v1";
-
 function defaults(): PayrollSettings {
   const day: PayrollDay = { open: true, shifts: [{ start: "10:00", end: "18:00" }] };
   return {
@@ -57,34 +55,34 @@ function defaults(): PayrollSettings {
   };
 }
 
-function load(): State {
-  if (typeof window === "undefined") return { settings: defaults(), payments: [] };
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const p = JSON.parse(raw) as Partial<State>;
-      return {
-        settings: { ...defaults(), ...(p.settings ?? {}) },
-        payments: p.payments ?? [],
-      };
-    }
-  } catch {}
-  return { settings: defaults(), payments: [] };
-}
-
 let state: State = { settings: defaults(), payments: [] };
 let initialized = false;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensure() {
-  if (!initialized && typeof window !== "undefined") {
-    state = load();
-    initialized = true;
-  }
+  initialized = true;
 }
+
 function persist() {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(state));
+  listeners.forEach((l) => l());
+  if (typeof window === "undefined") return;
+  const current = state;
+  void import("@/lib/db/payroll-repo").then((m) => m.schedulePayrollSave(current.payments));
+  void import("@/lib/db/settings-repo").then((m) => m.scheduleSettingsSave("payroll", current.settings));
+}
+
+/** Called once by the data layer with the salon's payroll data. */
+export function hydratePayrollStore(input: {
+  settings?: Record<string, unknown>;
+  payments: PayrollPayment[];
+}) {
+  state = {
+    settings: { ...defaults(), ...((input.settings ?? {}) as Partial<PayrollSettings>) },
+    payments: input.payments,
+  };
+  initialized = true;
+  hydrated = true;
   listeners.forEach((l) => l());
 }
 
@@ -102,7 +100,7 @@ export function usePayroll<T>(selector: (s: State) => T): T {
   );
 }
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () => crypto.randomUUID();
 
 export const payrollActions = {
   setSettings(patch: Partial<PayrollSettings>) {

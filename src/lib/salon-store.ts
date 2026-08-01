@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { getRewardsSettings } from "@/lib/rewards-settings";
+import { getCustomMeasures, setCustomMeasures } from "@/lib/site-settings";
 
 export type BookingStatus =
   | "new"
@@ -49,22 +50,14 @@ export const DEFAULT_MEASURES: { code: string; label: string }[] = [
   { code: "cm", label: "سنتيمتر" },
 ];
 
-const MEASURES_KEY = "lamsa_custom_measures_v1";
 export function loadMeasures(): { code: string; label: string }[] {
-  if (typeof window === "undefined") return DEFAULT_MEASURES;
-  try {
-    const raw = localStorage.getItem(MEASURES_KEY);
-    const custom = raw ? (JSON.parse(raw) as { code: string; label: string }[]) : [];
-    const seen = new Set(DEFAULT_MEASURES.map((m) => m.code));
-    return [...DEFAULT_MEASURES, ...custom.filter((c) => c.code && !seen.has(c.code))];
-  } catch { return DEFAULT_MEASURES; }
+  const custom = getCustomMeasures();
+  const seen = new Set(DEFAULT_MEASURES.map((m) => m.code));
+  return [...DEFAULT_MEASURES, ...custom.filter((c) => c.code && !seen.has(c.code))];
 }
 export function addCustomMeasure(m: { code: string; label: string }) {
-  if (typeof window === "undefined") return;
-  const cur = loadMeasures();
-  if (cur.find((x) => x.code === m.code)) return;
-  const custom = cur.filter((x) => !DEFAULT_MEASURES.find((d) => d.code === x.code));
-  localStorage.setItem(MEASURES_KEY, JSON.stringify([...custom, m]));
+  if (loadMeasures().find((x) => x.code === m.code)) return;
+  setCustomMeasures([...getCustomMeasures(), m]);
 }
 export function measureLabel(code: string) {
   return loadMeasures().find((m) => m.code === code)?.label ?? code;
@@ -262,223 +255,11 @@ export interface SalonState {
   counters: BookingCounters;
 }
 
-const STORAGE_KEY = "lamsa_salon_v2";
-
-const uid = () => Math.random().toString(36).slice(2, 10);
-
-function seed(): SalonState {
-  const mkItem = (
-    name: string, unit: string, stock: number, minStock: number, costPerUnit: number,
-    measure: string, sizePerUnit: number,
-  ): InventoryItem => ({ id: uid(), name, unit, stock, minStock, costPerUnit, measure, sizePerUnit });
-  const inventory: InventoryItem[] = [
-    mkItem("صبغة شعر", "أنبوب", 30, 8, 25, "ml", 60),
-    mkItem("شامبو احترافي", "قنينة", 10, 2, 40, "ml", 500),
-    mkItem("بلسم", "قنينة", 8, 2, 32, "ml", 500),
-    mkItem("طلاء أظافر", "قنينة", 40, 10, 12, "ml", 15),
-    mkItem("مزيل طلاء", "قنينة", 6, 2, 20, "ml", 500),
-    mkItem("قناع بشرة", "قطعة", 25, 6, 18, "count", 1),
-    mkItem("قفازات", "زوج", 200, 40, 1.2, "count", 1),
-    mkItem("مناديل", "علبة", 60, 15, 6, "count", 100),
-  ];
-
-  const [dye, shampoo, conditioner, polish, remover, mask, gloves, tissues] = inventory;
-
-  const svc = (
-    name: string, category: string, price: number, durationMin: number,
-    prepMin: number, cleanupMin: number, materials: ServiceMaterial[],
-  ): Service => ({
-    id: uid(), name, category, price, durationMin, prepMin, cleanupMin, materials, active: true,
-  });
-  const services: Service[] = [
-    svc("قص شعر", "الشعر", 80, 30, 5, 5, [{ itemId: shampoo.id, qty: 30 }, { itemId: tissues.id, qty: 0.2 }]),
-    svc("صبغة شعر", "الشعر", 350, 90, 10, 10, [{ itemId: dye.id, qty: 1 }, { itemId: shampoo.id, qty: 40 }, { itemId: conditioner.id, qty: 30 }, { itemId: gloves.id, qty: 1 }]),
-    svc("تسريحة", "الشعر", 200, 60, 5, 5, [{ itemId: shampoo.id, qty: 20 }]),
-    svc("مكياج سهرة", "المكياج", 400, 75, 10, 10, [{ itemId: tissues.id, qty: 0.3 }]),
-    svc("تنظيف بشرة", "البشرة", 250, 60, 10, 10, [{ itemId: mask.id, qty: 1 }, { itemId: tissues.id, qty: 0.4 }, { itemId: gloves.id, qty: 1 }]),
-    svc("مناكير", "الأظافر", 90, 45, 5, 5, [{ itemId: polish.id, qty: 0.2 }, { itemId: remover.id, qty: 15 }]),
-    svc("بديكير", "الأظافر", 110, 45, 5, 5, [{ itemId: polish.id, qty: 0.2 }, { itemId: remover.id, qty: 15 }]),
-    svc("حمام مغربي", "العناية", 180, 60, 10, 15, [{ itemId: shampoo.id, qty: 50 }, { itemId: tissues.id, qty: 0.5 }]),
-  ];
-  const staff: Staff[] = [
-    { id: uid(), name: "سارة العتيبي", role: "مصففة شعر", phone: "0501111111", commissionPct: 20, services: [services[0].id, services[1].id, services[2].id], active: true },
-    { id: uid(), name: "منى الحربي", role: "خبيرة مكياج", phone: "0502222222", commissionPct: 25, services: [services[3].id], active: true },
-    { id: uid(), name: "ريم القحطاني", role: "أخصائية بشرة", phone: "0503333333", commissionPct: 20, services: [services[4].id, services[7].id], active: true },
-    { id: uid(), name: "لينا الشمري", role: "فنية أظافر", phone: "0504444444", commissionPct: 18, services: [services[5].id, services[6].id], active: true },
-  ];
-  const now = new Date();
-  const iso = (d: Date) => d.toISOString();
-  const customers: Customer[] = [
-    { id: uid(), name: "نورة الفهد", phone: "0551000001", gender: "female", visits: 8, totalSpent: 2100, createdAt: iso(new Date(now.getTime() - 60 * 86400000)) },
-    { id: uid(), name: "هند الدوسري", phone: "0551000002", gender: "female", visits: 3, totalSpent: 720, createdAt: iso(new Date(now.getTime() - 20 * 86400000)) },
-    { id: uid(), name: "شهد المطيري", phone: "0551000003", gender: "female", visits: 12, totalSpent: 4300, createdAt: iso(new Date(now.getTime() - 180 * 86400000)) },
-    { id: uid(), name: "دانة العنزي", phone: "0551000004", gender: "female", visits: 1, totalSpent: 200, createdAt: iso(now) },
-  ];
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const at = (h: number, m: number = 0) => new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m).toISOString();
-  const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const total = (ids: string[]) => ids.reduce((a, id) => {
-    const s = services.find((x) => x.id === id)!;
-    return a + s.prepMin + s.durationMin + s.cleanupMin;
-  }, 0);
-
-  const counters: BookingCounters = { global: 120, branch: 40, byDay: {}, byServiceDay: {} };
-  const bookings: Booking[] = [];
-  const mkBooking = (
-    customerId: string, staffId: string, serviceIds: string[],
-    startsAt: string, price: number, discount: number,
-    status: BookingStatus, payStatus: PayStatus,
-  ): Booking => {
-    counters.global += 1;
-    counters.branch += 1;
-    counters.byDay[dateKey] = (counters.byDay[dateKey] ?? 0) + 1;
-    const serviceQueue: Record<string, number> = {};
-    for (const sid of serviceIds) {
-      const k = `${dateKey}|${sid}`;
-      counters.byServiceDay[k] = (counters.byServiceDay[k] ?? 0) + 1;
-      serviceQueue[sid] = counters.byServiceDay[k];
-    }
-    const code = `${String(counters.global).padStart(6, "0")}-${String(counters.branch).padStart(6, "0")}-${String(counters.byDay[dateKey]).padStart(4, "0")}`;
-    return {
-      id: uid(), code,
-      globalNo: counters.global, branchNo: counters.branch, dailyNo: counters.byDay[dateKey],
-      bookingDate: dateKey, serviceQueue,
-      customerId, staffId, serviceIds, startsAt,
-      durationMin: total(serviceIds), price, discount,
-      status, payStatus, createdAt: iso(now),
-    };
-  };
-  bookings.push(
-    mkBooking(customers[0].id, staff[0].id, [services[1].id, services[2].id], at(11), 550, 50, "confirmed", "partial"),
-    mkBooking(customers[1].id, staff[1].id, [services[3].id], at(13, 30), 400, 0, "checked_in", "unpaid"),
-    mkBooking(customers[2].id, staff[2].id, [services[4].id], at(16), 250, 0, "new", "unpaid"),
-    mkBooking(customers[3].id, staff[3].id, [services[5].id, services[6].id], at(18, 30), 200, 0, "new", "unpaid"),
-    mkBooking(customers[0].id, staff[0].id, [services[0].id], at(9), 80, 0, "completed", "paid"),
-  );
-
-  const invoices: Invoice[] = [
-    {
-      id: uid(), number: "INV-000042", bookingId: bookings[4].id, customerId: bookings[4].customerId,
-      subtotal: 80, discount: 0, vat: 12, total: 92, paid: 92, method: "mada", createdAt: iso(now),
-    },
-  ];
-
-  return { services, staff, customers, bookings, invoices, inventory, counters };
-}
+/** Database-safe identifier (UUID v4). */
+const uid = () => crypto.randomUUID();
 
 const emptyCounters: BookingCounters = { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
 const empty: SalonState = { services: [], staff: [], customers: [], bookings: [], invoices: [], inventory: [], counters: emptyCounters };
-
-function load(): SalonState {
-  if (typeof window === "undefined") return empty;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<SalonState>;
-      const bookings = (parsed.bookings ?? []).map((b: any) => ({
-        globalNo: 0, branchNo: 0, dailyNo: 0, bookingDate: (b.startsAt ?? "").slice(0, 10), serviceQueue: {},
-        ...b,
-      })) as Booking[];
-      let counters = parsed.counters as BookingCounters | undefined;
-      if (!counters) {
-        counters = { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
-        for (const b of bookings) {
-          counters.global = Math.max(counters.global, b.globalNo || 0);
-          counters.branch = Math.max(counters.branch, b.branchNo || 0);
-          if (b.bookingDate) counters.byDay[b.bookingDate] = Math.max(counters.byDay[b.bookingDate] ?? 0, b.dailyNo || 0);
-        }
-      }
-      // Normalize + dedupe customers by phone; recompute visits/totalSpent from invoices
-      const normPhone = (p: string) => (p ?? "").replace(/\D/g, "");
-      const rawCustomers = (parsed.customers ?? []) as any[];
-      const byPhone = new Map<string, Customer>();
-      const idRemap = new Map<string, string>();
-      for (const c of rawCustomers) {
-        const key = normPhone(c.phone) || c.id;
-        const existing = byPhone.get(key);
-        if (existing) {
-          idRemap.set(c.id, existing.id);
-          // Merge: keep richer fields
-          existing.name = existing.name || c.name;
-          existing.email = existing.email || c.email;
-          existing.address = existing.address || c.address;
-          existing.notes = existing.notes || c.notes;
-          existing.birthDate = existing.birthDate || c.birthDate;
-          existing.walletBalance = (existing.walletBalance ?? 0) + (c.walletBalance ?? 0);
-          existing.loyaltyPoints = (existing.loyaltyPoints ?? 0) + (c.loyaltyPoints ?? 0);
-          existing.referralEarnings = (existing.referralEarnings ?? 0) + (c.referralEarnings ?? 0);
-        } else {
-          byPhone.set(key, {
-            id: c.id,
-            name: c.name ?? "",
-            phone: c.phone ?? "",
-            gender: c.gender,
-            notes: c.notes,
-            visits: 0,
-            totalSpent: 0,
-            createdAt: c.createdAt ?? new Date().toISOString(),
-            birthDate: c.birthDate,
-            address: c.address,
-            email: c.email,
-            walletId: c.walletId,
-            walletBalance: c.walletBalance ?? 0,
-            walletLog: c.walletLog ?? [],
-            loyaltyPoints: c.loyaltyPoints ?? 0,
-            loyaltyLog: c.loyaltyLog ?? [],
-            referralCode: c.referralCode ?? genReferralCode(c.name ?? ""),
-            referredBy: c.referredBy,
-            referralEarnings: c.referralEarnings ?? 0,
-          });
-        }
-      }
-
-      // Remap bookings/invoices to merged customer ids
-      const remap = (id: string) => idRemap.get(id) ?? id;
-      const remappedBookings = bookings.map((b) => ({ ...b, customerId: remap(b.customerId) }));
-      const remappedInvoices = (parsed.invoices ?? []).map((i: any) => ({ ...i, customerId: remap(i.customerId) }));
-      // Recompute visits/totalSpent from invoices
-      const stats = new Map<string, { visits: number; total: number }>();
-      for (const inv of remappedInvoices) {
-        const cur = stats.get(inv.customerId) ?? { visits: 0, total: 0 };
-        cur.visits += 1; cur.total += inv.total ?? 0;
-        stats.set(inv.customerId, cur);
-      }
-      const walletIdSet = new Set<string>(Array.from(byPhone.values()).map((c) => c.walletId).filter(Boolean) as string[]);
-      const customers = Array.from(byPhone.values()).map((c) => {
-        const s = stats.get(c.id);
-        const walletId = c.walletId ?? genWalletId(walletIdSet);
-        return { ...c, walletId, visits: s?.visits ?? 0, totalSpent: Math.round((s?.total ?? 0) * 100) / 100 };
-      });
-
-
-      // Normalize staff with new optional fields
-      const staff = (parsed.staff ?? []).map((s: any) => ({
-        annualLeaveDays: 21,
-        leaves: [],
-        ...s,
-      })) as Staff[];
-
-      return {
-        services: (parsed.services ?? []).map((s: any) => ({
-          prepMin: 0, cleanupMin: 0, materials: [], ...s,
-        })),
-        staff,
-        customers,
-        bookings: remappedBookings,
-        invoices: remappedInvoices,
-        inventory: (parsed.inventory ?? []).map((i: any) => ({
-          measure: i.measure ?? "count", sizePerUnit: i.sizePerUnit ?? 1, ...i,
-        })),
-        counters,
-      };
-
-    }
-  } catch {}
-  const s = seed();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  return s;
-}
 
 let state: SalonState = empty;
 let initialized = false;
@@ -486,16 +267,21 @@ let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensureInit() {
-  if (!initialized && typeof window !== "undefined") {
-    state = load();
-    initialized = true;
-  }
+  initialized = true;
 }
 
 function persist() {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
+  listeners.forEach((l) => l());
+  if (typeof window === "undefined") return;
+  const current = state;
+  void import("@/lib/db/salon-repo").then((m) => m.scheduleSalonSave(current));
+}
+
+/** Called once by the data layer after the salon workspace is fetched. */
+export function hydrateSalonStore(next: SalonState | null) {
+  state = next ?? empty;
+  initialized = true;
+  hydrated = true;
   listeners.forEach((l) => l());
 }
 
@@ -566,7 +352,7 @@ export function serviceMaterialsCost(materials: ServiceMaterial[] | undefined, i
 
 // Mutations
 export const actions = {
-  reset() { state = seed(); persist(); },
+  reset() { state = { ...empty, counters: { global: 0, branch: 0, byDay: {}, byServiceDay: {} } }; persist(); },
 
   // Services
   addService(s: Omit<Service, "id">) {

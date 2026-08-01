@@ -60,7 +60,39 @@ function ClientPage() {
       && (!c.usageLimit || c.usedCount < c.usageLimit);
   });
 
-  if (!session || !me) return null;
+  if (session === undefined) {
+    return (
+      <div dir="rtl" className="min-h-screen grid place-items-center px-6">
+        <p className="text-sm text-muted-foreground">جارٍ تحميل حسابك…</p>
+      </div>
+    );
+  }
+
+  if (!session || !me) {
+    return (
+      <div dir="rtl" className="min-h-screen grid place-items-center px-6">
+        <div className="glass-card rounded-2xl p-8 max-w-md text-center space-y-3">
+          <h1 className="text-lg font-bold">لم يتم تجهيز ملف العميلة بعد</h1>
+          <p className="text-sm text-muted-foreground">
+            لم نجد ملفًا مرتبطًا بحسابك في هذا المشغل. تواصلي مع المشغل لإضافة رقم جوالك، أو
+            سجّلي الخروج ثم الدخول مرة أخرى.
+          </p>
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <Link to="/site" className="h-10 px-4 rounded-xl border border-input text-sm font-semibold inline-flex items-center">
+              الموقع
+            </Link>
+            <button
+              onClick={() => { void auth.signOut(); navigate({ to: "/auth" }); }}
+              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
+            >
+              تسجيل الخروج
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
 
   const tabs: { key: TabKey; label: string; icon: typeof Wallet }[] = [
     { key: "overview", label: "نظرة عامة", icon: Sparkles },

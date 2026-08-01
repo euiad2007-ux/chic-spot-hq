@@ -1,0 +1,52 @@
+import { supabase } from "@/integrations/supabase/client";
+import { getDataContext } from "@/lib/db/context";
+import { enqueue, logDbError, debounce } from "@/lib/db/sync";
+
+export type SettingsColumn = "site" | "booking" | "rewards" | "payroll";
+
+export interface SettingsBundle {
+  site: Record<string, unknown> | null;
+  booking: Record<string, unknown> | null;
+  rewards: Record<string, unknown> | null;
+  payroll: Record<string, unknown> | null;
+}
+
+/** Reads the four settings documents that belong to a salon. */
+export async function loadSettingsBundle(salonId: string): Promise<SettingsBundle> {
+  const { data, error } = await supabase
+    .from("salon_settings")
+    .select("site, booking, rewards, payroll")
+    .eq("salon_id", salonId)
+    .maybeSingle();
+  logDbError("load salon_settings", error);
+  const pick = (v: unknown) =>
+    v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+  return {
+    site: pick(data?.site),
+    booking: pick(data?.booking),
+    rewards: pick(data?.rewards),
+    payroll: pick(data?.payroll),
+  };
+}
+
+const pending: Partial<Record<SettingsColumn, unknown>> = {};
+
+const flush = debounce(() => {
+  const ctx = getDataContext();
+  const salonId = ctx?.salonId;
+  const patch = { ...pending };
+  for (const k of Object.keys(pending)) delete pending[k as SettingsColumn];
+  if (!salonId || !ctx?.canWrite || !Object.keys(patch).length) return;
+  void enqueue(async () => {
+    const { error } = await supabase
+      .from("salon_settings")
+      .upsert({ salon_id: salonId, ...patch } as never, { onConflict: "salon_id" });
+    logDbError("save salon_settings", error);
+  });
+}, 400);
+
+/** Persists one settings document (debounced). */
+export function scheduleSettingsSave(column: SettingsColumn, value: unknown) {
+  pending[column] = value;
+  flush();
+}
