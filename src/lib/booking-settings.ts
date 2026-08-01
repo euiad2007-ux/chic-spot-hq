@@ -29,7 +29,7 @@ export interface BookingSettings {
   holdGraceMin: number;     // minutes past appointment before hold auto-cancels
 }
 
-const STORAGE_KEY = "lamsa_booking_settings_v1";
+const UNUSED_STORAGE_KEY = "lamsa_booking_settings_v1";
 
 const DAY_LABELS_AR: Record<Weekday, string> = {
   0: "الأحد",
@@ -64,31 +64,47 @@ function defaults(): BookingSettings {
   };
 }
 
-function load(): BookingSettings {
-  if (typeof window === "undefined") return defaults();
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...defaults(), ...JSON.parse(raw) };
-  } catch {}
-  return defaults();
-}
-
 let state: BookingSettings = defaults();
 let initialized = false;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensureInit() {
-  if (!initialized && typeof window !== "undefined") {
-    state = load();
-    initialized = true;
-  }
+  initialized = true;
 }
 
 function persist() {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
   listeners.forEach((l) => l());
+  if (typeof window === "undefined") return;
+  const doc = { ...state, attendance: attendanceDoc };
+  void import("@/lib/db/settings-repo").then((m) => m.scheduleSettingsSave("booking", doc));
+}
+
+let attendanceDoc: Record<string, unknown> | undefined;
+
+/** Attendance settings share the booking document (same operational concern). */
+export function setAttendanceDoc(doc: Record<string, unknown>) {
+  attendanceDoc = doc;
+  persist();
+}
+
+/** Called once by the data layer with the salon's stored booking document. */
+export function hydrateBookingSettings(doc: Record<string, unknown> | null) {
+  if (doc) {
+    const { attendance, ...rest } = doc as Record<string, unknown> & { attendance?: Record<string, unknown> };
+    state = { ...defaults(), ...(rest as Partial<BookingSettings>) };
+    attendanceDoc = attendance;
+  } else {
+    state = defaults();
+    attendanceDoc = undefined;
+  }
+  initialized = true;
+  hydrated = true;
+  listeners.forEach((l) => l());
+}
+
+export function isBookingSettingsReady() {
+  return hydrated;
 }
 
 export function useBookingSettings<T>(selector: (s: BookingSettings) => T): T {
@@ -117,7 +133,7 @@ export const bookingSettingsActions = {
   setHoldGrace(min: number) { state = { ...state, holdGraceMin: Math.max(0, Math.floor(min)) }; persist(); },
   setFoundingDate(d: string) { state = { ...state, foundingDate: d }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
-    const id = "brk-" + Math.random().toString(36).slice(2, 8);
+    const id = crypto.randomUUID();
     state = { ...state, breaks: [...state.breaks, { ...b, id }] };
     persist();
   },

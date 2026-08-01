@@ -25,8 +25,6 @@ interface AttendanceState {
   records: AttendanceRecord[];
 }
 
-const STORAGE_KEY = "lamsa_attendance_v1";
-
 const defaults: AttendanceState = {
   settings: {
     enforceLocation: true,
@@ -37,35 +35,35 @@ const defaults: AttendanceState = {
   records: [],
 };
 
-function load(): AttendanceState {
-  if (typeof window === "undefined") return defaults;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const p = JSON.parse(raw) as Partial<AttendanceState>;
-      return {
-        settings: { ...defaults.settings, ...(p.settings ?? {}) },
-        records: p.records ?? [],
-      };
-    }
-  } catch {}
-  return defaults;
-}
-
 let state: AttendanceState = defaults;
 let initialized = false;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensureInit() {
-  if (!initialized && typeof window !== "undefined") {
-    state = load();
-    initialized = true;
-  }
+  initialized = true;
 }
 
 function persist() {
-  if (typeof window !== "undefined") localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  listeners.forEach((l) => l());
+  if (typeof window === "undefined") return;
+  const current = state;
+  void import("@/lib/db/attendance-repo").then((m) => m.scheduleAttendanceSave(current.records));
+  void import("@/lib/booking-settings").then((m) =>
+    m.setAttendanceDoc(current.settings as unknown as Record<string, unknown>));
+}
+
+/** Called once by the data layer with the salon's attendance data. */
+export function hydrateAttendanceStore(input: {
+  settings?: Record<string, unknown>;
+  records: AttendanceRecord[];
+}) {
+  state = {
+    settings: { ...defaults.settings, ...((input.settings ?? {}) as Partial<AttendanceSettings>) },
+    records: input.records,
+  };
+  initialized = true;
+  hydrated = true;
   listeners.forEach((l) => l());
 }
 
@@ -85,7 +83,7 @@ export function useAttendance<T>(selector: (s: AttendanceState) => T): T {
   );
 }
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () => crypto.randomUUID();
 
 export const attendanceActions = {
   setSettings(patch: Partial<AttendanceSettings>) {

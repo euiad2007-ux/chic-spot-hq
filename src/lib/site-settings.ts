@@ -185,7 +185,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
 ];
 
-const KEY = "lamsa_site_settings_v4";
+const UNUSED_KEY = "lamsa_site_settings_v4";
 
 const defaults: SiteSettings = {
   salonName: "صالون لمسة",
@@ -228,18 +228,47 @@ let initialized = false;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
+let measures: { code: string; label: string }[] = [];
+
 function ensure() {
-  if (initialized || typeof window === "undefined") return;
   initialized = true;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) state = { ...defaults, ...JSON.parse(raw) };
-  } catch {}
 }
 
 function persist() {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(state));
   listeners.forEach((l) => l());
+  if (typeof window === "undefined") return;
+  const doc = { ...state, measures };
+  void import("@/lib/db/settings-repo").then((m) => m.scheduleSettingsSave("site", doc));
+}
+
+/** Called once by the data layer with the salon's stored branding document. */
+export function hydrateSiteSettings(doc: Record<string, unknown> | null) {
+  if (doc) {
+    const { measures: storedMeasures, ...rest } = doc as Record<string, unknown> & {
+      measures?: { code: string; label: string }[];
+    };
+    state = { ...defaults, ...(rest as Partial<SiteSettings>) };
+    measures = Array.isArray(storedMeasures) ? storedMeasures : [];
+  } else {
+    state = defaults;
+    measures = [];
+  }
+  initialized = true;
+  hydrated = true;
+  listeners.forEach((l) => l());
+}
+
+export function getSiteSettings(): SiteSettings {
+  return state;
+}
+
+export function getCustomMeasures(): { code: string; label: string }[] {
+  return measures;
+}
+
+export function setCustomMeasures(next: { code: string; label: string }[]) {
+  measures = next;
+  persist();
 }
 
 export function useSiteSettings(): SiteSettings {

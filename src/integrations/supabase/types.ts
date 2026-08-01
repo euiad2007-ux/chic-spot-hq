@@ -14,27 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      app_state: {
-        Row: {
-          created_at: string
-          data: Json
-          key: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          data: Json
-          key: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          data?: Json
-          key?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       attendance: {
         Row: {
           branch_id: string | null
@@ -53,6 +32,7 @@ export type Database = {
           salon_id: string
           staff_id: string
           updated_at: string
+          via: string | null
           work_date: string
         }
         Insert: {
@@ -72,6 +52,7 @@ export type Database = {
           salon_id: string
           staff_id: string
           updated_at?: string
+          via?: string | null
           work_date: string
         }
         Update: {
@@ -91,6 +72,7 @@ export type Database = {
           salon_id?: string
           staff_id?: string
           updated_at?: string
+          via?: string | null
           work_date?: string
         }
         Relationships: [
@@ -460,6 +442,8 @@ export type Database = {
           id: string
           kind: string
           max_uses: number | null
+          min_total: number
+          note: string | null
           salon_id: string
           starts_at: string | null
           updated_at: string
@@ -474,6 +458,8 @@ export type Database = {
           id?: string
           kind?: string
           max_uses?: number | null
+          min_total?: number
+          note?: string | null
           salon_id: string
           starts_at?: string | null
           updated_at?: string
@@ -488,6 +474,8 @@ export type Database = {
           id?: string
           kind?: string
           max_uses?: number | null
+          min_total?: number
+          note?: string | null
           salon_id?: string
           starts_at?: string | null
           updated_at?: string
@@ -707,6 +695,7 @@ export type Database = {
           id: string
           number: string
           paid: number
+          payment_method: string | null
           refunded_amount: number
           salon_id: string
           seq: number
@@ -727,6 +716,7 @@ export type Database = {
           id?: string
           number: string
           paid?: number
+          payment_method?: string | null
           refunded_amount?: number
           salon_id: string
           seq: number
@@ -747,6 +737,7 @@ export type Database = {
           id?: string
           number?: string
           paid?: number
+          payment_method?: string | null
           refunded_amount?: number
           salon_id?: string
           seq?: number
@@ -908,6 +899,7 @@ export type Database = {
           deductions: number
           id: string
           net_amount: number
+          note: string | null
           overtime_amount: number
           overtime_minutes: number
           paid_amount: number
@@ -928,6 +920,7 @@ export type Database = {
           deductions?: number
           id?: string
           net_amount?: number
+          note?: string | null
           overtime_amount?: number
           overtime_minutes?: number
           paid_amount?: number
@@ -948,6 +941,7 @@ export type Database = {
           deductions?: number
           id?: string
           net_amount?: number
+          note?: string | null
           overtime_amount?: number
           overtime_minutes?: number
           paid_amount?: number
@@ -1342,6 +1336,7 @@ export type Database = {
           hire_date: string | null
           id: string
           job_title: string | null
+          meta: Json
           name: string
           national_id: string | null
           nationality: string | null
@@ -1370,6 +1365,7 @@ export type Database = {
           hire_date?: string | null
           id?: string
           job_title?: string | null
+          meta?: Json
           name: string
           national_id?: string | null
           nationality?: string | null
@@ -1398,6 +1394,7 @@ export type Database = {
           hire_date?: string | null
           id?: string
           job_title?: string | null
+          meta?: Json
           name?: string
           national_id?: string | null
           nationality?: string | null
@@ -1616,11 +1613,25 @@ export type Database = {
         Args: { _name: string; _phone?: string; _slug: string }
         Returns: string
       }
+      ensure_client_profile: { Args: never; Returns: string }
       grant_platform_owner: { Args: { _email: string }; Returns: boolean }
       is_platform_owner: { Args: { _uid: string }; Returns: boolean }
+      is_salon_customer: {
+        Args: { _salon: string; _uid: string }
+        Returns: boolean
+      }
       is_salon_member: {
         Args: { _salon: string; _uid: string }
         Returns: boolean
+      }
+      public_salon_team: {
+        Args: { _salon: string }
+        Returns: {
+          id: string
+          job_title: string
+          name: string
+          role_label: string
+        }[]
       }
     }
     Enums: {

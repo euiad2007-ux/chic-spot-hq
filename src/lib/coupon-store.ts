@@ -18,46 +18,26 @@ export interface Coupon {
   createdAt: string;
 }
 
-const STORAGE_KEY = "lamsa_coupons_v1";
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () => crypto.randomUUID();
 
-function load(): Coupon[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return seed();
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : seed();
-  } catch { return seed(); }
-}
-function persist() {
-  if (typeof window === "undefined") return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-}
-function seed(): Coupon[] {
-  const now = new Date();
-  const in30 = new Date(now.getTime() + 30 * 86400000);
-  return [
-    {
-      id: uid(), code: "WELCOME10", type: "percent", value: 10,
-      activeFrom: now.toISOString(), expiresAt: in30.toISOString(),
-      usageLimit: 100, usedCount: 0, active: true, note: "خصم ترحيبي 10%",
-      createdAt: now.toISOString(),
-    },
-    {
-      id: uid(), code: "SAR50", type: "fixed", value: 50, minTotal: 200,
-      activeFrom: now.toISOString(), expiresAt: in30.toISOString(),
-      usageLimit: 50, usedCount: 0, active: true, note: "خصم 50 ريال عند 200+",
-      createdAt: now.toISOString(),
-    },
-  ];
-}
-
-let state: Coupon[] = load();
+let state: Coupon[] = [];
 const EMPTY: Coupon[] = [];
 let hydrated = false;
 const listeners = new Set<() => void>();
 function emit() { for (const l of listeners) l(); }
+
+function persist() {
+  if (typeof window === "undefined") return;
+  const current = state;
+  void import("@/lib/db/coupons-repo").then((m) => m.scheduleCouponSave(current));
+}
+
+/** Called once by the data layer with the salon's coupons. */
+export function hydrateCouponStore(list: Coupon[]) {
+  state = list;
+  hydrated = true;
+  emit();
+}
 
 export function useCoupons(): Coupon[] {
   return useSyncExternalStore(

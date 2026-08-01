@@ -122,8 +122,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    void import("@/lib/cloud-sync").then((m) => m.bootstrapCloud());
+    void import("@/lib/db/hydrate").then((m) => m.hydrateAll());
   }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>

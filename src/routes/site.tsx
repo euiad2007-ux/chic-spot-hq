@@ -36,6 +36,9 @@ export const Route = createFileRoute("/site")({
 
 function SitePage() {
   const { services, staff } = useSalon((s) => s);
+  useEffect(() => {
+    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite());
+  }, []);
   const site = useSiteSettings();
   const categories = useMemo(() => {
     const m = new Map<string, typeof services>();
