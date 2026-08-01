@@ -973,6 +973,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          enabled_modules: string[]
           features: string[]
           id: string
           is_active: boolean
@@ -988,6 +989,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          enabled_modules?: string[]
           features?: string[]
           id?: string
           is_active?: boolean
@@ -1003,6 +1005,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          enabled_modules?: string[]
           features?: string[]
           id?: string
           is_active?: boolean
@@ -1127,6 +1130,7 @@ export type Database = {
           created_at: string
           currency: string
           custom_domain: string | null
+          domain_status: string
           id: string
           is_suspended: boolean
           name: string
@@ -1146,6 +1150,7 @@ export type Database = {
           created_at?: string
           currency?: string
           custom_domain?: string | null
+          domain_status?: string
           id?: string
           is_suspended?: boolean
           name: string
@@ -1165,6 +1170,7 @@ export type Database = {
           created_at?: string
           currency?: string
           custom_domain?: string | null
+          domain_status?: string
           id?: string
           is_suspended?: boolean
           name?: string
