@@ -50,8 +50,15 @@ function Landing() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      const tenant = await resolveTenant();
       const { data } = await supabase.auth.getSession();
-      if (!data.session || cancelled) return;
+      if (cancelled) return;
+      if (!data.session) {
+        // Reached through a salon's own domain: show that salon's website,
+        // never the platform landing page.
+        if (tenant) navigate({ to: "/site", replace: true });
+        return;
+      }
       const account = await loadAccount();
       if (!account || cancelled) return;
       navigate({ to: homeForRole(account.role), replace: true });
@@ -60,6 +67,7 @@ function Landing() {
       cancelled = true;
     };
   }, [navigate]);
+
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
