@@ -13,6 +13,8 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
+import { resolveTenant } from "@/lib/tenant-domain";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
