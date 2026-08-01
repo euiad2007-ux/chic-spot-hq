@@ -59,20 +59,21 @@ const nav: {
   icon: typeof LayoutDashboard;
   manager: boolean;
   platform?: boolean;
+  module?: string;
 }[] = [
   { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true },
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true },
-  { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false },
-  { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false },
-  { to: "/services", label: "الخدمات", icon: Sparkles, manager: true },
-  { to: "/inventory", label: "المخزون", icon: Package, manager: true },
-  { to: "/staff", label: "الموظفون", icon: Users2, manager: true },
-  { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true },
-  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true },
-  { to: "/customers", label: "العملاء", icon: UserCircle, manager: true },
-  { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true },
-  { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true },
-  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true },
+  { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false, module: "bookings" },
+  { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false, module: "calendar" },
+  { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services" },
+  { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory" },
+  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff" },
+  { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll" },
+  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance" },
+  { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers" },
+  { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true, module: "coupons" },
+  { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices" },
+  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings" },
 ];
 
 export function AppShell({
@@ -103,7 +104,8 @@ export function AppShell({
 
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
-    n.platform ? account?.role === "platform_owner" : n.manager ? manager : true,
+    (n.platform ? account?.role === "platform_owner" : n.manager ? manager : true) &&
+    (!n.module || account?.role === "platform_owner" || account?.enabledModules.includes(n.module)),
   );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
@@ -164,7 +166,7 @@ export function AppShell({
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">{navLinks()}</nav>
         <div className="p-3 border-t border-border space-y-1">
-          {manager && (
+          {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
             <Link
               to="/settings"
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
@@ -261,7 +263,7 @@ export function AppShell({
             </div>
             <nav className="space-y-1">{navLinks(() => setMenuOpen(false))}</nav>
             <div className="mt-3 border-t border-border pt-3 space-y-1">
-              {manager && (
+              {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
                 <Link
                   to="/settings"
                   onClick={() => setMenuOpen(false)}

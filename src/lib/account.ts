@@ -31,7 +31,23 @@ export interface Account {
   salonName: string | null;
   staffId: string | null;
   customerId: string | null;
+  enabledModules: string[];
 }
+
+export const ALL_MODULES = [
+  "bookings",
+  "calendar",
+  "services",
+  "inventory",
+  "staff",
+  "payroll",
+  "attendance",
+  "customers",
+  "coupons",
+  "invoices",
+  "booking_settings",
+  "site_settings",
+] as const;
 
 const ROLE_RANK: Record<AppRole, number> = {
   platform_owner: 5,
@@ -42,6 +58,7 @@ const ROLE_RANK: Record<AppRole, number> = {
 };
 
 export function homeForRole(role: AppRole): string {
+  if (role === "platform_owner") return "/platform";
   if (role === "staff") return "/specialist";
   if (role === "client") return "/client";
   return "/dashboard";
@@ -92,13 +109,22 @@ export async function loadAccount(): Promise<Account | null> {
   const salonId = primary?.salon_id ?? null;
 
   let salonName: string | null = null;
+  let enabledModules: string[] = [...ALL_MODULES];
   if (salonId) {
     const { data: salon } = await supabase
       .from("salons")
-      .select("name")
+      .select("name, plan")
       .eq("id", salonId)
       .maybeSingle();
     salonName = salon?.name ?? null;
+    if (salon?.plan) {
+      const { data: plan } = await supabase
+        .from("platform_plans")
+        .select("enabled_modules")
+        .eq("code", salon.plan)
+        .maybeSingle();
+      if (plan?.enabled_modules) enabledModules = plan.enabled_modules;
+    }
   }
 
   const { data: staffRow } = await supabase
@@ -130,6 +156,7 @@ export async function loadAccount(): Promise<Account | null> {
     salonName,
     staffId: staffRow?.id ?? null,
     customerId: customerRow?.id ?? null,
+    enabledModules,
   };
 }
 
