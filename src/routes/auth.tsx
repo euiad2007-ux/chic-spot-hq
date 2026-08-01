@@ -233,7 +233,23 @@ function AuthPage() {
                 {mode === "signin" ? "دخول" : "إنشاء الحساب"}
               </button>
 
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-[11px] font-semibold text-muted-foreground">أو</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <button
+                type="button"
+                onClick={onGoogle}
+                disabled={busy}
+                className="w-full h-11 rounded-xl border border-input bg-background font-bold text-sm inline-flex items-center justify-center gap-2 hover:bg-muted/50 transition disabled:opacity-60"
+              >
+                <GoogleMark />
+                المتابعة باستخدام Google
+              </button>
             </form>
+
           )}
         </div>
 
