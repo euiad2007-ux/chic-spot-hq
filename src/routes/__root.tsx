@@ -120,10 +120,31 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
+  // Identity transitions invalidate the cached tenant workspace so the next
+  // protected route re-loads it from the database for the new user.
   useEffect(() => {
-    void import("@/lib/db/hydrate").then((m) => m.hydrateAll());
-  }, []);
+    let unsubscribe: (() => void) | undefined;
+    void (async () => {
+      const [{ supabase }, ctx, hydrate] = await Promise.all([
+        import("@/integrations/supabase/client"),
+        import("@/lib/db/context"),
+        import("@/lib/db/hydrate"),
+      ]);
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+        ctx.clearDataContext();
+        hydrate.resetHydration();
+        void router.invalidate();
+        if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
+    })();
+    return () => unsubscribe?.();
+  }, [queryClient, router]);
+
+
 
 
   return (
