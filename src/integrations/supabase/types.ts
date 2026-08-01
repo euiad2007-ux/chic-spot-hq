@@ -977,6 +977,7 @@ export type Database = {
           id: string
           is_active: boolean
           max_branches: number
+          max_customers: number
           max_services: number
           max_staff: number
           name: string
@@ -991,6 +992,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_branches?: number
+          max_customers?: number
           max_services?: number
           max_staff?: number
           name: string
@@ -1005,6 +1007,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_branches?: number
+          max_customers?: number
           max_services?: number
           max_staff?: number
           name?: string
@@ -1123,6 +1126,7 @@ export type Database = {
           admin_notes: string | null
           created_at: string
           currency: string
+          custom_domain: string | null
           id: string
           is_suspended: boolean
           name: string
@@ -1141,6 +1145,7 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           currency?: string
+          custom_domain?: string | null
           id?: string
           is_suspended?: boolean
           name: string
@@ -1159,6 +1164,7 @@ export type Database = {
           admin_notes?: string | null
           created_at?: string
           currency?: string
+          custom_domain?: string | null
           id?: string
           is_suspended?: boolean
           name?: string
