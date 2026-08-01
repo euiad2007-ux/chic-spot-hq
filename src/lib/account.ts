@@ -80,7 +80,7 @@ export async function loadAccount(): Promise<Account | null> {
     const { data: newId, error: rpcErr } = await supabase.rpc("create_salon", {
       _name: pendingSalon,
       _slug: slugify(pendingSalon),
-      _phone: (user.user_metadata?.["phone"] as string | undefined) ?? null,
+      _phone: (user.user_metadata?.["phone"] as string | undefined) ?? undefined,
     });
     if (!rpcErr && newId) {
       memberships = [{ salon_id: newId as string, branch_id: null, role: "salon_owner" }];
