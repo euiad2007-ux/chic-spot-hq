@@ -205,6 +205,8 @@ export function translateAuthError(message: string): string {
   if (m.includes("invalid login credentials")) return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
   if (m.includes("already registered") || m.includes("already been registered"))
     return "هذا البريد مسجل مسبقًا، جرّب تسجيل الدخول";
+  if (m.includes("weak") || m.includes("pwned"))
+    return "كلمة المرور مستخدمة في تسريبات معروفة أو ضعيفة جدًا، اختر كلمة مرور أقوى";
   if (m.includes("password")) return "كلمة المرور ضعيفة أو غير مطابقة للشروط (6 أحرف على الأقل)";
   if (m.includes("email not confirmed")) return "لم يتم تأكيد البريد الإلكتروني بعد، تحقق من بريدك";
   if (m.includes("rate limit")) return "عدد المحاولات كبير، حاول بعد قليل";
