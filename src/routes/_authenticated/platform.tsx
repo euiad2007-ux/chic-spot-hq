@@ -56,7 +56,7 @@ interface SalonRow {
   subscription_status: string | null;
   trial_ends_at: string | null;
   subscription_ends_at: string | null;
-  is_suspended: boolean | null;
+  is_suspended: boolean;
   admin_notes: string | null;
   created_at: string;
 }
