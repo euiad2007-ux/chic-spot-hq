@@ -93,8 +93,26 @@ function AuthPage() {
       toast.error(err instanceof Error ? err.message : "تعذّر إكمال العملية");
     } finally {
       setBusy(false);
+  }
+
+  async function onGoogle() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/auth",
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      toast.success("تم تسجيل الدخول");
+      await afterAuth();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
+    } finally {
+      setBusy(false);
     }
   }
+
 
   return (
     <main
