@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { num, str } from "@/lib/db/sync";
 import { hydrateSalonStore, type SalonState, type Service, type Staff } from "@/lib/salon-store";
 import { hydrateSiteSettings } from "@/lib/site-settings";
+import { resolveTenant } from "@/lib/tenant-domain";
+
 
 const emptyState = (services: Service[], staff: Staff[]): SalonState => ({
   services,
@@ -22,13 +24,21 @@ let done: Promise<void> | null = null;
 export function hydratePublicSite(): Promise<void> {
   if (done) return done;
   done = (async () => {
-    const { data: salon } = await supabase
-      .from("salons")
-      .select("id, name")
-      .eq("is_suspended", false)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    const tenant = await resolveTenant();
+    let salon: { id: string; name: string } | null = null;
+    if (tenant && !tenant.isSuspended) {
+      salon = { id: tenant.id, name: tenant.name };
+    } else if (!tenant) {
+      const { data } = await supabase
+        .from("salons")
+        .select("id, name")
+        .eq("is_suspended", false)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      salon = data ?? null;
+    }
+
     if (!salon) {
       hydrateSalonStore(emptyState([], []));
       hydrateSiteSettings(null);
@@ -64,11 +74,14 @@ export function hydratePublicSite(): Promise<void> {
 
     hydrateSalonStore(emptyState(services, staff));
     const siteDoc = settingsRes.data?.site;
-    hydrateSiteSettings(
+    const stored =
       siteDoc && typeof siteDoc === "object" && !Array.isArray(siteDoc)
-        ? { name: salon.name, ...(siteDoc as Record<string, unknown>) }
-        : { name: salon.name },
-    );
+        ? (siteDoc as Record<string, unknown>)
+        : {};
+    // The salon's own record wins over the template default branding name.
+    const salonName = typeof stored["salonName"] === "string" && stored["salonName"] ? stored["salonName"] : salon.name;
+    hydrateSiteSettings({ ...stored, salonName });
+
   })();
   return done;
 }

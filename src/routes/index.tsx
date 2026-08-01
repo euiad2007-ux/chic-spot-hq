@@ -13,6 +13,8 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
+import { resolveTenant } from "@/lib/tenant-domain";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,8 +52,19 @@ function Landing() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      const tenant = await resolveTenant();
       const { data } = await supabase.auth.getSession();
-      if (!data.session || cancelled) return;
+      if (cancelled) return;
+      if (!data.session) {
+        // Reached through a salon's own domain: show that salon's website,
+        // never the platform landing page.
+        if (tenant) {
+          const q = new URLSearchParams(window.location.search).get("tenant");
+          window.location.replace(q ? `/site?tenant=${encodeURIComponent(q)}` : "/site");
+        }
+        return;
+
+      }
       const account = await loadAccount();
       if (!account || cancelled) return;
       navigate({ to: homeForRole(account.role), replace: true });
@@ -60,6 +73,7 @@ function Landing() {
       cancelled = true;
     };
   }, [navigate]);
+
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
