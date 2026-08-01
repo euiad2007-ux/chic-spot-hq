@@ -17,6 +17,7 @@ import {
   Fingerprint,
   Wallet,
   Ticket,
+  Crown,
   LogOut,
   Menu,
   X,
