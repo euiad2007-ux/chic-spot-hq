@@ -42,8 +42,8 @@ function SpecialistPage() {
   const [tab, setTab] = useState<Tab>("today");
 
   useEffect(() => {
-    if (session === null) navigate({ to: "/login" });
-    else if (session && session.role !== "staff") navigate({ to: "/login" });
+    if (session === null) navigate({ to: "/auth" });
+    else if (session && session.role !== "staff") navigate({ to: "/auth" });
   }, [session, navigate]);
 
   const me = staff.find((s) => s.id === session?.id);

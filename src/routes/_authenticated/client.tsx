@@ -39,8 +39,8 @@ function ClientPage() {
   const [openBooking, setOpenBooking] = useState(false);
 
   useEffect(() => {
-    if (session === null) navigate({ to: "/login" });
-    else if (session && session.role !== "client") navigate({ to: "/login" });
+    if (session === null) navigate({ to: "/auth" });
+    else if (session && session.role !== "client") navigate({ to: "/auth" });
   }, [session, navigate]);
 
   const me = customers.find((c) => c.id === session?.id);
