@@ -1,5 +1,11 @@
-import { useSyncExternalStore } from "react";
+import { useAccount } from "@/hooks/use-account";
+import { signOutAccount } from "@/lib/account";
+import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Compatibility layer over the real Supabase-backed account.
+ * Roles are derived from the database (salon_members), never from localStorage.
+ */
 export type Role = "client" | "staff" | "owner";
 
 export interface Session {
@@ -8,56 +14,26 @@ export interface Session {
   name: string;
 }
 
-const KEY = "lamsa_session_v1";
-let session: Session | null = null;
-let initialized = false;
-let hydrated = false;
-const listeners = new Set<() => void>();
-
-function ensure() {
-  if (initialized || typeof window === "undefined") return;
-  initialized = true;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) session = JSON.parse(raw);
-  } catch {}
-}
-
-function emit() {
-  if (typeof window !== "undefined") {
-    if (session) localStorage.setItem(KEY, JSON.stringify(session));
-    else localStorage.removeItem(KEY);
+/** `undefined` while the account is loading, `null` when signed out. */
+export function useSession(): Session | null | undefined {
+  const { data, isLoading } = useAccount();
+  if (isLoading) return undefined;
+  if (!data) return null;
+  if (data.role === "client") {
+    return { role: "client", id: data.customerId ?? "", name: data.fullName };
   }
-  listeners.forEach((l) => l());
-}
-
-export function useSession(): Session | null {
-  return useSyncExternalStore(
-    (l) => {
-      ensure();
-      listeners.add(l);
-      if (!hydrated) {
-        hydrated = true;
-        queueMicrotask(() => listeners.forEach((x) => x()));
-      }
-      return () => listeners.delete(l);
-    },
-    () => (hydrated ? session : null),
-    () => null,
-  );
+  if (data.role === "staff") {
+    return { role: "staff", id: data.staffId ?? "", name: data.fullName };
+  }
+  return { role: "owner", id: data.userId, name: data.fullName };
 }
 
 export const auth = {
-  signIn(s: Session) {
-    session = s;
-    emit();
+  async signOut() {
+    await signOutAccount();
   },
-  signOut() {
-    session = null;
-    emit();
-  },
-  get current() {
-    ensure();
-    return session;
+  async currentUserId() {
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
   },
 };

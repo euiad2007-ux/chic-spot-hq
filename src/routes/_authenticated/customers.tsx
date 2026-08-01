@@ -14,7 +14,7 @@ import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 
 
-export const Route = createFileRoute("/customers")({
+export const Route = createFileRoute("/_authenticated/customers")({
   head: () => ({
     meta: [
       { title: "العملاء — لمسة" },

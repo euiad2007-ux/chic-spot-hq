@@ -10,7 +10,7 @@ import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins } fro
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/services")({
+export const Route = createFileRoute("/_authenticated/services")({
   head: () => ({
     meta: [
       { title: "الخدمات — لمسة" },

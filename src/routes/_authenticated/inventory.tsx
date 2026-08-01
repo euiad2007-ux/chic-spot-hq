@@ -9,7 +9,7 @@ import { Plus, Package, AlertTriangle, Trash2, Pencil, X, Minus, TrendingDown, S
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/inventory")({
+export const Route = createFileRoute("/_authenticated/inventory")({
   head: () => ({
     meta: [
       { title: "المخزون — لمسة" },

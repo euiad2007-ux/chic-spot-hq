@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { BookingStatus } from "@/lib/salon-store";
 
-export const Route = createFileRoute("/specialist")({
+export const Route = createFileRoute("/_authenticated/specialist")({
   head: () => ({
     meta: [
       { title: "لوحة الأخصائية — صالون لمسة" },
@@ -42,8 +42,8 @@ function SpecialistPage() {
   const [tab, setTab] = useState<Tab>("today");
 
   useEffect(() => {
-    if (session === null) navigate({ to: "/login" });
-    else if (session && session.role !== "staff") navigate({ to: "/login" });
+    if (session === null) navigate({ to: "/auth" });
+    else if (session && session.role !== "staff") navigate({ to: "/auth" });
   }, [session, navigate]);
 
   const me = staff.find((s) => s.id === session?.id);

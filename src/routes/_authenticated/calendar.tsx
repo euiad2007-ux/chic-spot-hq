@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { cn, fmtLongDay } from "@/lib/utils";
 
-export const Route = createFileRoute("/calendar")({
+export const Route = createFileRoute("/_authenticated/calendar")({
   head: () => ({
     meta: [
       { title: "التقويم — لمسة" },

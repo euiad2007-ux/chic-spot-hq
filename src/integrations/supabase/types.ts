@@ -35,15 +35,1563 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance: {
+        Row: {
+          branch_id: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          id: string
+          in_lat: number | null
+          in_lng: number | null
+          late_minutes: number
+          minutes: number
+          note: string | null
+          out_lat: number | null
+          out_lng: number | null
+          overtime_minutes: number
+          salon_id: string
+          staff_id: string
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          branch_id?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          in_lat?: number | null
+          in_lng?: number | null
+          late_minutes?: number
+          minutes?: number
+          note?: string | null
+          out_lat?: number | null
+          out_lng?: number | null
+          overtime_minutes?: number
+          salon_id: string
+          staff_id: string
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          branch_id?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          in_lat?: number | null
+          in_lng?: number | null
+          late_minutes?: number
+          minutes?: number
+          note?: string | null
+          out_lat?: number | null
+          out_lng?: number | null
+          overtime_minutes?: number
+          salon_id?: string
+          staff_id?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_log: {
+        Row: {
+          action: string
+          after: Json | null
+          before: Json | null
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: string
+          salon_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+          salon_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          salon_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_services: {
+        Row: {
+          booking_id: string
+          duration_min: number
+          id: string
+          price: number
+          queue_no: number | null
+          salon_id: string
+          service_id: string
+          sort_order: number
+          staff_id: string | null
+        }
+        Insert: {
+          booking_id: string
+          duration_min?: number
+          id?: string
+          price?: number
+          queue_no?: number | null
+          salon_id: string
+          service_id: string
+          sort_order?: number
+          staff_id?: string | null
+        }
+        Update: {
+          booking_id?: string
+          duration_min?: number
+          id?: string
+          price?: number
+          queue_no?: number | null
+          salon_id?: string
+          service_id?: string
+          sort_order?: number
+          staff_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_services_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_services_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_services_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          booking_date: string
+          branch_id: string | null
+          branch_no: number
+          code: string
+          coupon_code: string | null
+          coupon_discount: number
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          daily_no: number
+          discount: number
+          duration_min: number
+          global_no: number
+          hold_expires_at: string | null
+          id: string
+          notes: string | null
+          pay_status: Database["public"]["Enums"]["pay_status"]
+          payment_method: string | null
+          price: number
+          salon_id: string
+          staff_id: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+          wallet_approved: boolean
+          wallet_used: number
+        }
+        Insert: {
+          booking_date: string
+          branch_id?: string | null
+          branch_no?: number
+          code: string
+          coupon_code?: string | null
+          coupon_discount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          daily_no?: number
+          discount?: number
+          duration_min?: number
+          global_no?: number
+          hold_expires_at?: string | null
+          id?: string
+          notes?: string | null
+          pay_status?: Database["public"]["Enums"]["pay_status"]
+          payment_method?: string | null
+          price?: number
+          salon_id: string
+          staff_id?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+          wallet_approved?: boolean
+          wallet_used?: number
+        }
+        Update: {
+          booking_date?: string
+          branch_id?: string | null
+          branch_no?: number
+          code?: string
+          coupon_code?: string | null
+          coupon_discount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          daily_no?: number
+          discount?: number
+          duration_min?: number
+          global_no?: number
+          hold_expires_at?: string | null
+          id?: string
+          notes?: string | null
+          pay_status?: Database["public"]["Enums"]["pay_status"]
+          payment_method?: string | null
+          price?: number
+          salon_id?: string
+          staff_id?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+          wallet_approved?: boolean
+          wallet_used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      branches: {
+        Row: {
+          active: boolean
+          address: string | null
+          created_at: string
+          geofence_m: number
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          phone: string | null
+          salon_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          geofence_m?: number
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          phone?: string | null
+          salon_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          geofence_m?: number
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          phone?: string | null
+          salon_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_redemptions: {
+        Row: {
+          amount: number
+          coupon_id: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          invoice_id: string | null
+          salon_id: string
+        }
+        Insert: {
+          amount?: number
+          coupon_id: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          salon_id: string
+        }
+        Update: {
+          amount?: number
+          coupon_id?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          ends_at: string | null
+          id: string
+          kind: string
+          max_uses: number | null
+          salon_id: string
+          starts_at: string | null
+          updated_at: string
+          used_count: number
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          max_uses?: number | null
+          salon_id: string
+          starts_at?: string | null
+          updated_at?: string
+          used_count?: number
+          value?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          max_uses?: number | null
+          salon_id?: string
+          starts_at?: string | null
+          updated_at?: string
+          used_count?: number
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          created_at: string
+          email: string | null
+          gender: string | null
+          id: string
+          loyalty_points: number
+          name: string
+          notes: string | null
+          phone: string
+          referral_code: string | null
+          referred_by: string | null
+          salon_id: string
+          total_spent: number
+          updated_at: string
+          user_id: string | null
+          visits: number
+          wallet_balance: number
+          wallet_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          loyalty_points?: number
+          name: string
+          notes?: string | null
+          phone: string
+          referral_code?: string | null
+          referred_by?: string | null
+          salon_id: string
+          total_spent?: number
+          updated_at?: string
+          user_id?: string | null
+          visits?: number
+          wallet_balance?: number
+          wallet_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          loyalty_points?: number
+          name?: string
+          notes?: string | null
+          phone?: string
+          referral_code?: string | null
+          referred_by?: string | null
+          salon_id?: string
+          total_spent?: number
+          updated_at?: string
+          user_id?: string | null
+          visits?: number
+          wallet_balance?: number
+          wallet_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          branch_id: string | null
+          cost_per_unit: number
+          created_at: string
+          id: string
+          measure: string
+          min_stock: number
+          name: string
+          salon_id: string
+          size_per_unit: number
+          stock: number
+          supplier_id: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          measure?: string
+          min_stock?: number
+          name: string
+          salon_id: string
+          size_per_unit?: number
+          stock?: number
+          supplier_id?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          measure?: string
+          min_stock?: number
+          name?: string
+          salon_id?: string
+          size_per_unit?: number
+          stock?: number
+          supplier_id?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          is_refund: boolean
+          method: string
+          salon_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          is_refund?: boolean
+          method?: string
+          salon_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          is_refund?: boolean
+          method?: string
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          booking_id: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          discount: number
+          id: string
+          number: string
+          paid: number
+          refunded_amount: number
+          salon_id: string
+          seq: number
+          status: Database["public"]["Enums"]["pay_status"]
+          subtotal: number
+          total: number
+          updated_at: string
+          vat: number
+          void_reason: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          discount?: number
+          id?: string
+          number: string
+          paid?: number
+          refunded_amount?: number
+          salon_id: string
+          seq: number
+          status?: Database["public"]["Enums"]["pay_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vat?: number
+          void_reason?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          discount?: number
+          id?: string
+          number?: string
+          paid?: number
+          refunded_amount?: number
+          salon_id?: string
+          seq?: number
+          status?: Database["public"]["Enums"]["pay_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vat?: number
+          void_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaves: {
+        Row: {
+          created_at: string
+          days: number
+          from_date: string
+          id: string
+          kind: string
+          reason: string | null
+          salon_id: string
+          staff_id: string
+          status: string
+          to_date: string
+        }
+        Insert: {
+          created_at?: string
+          days?: number
+          from_date: string
+          id?: string
+          kind?: string
+          reason?: string | null
+          salon_id: string
+          staff_id: string
+          status?: string
+          to_date: string
+        }
+        Update: {
+          created_at?: string
+          days?: number
+          from_date?: string
+          id?: string
+          kind?: string
+          reason?: string | null
+          salon_id?: string
+          staff_id?: string
+          status?: string
+          to_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaves_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaves_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          invoice_id: string | null
+          points: number
+          reason: string | null
+          salon_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          invoice_id?: string | null
+          points: number
+          reason?: string | null
+          salon_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          invoice_id?: string | null
+          points?: number
+          reason?: string | null
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payslips: {
+        Row: {
+          allowances_amount: number
+          base_amount: number
+          bonus: number
+          commission_amount: number
+          created_at: string
+          created_by: string | null
+          deductions: number
+          id: string
+          net_amount: number
+          overtime_amount: number
+          overtime_minutes: number
+          paid_amount: number
+          period: string
+          salon_id: string
+          staff_id: string
+          status: string
+          updated_at: string
+          worked_minutes: number
+        }
+        Insert: {
+          allowances_amount?: number
+          base_amount?: number
+          bonus?: number
+          commission_amount?: number
+          created_at?: string
+          created_by?: string | null
+          deductions?: number
+          id?: string
+          net_amount?: number
+          overtime_amount?: number
+          overtime_minutes?: number
+          paid_amount?: number
+          period: string
+          salon_id: string
+          staff_id: string
+          status?: string
+          updated_at?: string
+          worked_minutes?: number
+        }
+        Update: {
+          allowances_amount?: number
+          base_amount?: number
+          bonus?: number
+          commission_amount?: number
+          created_at?: string
+          created_by?: string | null
+          deductions?: number
+          id?: string
+          net_amount?: number
+          overtime_amount?: number
+          overtime_minutes?: number
+          paid_amount?: number
+          period?: string
+          salon_id?: string
+          staff_id?: string
+          status?: string
+          updated_at?: string
+          worked_minutes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslips_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      salon_members: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          salon_id: string | null
+          user_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          salon_id?: string | null
+          user_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          salon_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_members_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_members_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salon_settings: {
+        Row: {
+          booking: Json
+          payroll: Json
+          rewards: Json
+          salon_id: string
+          site: Json
+          updated_at: string
+        }
+        Insert: {
+          booking?: Json
+          payroll?: Json
+          rewards?: Json
+          salon_id: string
+          site?: Json
+          updated_at?: string
+        }
+        Update: {
+          booking?: Json
+          payroll?: Json
+          rewards?: Json
+          salon_id?: string
+          site?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_settings_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: true
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salons: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          name: string
+          owner_id: string | null
+          phone: string | null
+          plan: string
+          slug: string
+          subscription_status: string
+          trial_ends_at: string | null
+          updated_at: string
+          vat_number: string | null
+          vat_pct: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          name: string
+          owner_id?: string | null
+          phone?: string | null
+          plan?: string
+          slug: string
+          subscription_status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          vat_number?: string | null
+          vat_pct?: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          name?: string
+          owner_id?: string | null
+          phone?: string | null
+          plan?: string
+          slug?: string
+          subscription_status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          vat_number?: string | null
+          vat_pct?: number
+        }
+        Relationships: []
+      }
+      service_materials: {
+        Row: {
+          id: string
+          item_id: string
+          qty: number
+          salon_id: string
+          service_id: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          qty?: number
+          salon_id: string
+          service_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          qty?: number
+          salon_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_materials_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_materials_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_materials_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_staff: {
+        Row: {
+          id: string
+          salon_id: string
+          service_id: string
+          staff_id: string
+        }
+        Insert: {
+          id?: string
+          salon_id: string
+          service_id: string
+          staff_id: string
+        }
+        Update: {
+          id?: string
+          salon_id?: string
+          service_id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_staff_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_staff_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_staff_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          active: boolean
+          category: string | null
+          cleanup_min: number
+          created_at: string
+          daily_capacity: number | null
+          duration_min: number
+          id: string
+          name: string
+          prep_min: number
+          price: number
+          salon_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          cleanup_min?: number
+          created_at?: string
+          daily_capacity?: number | null
+          duration_min?: number
+          id?: string
+          name: string
+          prep_min?: number
+          price?: number
+          salon_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          cleanup_min?: number
+          created_at?: string
+          daily_capacity?: number | null
+          duration_min?: number
+          id?: string
+          name?: string
+          prep_min?: number
+          price?: number
+          salon_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff: {
+        Row: {
+          active: boolean
+          address: string | null
+          allowances: Json
+          annual_leave_days: number
+          base_salary: number
+          birth_date: string | null
+          branch_id: string | null
+          commission_pct: number
+          contract_type: string | null
+          created_at: string
+          email: string | null
+          emergency_name: string | null
+          emergency_phone: string | null
+          gender: string | null
+          hire_date: string | null
+          id: string
+          job_title: string | null
+          name: string
+          national_id: string | null
+          nationality: string | null
+          phone: string | null
+          points: number
+          role_label: string | null
+          salon_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          allowances?: Json
+          annual_leave_days?: number
+          base_salary?: number
+          birth_date?: string | null
+          branch_id?: string | null
+          commission_pct?: number
+          contract_type?: string | null
+          created_at?: string
+          email?: string | null
+          emergency_name?: string | null
+          emergency_phone?: string | null
+          gender?: string | null
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          name: string
+          national_id?: string | null
+          nationality?: string | null
+          phone?: string | null
+          points?: number
+          role_label?: string | null
+          salon_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          allowances?: Json
+          annual_leave_days?: number
+          base_salary?: number
+          birth_date?: string | null
+          branch_id?: string | null
+          commission_pct?: number
+          contract_type?: string | null
+          created_at?: string
+          email?: string | null
+          emergency_name?: string | null
+          emergency_phone?: string | null
+          gender?: string | null
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          name?: string
+          national_id?: string | null
+          nationality?: string | null
+          phone?: string | null
+          points?: number
+          role_label?: string | null
+          salon_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          kind: Database["public"]["Enums"]["stock_move_type"]
+          qty: number
+          reason: string | null
+          salon_id: string
+          supplier_id: string | null
+          unit_cost: number | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id: string
+          kind: Database["public"]["Enums"]["stock_move_type"]
+          qty: number
+          reason?: string | null
+          salon_id: string
+          supplier_id?: string | null
+          unit_cost?: number | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          kind?: Database["public"]["Enums"]["stock_move_type"]
+          qty?: number
+          reason?: string | null
+          salon_id?: string
+          supplier_id?: string | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          salon_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          salon_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          salon_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          counterparty_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          invoice_id: string | null
+          kind: Database["public"]["Enums"]["ledger_kind"]
+          reason: string | null
+          salon_id: string
+        }
+        Insert: {
+          amount: number
+          counterparty_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          invoice_id?: string | null
+          kind: Database["public"]["Enums"]["ledger_kind"]
+          reason?: string | null
+          salon_id: string
+        }
+        Update: {
+          amount?: number
+          counterparty_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          invoice_id?: string | null
+          kind?: Database["public"]["Enums"]["ledger_kind"]
+          reason?: string | null
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_counterparty_id_fkey"
+            columns: ["counterparty_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_manage_salon: {
+        Args: { _salon: string; _uid: string }
+        Returns: boolean
+      }
+      create_salon: {
+        Args: { _name: string; _phone?: string; _slug: string }
+        Returns: string
+      }
+      is_platform_owner: { Args: { _uid: string }; Returns: boolean }
+      is_salon_member: {
+        Args: { _salon: string; _uid: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "platform_owner"
+        | "salon_owner"
+        | "branch_manager"
+        | "staff"
+        | "client"
+      booking_status:
+        | "new"
+        | "confirmed"
+        | "checked_in"
+        | "in_progress"
+        | "completed"
+        | "no_show"
+        | "cancelled"
+      ledger_kind:
+        | "topup"
+        | "spend"
+        | "refund"
+        | "transfer_in"
+        | "transfer_out"
+        | "referral"
+        | "adjust"
+      pay_status: "unpaid" | "partial" | "paid" | "refunded" | "void"
+      stock_move_type: "purchase" | "consume" | "adjust" | "waste" | "return"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -170,6 +1718,34 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "platform_owner",
+        "salon_owner",
+        "branch_manager",
+        "staff",
+        "client",
+      ],
+      booking_status: [
+        "new",
+        "confirmed",
+        "checked_in",
+        "in_progress",
+        "completed",
+        "no_show",
+        "cancelled",
+      ],
+      ledger_kind: [
+        "topup",
+        "spend",
+        "refund",
+        "transfer_in",
+        "transfer_out",
+        "referral",
+        "adjust",
+      ],
+      pay_status: ["unpaid", "partial", "paid", "refunded", "void"],
+      stock_move_type: ["purchase", "consume", "adjust", "waste", "return"],
+    },
   },
 } as const

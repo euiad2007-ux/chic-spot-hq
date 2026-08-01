@@ -82,10 +82,10 @@ function SitePage() {
             <a href={waHref} target="_blank" rel="noreferrer" className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-success/40 text-success text-sm hover:bg-success/10">
               <MessageCircle className="size-4" /> واتساب
             </a>
-            <Link to="/login" className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted">
+            <Link to="/auth" className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted">
               <LogIn className="size-4" /> دخول
             </Link>
-            <Link to="/login" className="inline-flex items-center gap-2 h-10 px-5 rounded-lg text-white text-sm font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }}>
+            <Link to="/auth" className="inline-flex items-center gap-2 h-10 px-5 rounded-lg text-white text-sm font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }}>
               <CalendarDays className="size-4" /> احجزي
             </Link>
           </div>
@@ -134,7 +134,7 @@ function SitePage() {
               احجزي خدمات الشعر والمكياج والعناية بالبشرة والأظافر في دقائق. أخصائيات معتمدات وأجواء راقية بانتظارك.
             </p>
             <div className="mt-8 flex items-center justify-center md:justify-start gap-3 flex-wrap">
-              <Link to="/login" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg text-white font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: showGlow ? `0 20px 60px -20px ${site.primary}80` : undefined }}>
+              <Link to="/auth" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg text-white font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: showGlow ? `0 20px 60px -20px ${site.primary}80` : undefined }}>
                 احجزي موعد
               </Link>
               <a href="#services" className="inline-flex items-center gap-2 h-12 px-7 rounded-lg border border-border font-semibold hover:bg-muted">
@@ -225,7 +225,7 @@ function SitePage() {
                         {formatSAR(s.price)}
                       </div>
                     </div>
-                    <Link to="/login" className="mt-4 w-full inline-flex items-center justify-center h-9 rounded-lg bg-muted/40 border border-border text-xs font-semibold hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition">
+                    <Link to="/auth" className="mt-4 w-full inline-flex items-center justify-center h-9 rounded-lg bg-muted/40 border border-border text-xs font-semibold hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition">
                       احجزي الآن
                     </Link>
                   </div>
