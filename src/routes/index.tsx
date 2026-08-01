@@ -58,8 +58,12 @@ function Landing() {
       if (!data.session) {
         // Reached through a salon's own domain: show that salon's website,
         // never the platform landing page.
-        if (tenant) navigate({ to: "/site", replace: true });
+        if (tenant) {
+          const q = new URLSearchParams(window.location.search).get("tenant");
+          window.location.replace(q ? `/site?tenant=${encodeURIComponent(q)}` : "/site");
+        }
         return;
+
       }
       const account = await loadAccount();
       if (!account || cancelled) return;
