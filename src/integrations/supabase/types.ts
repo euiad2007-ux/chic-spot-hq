@@ -975,6 +975,51 @@ export type Database = {
           },
         ]
       }
+      platform_plans: {
+        Row: {
+          code: string
+          created_at: string
+          features: string[]
+          id: string
+          is_active: boolean
+          max_branches: number
+          max_services: number
+          max_staff: number
+          name: string
+          price_monthly: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          features?: string[]
+          id?: string
+          is_active?: boolean
+          max_branches?: number
+          max_services?: number
+          max_staff?: number
+          name: string
+          price_monthly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          features?: string[]
+          id?: string
+          is_active?: boolean
+          max_branches?: number
+          max_services?: number
+          max_staff?: number
+          name?: string
+          price_monthly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1081,14 +1126,17 @@ export type Database = {
       }
       salons: {
         Row: {
+          admin_notes: string | null
           created_at: string
           currency: string
           id: string
+          is_suspended: boolean
           name: string
           owner_id: string | null
           phone: string | null
           plan: string
           slug: string
+          subscription_ends_at: string | null
           subscription_status: string
           trial_ends_at: string | null
           updated_at: string
@@ -1096,14 +1144,17 @@ export type Database = {
           vat_pct: number
         }
         Insert: {
+          admin_notes?: string | null
           created_at?: string
           currency?: string
           id?: string
+          is_suspended?: boolean
           name: string
           owner_id?: string | null
           phone?: string | null
           plan?: string
           slug: string
+          subscription_ends_at?: string | null
           subscription_status?: string
           trial_ends_at?: string | null
           updated_at?: string
@@ -1111,14 +1162,17 @@ export type Database = {
           vat_pct?: number
         }
         Update: {
+          admin_notes?: string | null
           created_at?: string
           currency?: string
           id?: string
+          is_suspended?: boolean
           name?: string
           owner_id?: string | null
           phone?: string | null
           plan?: string
           slug?: string
+          subscription_ends_at?: string | null
           subscription_status?: string
           trial_ends_at?: string | null
           updated_at?: string
@@ -1557,10 +1611,12 @@ export type Database = {
         Args: { _salon: string; _uid: string }
         Returns: boolean
       }
+      claim_platform_owner: { Args: never; Returns: boolean }
       create_salon: {
         Args: { _name: string; _phone?: string; _slug: string }
         Returns: string
       }
+      grant_platform_owner: { Args: { _email: string }; Returns: boolean }
       is_platform_owner: { Args: { _uid: string }; Returns: boolean }
       is_salon_member: {
         Args: { _salon: string; _uid: string }

@@ -17,6 +17,7 @@ import {
   Fingerprint,
   Wallet,
   Ticket,
+  Crown,
   LogOut,
   Menu,
   X,
@@ -26,7 +27,14 @@ import { cn } from "@/lib/utils";
 import { useAccount } from "@/hooks/use-account";
 import { canManage, signOutAccount, ROLE_LABEL } from "@/lib/account";
 
-const nav = [
+const nav: {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  manager: boolean;
+  platform?: boolean;
+}[] = [
+  { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true },
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true },
   { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false },
   { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false },
@@ -39,7 +47,7 @@ const nav = [
   { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true },
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true },
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true },
-] as const;
+];
 
 export function AppShell({
   children,
@@ -59,7 +67,9 @@ export function AppShell({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const manager = canManage(account?.role);
-  const items = nav.filter((n) => (n.manager ? manager : true));
+  const items = nav.filter((n) =>
+    n.platform ? account?.role === "platform_owner" : n.manager ? manager : true,
+  );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
   async function handleSignOut() {
