@@ -47,7 +47,7 @@ const nav: {
   { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true },
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true },
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true },
-] as const;
+];
 
 export function AppShell({
   children,
