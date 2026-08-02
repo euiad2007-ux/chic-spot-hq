@@ -162,7 +162,7 @@ export async function openShift(salonId: string, branchId: string | null, openin
     _salon: salonId,
     _branch: branchId,
     _opening_float: openingFloat,
-  });
+  } as never);
   if (error) throw new Error(error.message);
   return data as string;
 }
