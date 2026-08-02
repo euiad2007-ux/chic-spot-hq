@@ -181,7 +181,7 @@ export async function closeShift(shiftId: string, counted: number, note?: string
     _shift: shiftId,
     _counted: counted,
     _note: note ?? null,
-  });
+  } as never);
   if (error) throw new Error(error.message);
   return data as unknown as ShiftClosing;
 }
