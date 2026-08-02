@@ -277,11 +277,11 @@ export async function posCheckout(args: {
     _salon: args.salonId,
     _branch: args.branchId,
     _customer: args.customerId,
-    _items: args.items as never,
+    _items: args.items,
     _method: args.method,
     _discount: args.discount,
     _shift: args.shiftId,
-  });
+  } as never);
   if (error) throw new Error(error.message);
   return data as unknown as CheckoutResult;
 }
