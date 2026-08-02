@@ -374,6 +374,84 @@ export type Database = {
           },
         ]
       }
+      cash_shifts: {
+        Row: {
+          branch_id: string | null
+          card_sales: number
+          cash_expenses: number
+          cash_sales: number
+          closed_at: string | null
+          closed_by: string | null
+          counted_cash: number | null
+          created_at: string
+          difference: number | null
+          expected_cash: number | null
+          id: string
+          note: string | null
+          opened_at: string
+          opened_by: string | null
+          opening_float: number
+          salon_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          card_sales?: number
+          cash_expenses?: number
+          cash_sales?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          counted_cash?: number | null
+          created_at?: string
+          difference?: number | null
+          expected_cash?: number | null
+          id?: string
+          note?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          opening_float?: number
+          salon_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          card_sales?: number
+          cash_expenses?: number
+          cash_sales?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          counted_cash?: number | null
+          created_at?: string
+          difference?: number | null
+          expected_cash?: number | null
+          id?: string
+          note?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          opening_float?: number
+          salon_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_shifts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_shifts_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_redemptions: {
         Row: {
           amount: number
@@ -566,17 +644,90 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          method: string
+          note: string | null
+          salon_id: string
+          shift_id: string | null
+          spent_on: string
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount?: number
+          branch_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          method?: string
+          note?: string | null
+          salon_id: string
+          shift_id?: string | null
+          spent_on?: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          method?: string
+          note?: string | null
+          salon_id?: string
+          shift_id?: string | null
+          spent_on?: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "cash_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           branch_id: string | null
           cost_per_unit: number
           created_at: string
           id: string
+          is_for_sale: boolean
           measure: string
           min_stock: number
           name: string
+          sale_price: number
           salon_id: string
           size_per_unit: number
+          sku: string | null
           stock: number
           supplier_id: string | null
           unit: string
@@ -587,11 +738,14 @@ export type Database = {
           cost_per_unit?: number
           created_at?: string
           id?: string
+          is_for_sale?: boolean
           measure?: string
           min_stock?: number
           name: string
+          sale_price?: number
           salon_id: string
           size_per_unit?: number
+          sku?: string | null
           stock?: number
           supplier_id?: string | null
           unit?: string
@@ -602,11 +756,14 @@ export type Database = {
           cost_per_unit?: number
           created_at?: string
           id?: string
+          is_for_sale?: boolean
           measure?: string
           min_stock?: number
           name?: string
+          sale_price?: number
           salon_id?: string
           size_per_unit?: number
+          sku?: string | null
           stock?: number
           supplier_id?: string | null
           unit?: string
@@ -636,6 +793,60 @@ export type Database = {
           },
         ]
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          id: string
+          invoice_id: string
+          kind: string
+          name: string
+          qty: number
+          ref_id: string | null
+          salon_id: string
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invoice_id: string
+          kind: string
+          name: string
+          qty?: number
+          ref_id?: string | null
+          salon_id: string
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          kind?: string
+          name?: string
+          qty?: number
+          ref_id?: string | null
+          salon_id?: string
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_payments: {
         Row: {
           amount: number
@@ -646,6 +857,7 @@ export type Database = {
           is_refund: boolean
           method: string
           salon_id: string
+          shift_id: string | null
         }
         Insert: {
           amount: number
@@ -656,6 +868,7 @@ export type Database = {
           is_refund?: boolean
           method?: string
           salon_id: string
+          shift_id?: string | null
         }
         Update: {
           amount?: number
@@ -666,6 +879,7 @@ export type Database = {
           is_refund?: boolean
           method?: string
           salon_id?: string
+          shift_id?: string | null
         }
         Relationships: [
           {
@@ -680,6 +894,13 @@ export type Database = {
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "cash_shifts"
             referencedColumns: ["id"]
           },
         ]
@@ -699,6 +920,8 @@ export type Database = {
           refunded_amount: number
           salon_id: string
           seq: number
+          shift_id: string | null
+          source: string
           status: Database["public"]["Enums"]["pay_status"]
           subtotal: number
           total: number
@@ -720,6 +943,8 @@ export type Database = {
           refunded_amount?: number
           salon_id: string
           seq: number
+          shift_id?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["pay_status"]
           subtotal?: number
           total?: number
@@ -741,6 +966,8 @@ export type Database = {
           refunded_amount?: number
           salon_id?: string
           seq?: number
+          shift_id?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["pay_status"]
           subtotal?: number
           total?: number
@@ -775,6 +1002,13 @@ export type Database = {
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "cash_shifts"
             referencedColumns: ["id"]
           },
         ]
@@ -1621,6 +1855,10 @@ export type Database = {
         Returns: boolean
       }
       claim_platform_owner: { Args: never; Returns: boolean }
+      close_shift: {
+        Args: { _counted: number; _note?: string; _shift: string }
+        Returns: Json
+      }
       create_salon: {
         Args: { _name: string; _phone?: string; _slug: string }
         Returns: string
@@ -1635,6 +1873,22 @@ export type Database = {
       is_salon_member: {
         Args: { _salon: string; _uid: string }
         Returns: boolean
+      }
+      open_shift: {
+        Args: { _branch: string; _opening_float?: number; _salon: string }
+        Returns: string
+      }
+      pos_checkout: {
+        Args: {
+          _branch: string
+          _customer: string
+          _discount?: number
+          _items: Json
+          _method?: string
+          _salon: string
+          _shift?: string
+        }
+        Returns: Json
       }
       public_salon_team: {
         Args: { _salon: string }
