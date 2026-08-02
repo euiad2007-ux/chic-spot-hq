@@ -6,6 +6,7 @@ import { Sparkles, Package, Trash2, Plus, Minus, ShoppingCart, Receipt, Lock } f
 
 import { AppShell } from "@/components/salon/app-shell";
 import { useAccount } from "@/hooks/use-account";
+import { supabase } from "@/integrations/supabase/client";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import {
   listProducts,
@@ -74,7 +75,15 @@ function PosPage() {
     [shifts.data, activeBranch],
   );
 
-  const vatPct = useSalon((s) => s.settings.vatPct ?? 15);
+  const vatQuery = useQuery({
+    queryKey: ["salon-vat", salonId],
+    queryFn: async () => {
+      const { data } = await supabase.from("salons").select("vat_pct").eq("id", salonId!).maybeSingle();
+      return Number(data?.vat_pct ?? 15);
+    },
+    enabled: !!salonId,
+  });
+  const vatPct = vatQuery.data ?? 15;
   const subtotal = cart.reduce((a, l) => a + l.qty * l.unit_price, 0);
   const safeDiscount = Math.min(Math.max(discount, 0), subtotal);
   const vat = Math.round((subtotal - safeDiscount) * (vatPct / 100) * 100) / 100;
