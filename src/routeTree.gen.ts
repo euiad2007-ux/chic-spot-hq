@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
+import { Route as AuthenticatedStocktakeRouteImport } from './routes/_authenticated/stocktake'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedSpecialistRouteImport } from './routes/_authenticated/specialist'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -69,6 +70,11 @@ const AuthenticatedSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStocktakeRoute = AuthenticatedStocktakeRouteImport.update({
+  id: '/stocktake',
+  path: '/stocktake',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/specialist': typeof AuthenticatedSpecialistRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
 }
 export interface FileRoutesByTo {
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/specialist': typeof AuthenticatedSpecialistRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
 }
 export interface FileRoutesById {
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/specialist': typeof AuthenticatedSpecialistRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
+  '/_authenticated/stocktake': typeof AuthenticatedStocktakeRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
 }
 export interface FileRouteTypes {
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/specialist'
     | '/staff'
+    | '/stocktake'
     | '/subscription'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/specialist'
     | '/staff'
+    | '/stocktake'
     | '/subscription'
   id:
     | '__root__'
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/specialist'
     | '/_authenticated/staff'
+    | '/_authenticated/stocktake'
     | '/_authenticated/subscription'
   fileRoutesById: FileRoutesById
 }
@@ -423,6 +435,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof AuthenticatedSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stocktake': {
+      id: '/_authenticated/stocktake'
+      path: '/stocktake'
+      fullPath: '/stocktake'
+      preLoaderRoute: typeof AuthenticatedStocktakeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/staff': {
@@ -613,6 +632,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSpecialistRoute: typeof AuthenticatedSpecialistRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
+  AuthenticatedStocktakeRoute: typeof AuthenticatedStocktakeRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
 }
 
@@ -640,6 +660,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSpecialistRoute: AuthenticatedSpecialistRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
+  AuthenticatedStocktakeRoute: AuthenticatedStocktakeRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
 }
 
