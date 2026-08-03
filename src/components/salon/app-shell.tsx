@@ -27,6 +27,8 @@ import {
   History,
   Menu,
   X,
+  ClipboardCheck,
+  Calculator,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
