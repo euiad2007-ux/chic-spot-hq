@@ -29,7 +29,6 @@ import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
-import { Route as AuthenticatedFinancialsRouteImport } from './routes/_authenticated/financials'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
@@ -41,10 +40,11 @@ import { Route as AuthenticatedBranchesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedBookingSettingsRouteImport } from './routes/_authenticated/booking-settings'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
-import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenticated/activity-log'
-import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
-import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
+import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
+import { Route as AuthenticatedAccountingFinancialsRouteImport } from './routes/_authenticated/accounting.financials'
+import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
+import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
@@ -146,11 +146,6 @@ const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFinancialsRoute = AuthenticatedFinancialsRouteImport.update({
-  id: '/financials',
-  path: '/financials',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedExpensesRoute = AuthenticatedExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
@@ -207,37 +202,43 @@ const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
-  id: '/assets',
-  path: '/assets',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedActivityLogRoute =
   AuthenticatedActivityLogRouteImport.update({
     id: '/activity-log',
     path: '/activity-log',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
-  id: '/accounts',
-  path: '/accounts',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAccountingRoute = AuthenticatedAccountingRouteImport.update({
-  id: '/accounting',
-  path: '/accounting',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedAccountingVatRoute =
+  AuthenticatedAccountingVatRouteImport.update({
+    id: '/accounting/vat',
+    path: '/accounting/vat',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountingFinancialsRoute =
+  AuthenticatedAccountingFinancialsRouteImport.update({
+    id: '/accounting/financials',
+    path: '/accounting/financials',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountingAssetsRoute =
+  AuthenticatedAccountingAssetsRouteImport.update({
+    id: '/accounting/assets',
+    path: '/accounting/assets',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountingAccountsRoute =
+  AuthenticatedAccountingAccountsRouteImport.update({
+    id: '/accounting/accounts',
+    path: '/accounting/accounts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
-  '/accounting': typeof AuthenticatedAccountingRoute
-  '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
-  '/assets': typeof AuthenticatedAssetsRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -249,7 +250,6 @@ export interface FileRoutesByFullPath {
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
-  '/financials': typeof AuthenticatedFinancialsRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -265,16 +265,17 @@ export interface FileRoutesByFullPath {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
+  '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/accounting/vat': typeof AuthenticatedAccountingVatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
-  '/accounting': typeof AuthenticatedAccountingRoute
-  '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
-  '/assets': typeof AuthenticatedAssetsRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -286,7 +287,6 @@ export interface FileRoutesByTo {
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
-  '/financials': typeof AuthenticatedFinancialsRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -302,6 +302,10 @@ export interface FileRoutesByTo {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
+  '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/accounting/vat': typeof AuthenticatedAccountingVatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -310,10 +314,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
-  '/_authenticated/accounting': typeof AuthenticatedAccountingRoute
-  '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
   '/_authenticated/activity-log': typeof AuthenticatedActivityLogRoute
-  '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
@@ -325,7 +326,6 @@ export interface FileRoutesById {
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
-  '/_authenticated/financials': typeof AuthenticatedFinancialsRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -341,6 +341,10 @@ export interface FileRoutesById {
   '/_authenticated/stocktake': typeof AuthenticatedStocktakeRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
+  '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/_authenticated/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -349,10 +353,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
-    | '/accounting'
-    | '/accounts'
     | '/activity-log'
-    | '/assets'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
@@ -364,7 +365,6 @@ export interface FileRouteTypes {
     | '/customers'
     | '/dashboard'
     | '/expenses'
-    | '/financials'
     | '/inventory'
     | '/invoices'
     | '/onboarding'
@@ -380,16 +380,17 @@ export interface FileRouteTypes {
     | '/stocktake'
     | '/subscription'
     | '/users'
+    | '/accounting/accounts'
+    | '/accounting/assets'
+    | '/accounting/financials'
+    | '/accounting/vat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/no-access'
     | '/site'
-    | '/accounting'
-    | '/accounts'
     | '/activity-log'
-    | '/assets'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
@@ -401,7 +402,6 @@ export interface FileRouteTypes {
     | '/customers'
     | '/dashboard'
     | '/expenses'
-    | '/financials'
     | '/inventory'
     | '/invoices'
     | '/onboarding'
@@ -417,6 +417,10 @@ export interface FileRouteTypes {
     | '/stocktake'
     | '/subscription'
     | '/users'
+    | '/accounting/accounts'
+    | '/accounting/assets'
+    | '/accounting/financials'
+    | '/accounting/vat'
   id:
     | '__root__'
     | '/'
@@ -424,10 +428,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
-    | '/_authenticated/accounting'
-    | '/_authenticated/accounts'
     | '/_authenticated/activity-log'
-    | '/_authenticated/assets'
     | '/_authenticated/attendance'
     | '/_authenticated/booking-settings'
     | '/_authenticated/bookings'
@@ -439,7 +440,6 @@ export interface FileRouteTypes {
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
     | '/_authenticated/expenses'
-    | '/_authenticated/financials'
     | '/_authenticated/inventory'
     | '/_authenticated/invoices'
     | '/_authenticated/onboarding'
@@ -455,6 +455,10 @@ export interface FileRouteTypes {
     | '/_authenticated/stocktake'
     | '/_authenticated/subscription'
     | '/_authenticated/users'
+    | '/_authenticated/accounting/accounts'
+    | '/_authenticated/accounting/assets'
+    | '/_authenticated/accounting/financials'
+    | '/_authenticated/accounting/vat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -607,13 +611,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/financials': {
-      id: '/_authenticated/financials'
-      path: '/financials'
-      fullPath: '/financials'
-      preLoaderRoute: typeof AuthenticatedFinancialsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/expenses': {
       id: '/_authenticated/expenses'
       path: '/expenses'
@@ -691,13 +688,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/assets': {
-      id: '/_authenticated/assets'
-      path: '/assets'
-      fullPath: '/assets'
-      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/activity-log': {
       id: '/_authenticated/activity-log'
       path: '/activity-log'
@@ -705,28 +695,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActivityLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/accounts': {
-      id: '/_authenticated/accounts'
-      path: '/accounts'
-      fullPath: '/accounts'
-      preLoaderRoute: typeof AuthenticatedAccountsRouteImport
+    '/_authenticated/accounting/vat': {
+      id: '/_authenticated/accounting/vat'
+      path: '/accounting/vat'
+      fullPath: '/accounting/vat'
+      preLoaderRoute: typeof AuthenticatedAccountingVatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/accounting': {
-      id: '/_authenticated/accounting'
-      path: '/accounting'
-      fullPath: '/accounting'
-      preLoaderRoute: typeof AuthenticatedAccountingRouteImport
+    '/_authenticated/accounting/financials': {
+      id: '/_authenticated/accounting/financials'
+      path: '/accounting/financials'
+      fullPath: '/accounting/financials'
+      preLoaderRoute: typeof AuthenticatedAccountingFinancialsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/accounting/assets': {
+      id: '/_authenticated/accounting/assets'
+      path: '/accounting/assets'
+      fullPath: '/accounting/assets'
+      preLoaderRoute: typeof AuthenticatedAccountingAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/accounting/accounts': {
+      id: '/_authenticated/accounting/accounts'
+      path: '/accounting/accounts'
+      fullPath: '/accounting/accounts'
+      preLoaderRoute: typeof AuthenticatedAccountingAccountsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRoute
-  AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRoute
   AuthenticatedActivityLogRoute: typeof AuthenticatedActivityLogRoute
-  AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBookingSettingsRoute: typeof AuthenticatedBookingSettingsRoute
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
@@ -738,7 +739,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
-  AuthenticatedFinancialsRoute: typeof AuthenticatedFinancialsRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -754,13 +754,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStocktakeRoute: typeof AuthenticatedStocktakeRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedAccountingAccountsRoute: typeof AuthenticatedAccountingAccountsRoute
+  AuthenticatedAccountingAssetsRoute: typeof AuthenticatedAccountingAssetsRoute
+  AuthenticatedAccountingFinancialsRoute: typeof AuthenticatedAccountingFinancialsRoute
+  AuthenticatedAccountingVatRoute: typeof AuthenticatedAccountingVatRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAccountingRoute: AuthenticatedAccountingRoute,
-  AuthenticatedAccountsRoute: AuthenticatedAccountsRoute,
   AuthenticatedActivityLogRoute: AuthenticatedActivityLogRoute,
-  AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBookingSettingsRoute: AuthenticatedBookingSettingsRoute,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
@@ -772,7 +773,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
-  AuthenticatedFinancialsRoute: AuthenticatedFinancialsRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
@@ -788,6 +788,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStocktakeRoute: AuthenticatedStocktakeRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedAccountingAccountsRoute: AuthenticatedAccountingAccountsRoute,
+  AuthenticatedAccountingAssetsRoute: AuthenticatedAccountingAssetsRoute,
+  AuthenticatedAccountingFinancialsRoute:
+    AuthenticatedAccountingFinancialsRoute,
+  AuthenticatedAccountingVatRoute: AuthenticatedAccountingVatRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
