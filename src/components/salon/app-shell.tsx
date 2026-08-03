@@ -22,6 +22,9 @@ import {
   ShoppingCart,
   Banknote,
   TrendingDown,
+  Building2,
+  BarChart3,
+  History,
   Menu,
   X,
 } from "lucide-react";
