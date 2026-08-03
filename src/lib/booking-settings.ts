@@ -66,6 +66,10 @@ function defaults(): BookingSettings {
     maxDailyBookings: 0,
     foundingDate: new Date().toISOString().slice(0, 10),
     holdGraceMin: 5,
+    cancelWindowMin: 60,
+    restockOnCancel: true,
+    maxAdvanceDays: 60,
+    allowSameStaffBackToBack: false,
   };
 }
 
