@@ -30,6 +30,10 @@ import {
   ClipboardCheck,
   Calculator,
   PackageSearch,
+  BookOpen,
+  Building,
+  LineChart,
+  ShieldCheck,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -48,6 +52,10 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/stocktake", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/stock-log", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/accounting", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/accounts", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/financials", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/assets", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/users", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/branches", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/reports", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
@@ -92,6 +100,9 @@ const nav: {
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory" },
   { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory" },
   { to: "/accounting", label: "المحاسبة الضريبية", icon: Calculator, manager: true },
+  { to: "/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true },
+  { to: "/financials", label: "التقارير المالية", icon: LineChart, manager: true },
+  { to: "/assets", label: "الأصول الثابتة", icon: Building, manager: true },
   { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff" },
   { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll" },
   { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance" },
@@ -102,6 +113,7 @@ const nav: {
   { to: "/branches", label: "الفروع", icon: Building2, manager: true },
   { to: "/reports", label: "التقارير", icon: BarChart3, manager: true },
   { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true },
+  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true },
   { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true },
 ];
 
