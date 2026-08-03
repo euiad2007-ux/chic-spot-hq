@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 /** Sub-navigation shared by every page inside the accounting section. */
-const LINKS = [
+const LINKS: { to: string; label: string; icon: typeof BookOpen; exact?: boolean }[] = [
   { to: "/accounting", label: "لوحة المحاسبة", icon: LayoutDashboard, exact: true },
   { to: "/accounting/accounts", label: "دليل الحسابات", icon: BookOpen },
   { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen },
@@ -18,7 +18,7 @@ const LINKS = [
   { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart },
   { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Calculator },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building },
-] as const;
+];
 
 export function AccountingNav() {
   return (
@@ -28,7 +28,7 @@ export function AccountingNav() {
         return (
           <Link
             key={l.to}
-            to={l.to}
+            to={l.to as never}
             activeOptions={{ exact: l.exact ?? false }}
             className="h-10 px-3 rounded-xl border border-transparent text-sm font-bold text-muted-foreground inline-flex items-center gap-2 hover:bg-muted"
             activeProps={{
