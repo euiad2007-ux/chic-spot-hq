@@ -41,6 +41,7 @@ import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBookingSettingsRouteImport } from './routes/_authenticated/booking-settings'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenticated/activity-log'
+import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
 import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
 import { Route as AuthenticatedAccountingFinancialsRouteImport } from './routes/_authenticated/accounting.financials'
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
@@ -208,29 +209,34 @@ const AuthenticatedActivityLogRoute =
     path: '/activity-log',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAccountingRoute = AuthenticatedAccountingRouteImport.update({
+  id: '/accounting',
+  path: '/accounting',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAccountingVatRoute =
   AuthenticatedAccountingVatRouteImport.update({
-    id: '/accounting/vat',
-    path: '/accounting/vat',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/vat',
+    path: '/vat',
+    getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
 const AuthenticatedAccountingFinancialsRoute =
   AuthenticatedAccountingFinancialsRouteImport.update({
-    id: '/accounting/financials',
-    path: '/accounting/financials',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/financials',
+    path: '/financials',
+    getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
 const AuthenticatedAccountingAssetsRoute =
   AuthenticatedAccountingAssetsRouteImport.update({
-    id: '/accounting/assets',
-    path: '/accounting/assets',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
 const AuthenticatedAccountingAccountsRoute =
   AuthenticatedAccountingAccountsRouteImport.update({
-    id: '/accounting/accounts',
-    path: '/accounting/accounts',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/accounts',
+    path: '/accounts',
+    getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/activity-log': typeof AuthenticatedActivityLogRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/activity-log': typeof AuthenticatedActivityLogRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
@@ -314,6 +322,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/_authenticated/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/_authenticated/activity-log': typeof AuthenticatedActivityLogRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/booking-settings': typeof AuthenticatedBookingSettingsRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/accounting'
     | '/activity-log'
     | '/attendance'
     | '/booking-settings'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/accounting'
     | '/activity-log'
     | '/attendance'
     | '/booking-settings'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/_authenticated/accounting'
     | '/_authenticated/activity-log'
     | '/_authenticated/attendance'
     | '/_authenticated/booking-settings'
@@ -695,38 +707,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActivityLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/accounting': {
+      id: '/_authenticated/accounting'
+      path: '/accounting'
+      fullPath: '/accounting'
+      preLoaderRoute: typeof AuthenticatedAccountingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/accounting/vat': {
       id: '/_authenticated/accounting/vat'
-      path: '/accounting/vat'
+      path: '/vat'
       fullPath: '/accounting/vat'
       preLoaderRoute: typeof AuthenticatedAccountingVatRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAccountingRoute
     }
     '/_authenticated/accounting/financials': {
       id: '/_authenticated/accounting/financials'
-      path: '/accounting/financials'
+      path: '/financials'
       fullPath: '/accounting/financials'
       preLoaderRoute: typeof AuthenticatedAccountingFinancialsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAccountingRoute
     }
     '/_authenticated/accounting/assets': {
       id: '/_authenticated/accounting/assets'
-      path: '/accounting/assets'
+      path: '/assets'
       fullPath: '/accounting/assets'
       preLoaderRoute: typeof AuthenticatedAccountingAssetsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAccountingRoute
     }
     '/_authenticated/accounting/accounts': {
       id: '/_authenticated/accounting/accounts'
-      path: '/accounting/accounts'
+      path: '/accounts'
       fullPath: '/accounting/accounts'
       preLoaderRoute: typeof AuthenticatedAccountingAccountsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAccountingRoute
     }
   }
 }
 
+interface AuthenticatedAccountingRouteChildren {
+  AuthenticatedAccountingAccountsRoute: typeof AuthenticatedAccountingAccountsRoute
+  AuthenticatedAccountingAssetsRoute: typeof AuthenticatedAccountingAssetsRoute
+  AuthenticatedAccountingFinancialsRoute: typeof AuthenticatedAccountingFinancialsRoute
+  AuthenticatedAccountingVatRoute: typeof AuthenticatedAccountingVatRoute
+}
+
+const AuthenticatedAccountingRouteChildren: AuthenticatedAccountingRouteChildren =
+  {
+    AuthenticatedAccountingAccountsRoute: AuthenticatedAccountingAccountsRoute,
+    AuthenticatedAccountingAssetsRoute: AuthenticatedAccountingAssetsRoute,
+    AuthenticatedAccountingFinancialsRoute:
+      AuthenticatedAccountingFinancialsRoute,
+    AuthenticatedAccountingVatRoute: AuthenticatedAccountingVatRoute,
+  }
+
+const AuthenticatedAccountingRouteWithChildren =
+  AuthenticatedAccountingRoute._addFileChildren(
+    AuthenticatedAccountingRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRouteWithChildren
   AuthenticatedActivityLogRoute: typeof AuthenticatedActivityLogRoute
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBookingSettingsRoute: typeof AuthenticatedBookingSettingsRoute
@@ -754,13 +795,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStocktakeRoute: typeof AuthenticatedStocktakeRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
-  AuthenticatedAccountingAccountsRoute: typeof AuthenticatedAccountingAccountsRoute
-  AuthenticatedAccountingAssetsRoute: typeof AuthenticatedAccountingAssetsRoute
-  AuthenticatedAccountingFinancialsRoute: typeof AuthenticatedAccountingFinancialsRoute
-  AuthenticatedAccountingVatRoute: typeof AuthenticatedAccountingVatRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountingRoute: AuthenticatedAccountingRouteWithChildren,
   AuthenticatedActivityLogRoute: AuthenticatedActivityLogRoute,
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBookingSettingsRoute: AuthenticatedBookingSettingsRoute,
@@ -788,11 +826,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStocktakeRoute: AuthenticatedStocktakeRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
-  AuthenticatedAccountingAccountsRoute: AuthenticatedAccountingAccountsRoute,
-  AuthenticatedAccountingAssetsRoute: AuthenticatedAccountingAssetsRoute,
-  AuthenticatedAccountingFinancialsRoute:
-    AuthenticatedAccountingFinancialsRoute,
-  AuthenticatedAccountingVatRoute: AuthenticatedAccountingVatRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
