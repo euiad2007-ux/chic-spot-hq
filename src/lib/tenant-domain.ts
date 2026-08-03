@@ -40,32 +40,37 @@ function tenantSlugOverride(): string | null {
 
 let cache: Promise<DomainTenant | null> | null = null;
 
+type LookupRow = {
+  id: string;
+  name: string;
+  slug: string;
+  custom_domain: string | null;
+  domain_status: string | null;
+};
+
+/**
+ * Public storefront lookup goes through `public_salon_lookup`, which exposes
+ * only non-sensitive columns of active salons (no phone, tax or billing data).
+ */
 async function lookup(): Promise<DomainTenant | null> {
   const slug = tenantSlugOverride();
   if (slug) {
-    const { data } = await supabase
-      .from("salons")
-      .select("id, name, slug, is_suspended")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (!data) return null;
-    return { id: data.id, name: data.name, slug: data.slug, isSuspended: data.is_suspended, fromDomain: false };
+    const { data } = await supabase.rpc("public_salon_lookup", { _slug: slug, _domains: null });
+    const row = (data as LookupRow[] | null)?.[0];
+    if (!row) return null;
+    return { id: row.id, name: row.name, slug: row.slug, isSuspended: false, fromDomain: false };
   }
 
   const host = currentHost();
   if (!host || isPlatformHost(host)) return null;
 
   const candidates = host.startsWith("www.") ? [host, host.slice(4)] : [host, `www.${host}`];
-  const { data } = await supabase
-    .from("salons")
-    .select("id, name, slug, is_suspended, custom_domain, domain_status")
-    .in("custom_domain", candidates)
-    .eq("domain_status", "verified")
-    .limit(1)
-    .maybeSingle();
-  if (!data) return null;
-  return { id: data.id, name: data.name, slug: data.slug, isSuspended: data.is_suspended, fromDomain: true };
+  const { data } = await supabase.rpc("public_salon_lookup", { _slug: null, _domains: candidates });
+  const row = (data as LookupRow[] | null)?.[0];
+  if (!row || row.domain_status !== "verified") return null;
+  return { id: row.id, name: row.name, slug: row.slug, isSuspended: false, fromDomain: true };
 }
+
 
 /** Resolves the salon that owns the current hostname, if any. Cached per page load. */
 export function resolveTenant(): Promise<DomainTenant | null> {
