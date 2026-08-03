@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Calculator, Percent } from "lucide-react";
+import { Calculator, Download, Percent, Printer } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
 import { AccountingNav } from "@/components/salon/accounting-nav";
@@ -10,6 +10,7 @@ import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { payMethodLabel } from "@/lib/db/ops-repo";
 import { loadTaxReport, saveTaxSettings } from "@/lib/db/accounting-repo";
+import { exportCsv, printReport, stampName } from "@/lib/export";
 import { MonthlyTaxPanel } from "@/components/salon/monthly-tax";
 
 export const Route = createFileRoute("/_authenticated/accounting/vat")({
@@ -192,9 +193,39 @@ function AccountingPage() {
             )}
 
             <div className="rounded-2xl border border-border bg-card overflow-x-auto">
-              <h2 className="p-4 font-bold flex items-center gap-2">
-                <Calculator className="size-4 text-primary" /> دفتر الفواتير الضريبية
-              </h2>
+              <div className="p-4 flex flex-wrap items-center gap-2">
+                <h2 className="font-bold flex items-center gap-2">
+                  <Calculator className="size-4 text-primary" /> دفتر الفواتير الضريبية
+                </h2>
+                <div className="ms-auto flex gap-2 print:hidden">
+                  <button
+                    onClick={() =>
+                      exportCsv(
+                        stampName("vat-ledger"),
+                        ["التاريخ", "الفاتورة", "الدفع", "قبل الضريبة", "الخصم", "الضريبة", "الإجمالي"],
+                        (d?.ledger ?? []).map((r) => [
+                          r.date,
+                          r.number,
+                          payMethodLabel(r.method),
+                          r.subtotal,
+                          r.discount,
+                          r.vat,
+                          r.total,
+                        ]),
+                      )
+                    }
+                    className="h-9 px-3 rounded-xl border border-border font-bold text-xs inline-flex items-center gap-2"
+                  >
+                    <Download className="size-4" /> تصدير CSV
+                  </button>
+                  <button
+                    onClick={printReport}
+                    className="h-9 px-3 rounded-xl border border-border font-bold text-xs inline-flex items-center gap-2"
+                  >
+                    <Printer className="size-4" /> طباعة
+                  </button>
+                </div>
+              </div>
               <table className="w-full text-sm">
                 <thead className="text-xs text-muted-foreground">
                   <tr>

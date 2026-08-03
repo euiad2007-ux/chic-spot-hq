@@ -7,6 +7,7 @@ import {
   LineChart,
   NotebookPen,
   Scale,
+  FileCode2,
 } from "lucide-react";
 
 /** Sub-navigation shared by every page inside the accounting section. */
@@ -17,6 +18,7 @@ const LINKS: { to: string; label: string; icon: typeof BookOpen; exact?: boolean
   { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale },
   { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart },
   { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Calculator },
+  { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2 },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building },
 ];
 

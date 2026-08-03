@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { LineChart, Scale } from "lucide-react";
+import { Download, LineChart, Printer, Scale } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
 import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
+import { exportCsv, printReport, stampName } from "@/lib/export";
 import { loadFinancials, type StatementLine } from "@/lib/db/coa-repo";
 
 export const Route = createFileRoute("/_authenticated/accounting/financials")({
@@ -57,11 +58,40 @@ function FinancialsPage() {
             <span className="text-xs text-muted-foreground">إلى</span>
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input" />
           </label>
+          <div className="ms-auto flex gap-2 print:hidden">
+            <button
+              onClick={() => {
+                if (!d) return;
+                const line = (section: string) => (l: StatementLine) => [section, l.code, l.name, l.amount];
+                exportCsv(
+                  stampName("financial-statements"),
+                  ["القائمة", "الرمز", "الحساب", "المبلغ"],
+                  [
+                    ...d.revenue.map(line("الإيرادات")),
+                    ...d.expenses.map(line("المصروفات")),
+                    ["قائمة الدخل", "", "صافي الربح", d.netProfit],
+                    ...d.assets.map(line("الأصول")),
+                    ...d.liabilities.map(line("الالتزامات")),
+                    ...d.equity.map(line("حقوق الملكية")),
+                  ],
+                );
+              }}
+              className="h-10 px-3 rounded-xl border border-border font-bold text-sm inline-flex items-center gap-2"
+            >
+              <Download className="size-4" /> تصدير CSV
+            </button>
+            <button
+              onClick={printReport}
+              className="h-10 px-3 rounded-xl border border-border font-bold text-sm inline-flex items-center gap-2"
+            >
+              <Printer className="size-4" /> طباعة
+            </button>
+          </div>
           <span
             className={
               d?.balanced
-                ? "ms-auto rounded-full border border-success/40 bg-success/15 text-success px-3 py-1 text-xs font-bold"
-                : "ms-auto rounded-full border border-destructive/40 bg-destructive/15 text-destructive px-3 py-1 text-xs font-bold"
+                ? "rounded-full border border-success/40 bg-success/15 text-success px-3 py-1 text-xs font-bold"
+                : "rounded-full border border-destructive/40 bg-destructive/15 text-destructive px-3 py-1 text-xs font-bold"
             }
           >
             {d?.balanced ? "الميزانية متوازنة" : "الميزانية غير متوازنة — راجع الترحيل"}
