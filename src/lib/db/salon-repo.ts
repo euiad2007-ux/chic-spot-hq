@@ -178,6 +178,7 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
       paymentMethod: (r.payment_method ?? undefined) as Booking["paymentMethod"],
       walletApproved: r.wallet_approved === true,
       holdExpiresAt: r.hold_expires_at ?? undefined,
+      stockDeducted: r.stock_deducted === true,
     };
   });
 
