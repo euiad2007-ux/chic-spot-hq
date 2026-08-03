@@ -14,10 +14,12 @@ import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as AuthenticatedSpecialistRouteImport } from './routes/_authenticated/specialist'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
@@ -31,9 +33,11 @@ import { Route as AuthenticatedCouponsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
 import { Route as AuthenticatedCashRouteImport } from './routes/_authenticated/cash'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedBranchesRouteImport } from './routes/_authenticated/branches'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedBookingSettingsRouteImport } from './routes/_authenticated/booking-settings'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
+import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenticated/activity-log'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
@@ -59,6 +63,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSubscriptionRoute =
+  AuthenticatedSubscriptionRouteImport.update({
+    id: '/subscription',
+    path: '/subscription',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -77,6 +87,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
@@ -144,6 +159,11 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBranchesRoute = AuthenticatedBranchesRouteImport.update({
+  id: '/branches',
+  path: '/branches',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -160,15 +180,23 @@ const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedActivityLogRoute =
+  AuthenticatedActivityLogRouteImport.update({
+    id: '/activity-log',
+    path: '/activity-log',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/activity-log': typeof AuthenticatedActivityLogRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/branches': typeof AuthenticatedBranchesRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/cash': typeof AuthenticatedCashRoute
   '/client': typeof AuthenticatedClientRoute
@@ -182,19 +210,23 @@ export interface FileRoutesByFullPath {
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/pos': typeof AuthenticatedPosRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/specialist': typeof AuthenticatedSpecialistRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/subscription': typeof AuthenticatedSubscriptionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/activity-log': typeof AuthenticatedActivityLogRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/branches': typeof AuthenticatedBranchesRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/cash': typeof AuthenticatedCashRoute
   '/client': typeof AuthenticatedClientRoute
@@ -208,10 +240,12 @@ export interface FileRoutesByTo {
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/pos': typeof AuthenticatedPosRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/specialist': typeof AuthenticatedSpecialistRoute
   '/staff': typeof AuthenticatedStaffRoute
+  '/subscription': typeof AuthenticatedSubscriptionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -220,9 +254,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/_authenticated/activity-log': typeof AuthenticatedActivityLogRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
+  '/_authenticated/branches': typeof AuthenticatedBranchesRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/cash': typeof AuthenticatedCashRoute
   '/_authenticated/client': typeof AuthenticatedClientRoute
@@ -236,10 +272,12 @@ export interface FileRoutesById {
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/specialist': typeof AuthenticatedSpecialistRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
+  '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -248,9 +286,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/activity-log'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
+    | '/branches'
     | '/calendar'
     | '/cash'
     | '/client'
@@ -264,19 +304,23 @@ export interface FileRouteTypes {
     | '/payroll'
     | '/platform'
     | '/pos'
+    | '/reports'
     | '/services'
     | '/settings'
     | '/specialist'
     | '/staff'
+    | '/subscription'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/activity-log'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
+    | '/branches'
     | '/calendar'
     | '/cash'
     | '/client'
@@ -290,10 +334,12 @@ export interface FileRouteTypes {
     | '/payroll'
     | '/platform'
     | '/pos'
+    | '/reports'
     | '/services'
     | '/settings'
     | '/specialist'
     | '/staff'
+    | '/subscription'
   id:
     | '__root__'
     | '/'
@@ -301,9 +347,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/_authenticated/activity-log'
     | '/_authenticated/attendance'
     | '/_authenticated/booking-settings'
     | '/_authenticated/bookings'
+    | '/_authenticated/branches'
     | '/_authenticated/calendar'
     | '/_authenticated/cash'
     | '/_authenticated/client'
@@ -317,10 +365,12 @@ export interface FileRouteTypes {
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
     | '/_authenticated/pos'
+    | '/_authenticated/reports'
     | '/_authenticated/services'
     | '/_authenticated/settings'
     | '/_authenticated/specialist'
     | '/_authenticated/staff'
+    | '/_authenticated/subscription'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -368,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/subscription': {
+      id: '/_authenticated/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof AuthenticatedSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/staff': {
       id: '/_authenticated/staff'
       path: '/staff'
@@ -394,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pos': {
@@ -487,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/branches': {
+      id: '/_authenticated/branches'
+      path: '/branches'
+      fullPath: '/branches'
+      preLoaderRoute: typeof AuthenticatedBranchesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings': {
       id: '/_authenticated/bookings'
       path: '/bookings'
@@ -508,13 +579,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/activity-log': {
+      id: '/_authenticated/activity-log'
+      path: '/activity-log'
+      fullPath: '/activity-log'
+      preLoaderRoute: typeof AuthenticatedActivityLogRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedActivityLogRoute: typeof AuthenticatedActivityLogRoute
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBookingSettingsRoute: typeof AuthenticatedBookingSettingsRoute
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
+  AuthenticatedBranchesRoute: typeof AuthenticatedBranchesRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCashRoute: typeof AuthenticatedCashRoute
   AuthenticatedClientRoute: typeof AuthenticatedClientRoute
@@ -528,16 +608,20 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSpecialistRoute: typeof AuthenticatedSpecialistRoute
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
+  AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedActivityLogRoute: AuthenticatedActivityLogRoute,
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBookingSettingsRoute: AuthenticatedBookingSettingsRoute,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
+  AuthenticatedBranchesRoute: AuthenticatedBranchesRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCashRoute: AuthenticatedCashRoute,
   AuthenticatedClientRoute: AuthenticatedClientRoute,
@@ -551,10 +635,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSpecialistRoute: AuthenticatedSpecialistRoute,
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
+  AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

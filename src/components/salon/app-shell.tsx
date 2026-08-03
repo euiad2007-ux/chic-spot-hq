@@ -22,6 +22,9 @@ import {
   ShoppingCart,
   Banknote,
   TrendingDown,
+  Building2,
+  BarChart3,
+  History,
   Menu,
   X,
 } from "lucide-react";
@@ -39,6 +42,10 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/cash", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/expenses", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/inventory", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/branches", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/reports", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/activity-log", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/staff", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/payroll", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/attendance", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -83,6 +90,10 @@ const nav: {
   { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true, module: "coupons" },
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices" },
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings" },
+  { to: "/branches", label: "الفروع", icon: Building2, manager: true },
+  { to: "/reports", label: "التقارير", icon: BarChart3, manager: true },
+  { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true },
+  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true },
 ];
 
 export function AppShell({

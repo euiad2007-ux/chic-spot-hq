@@ -8,6 +8,10 @@ import { useMemo, useState } from "react";
 import { Plus, Package, AlertTriangle, Trash2, Pencil, X, Minus, TrendingDown, Search, Ruler } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ShoppingBag } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAccount } from "@/hooks/use-account";
+import { listProducts, updateProductSale } from "@/lib/db/ops-repo";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
   head: () => ({
@@ -201,6 +205,9 @@ function InventoryPage() {
         </div>
       </div>
 
+      <RetailPanel />
+
+
       {open && (
         <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={() => setOpen(false)}>
           <div className="glass-card rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -336,6 +343,114 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">{label}</label>
       {children}
+    </div>
+  );
+}
+
+/** Retail controls — which stock items are sellable in POS and at what price. */
+function RetailPanel() {
+  const { data: account } = useAccount();
+  const salonId = account?.salonId ?? null;
+  const qc = useQueryClient();
+  const products = useQuery({
+    queryKey: ["products", salonId],
+    queryFn: () => listProducts(salonId!),
+    enabled: !!salonId,
+  });
+  const [draft, setDraft] = useState<Record<string, number>>({});
+
+  const save = useMutation({
+    mutationFn: (args: { id: string; patch: { is_for_sale?: boolean; sale_price?: number } }) =>
+      updateProductSale(args.id, args.patch),
+    onSuccess: () => {
+      toast.success("تم تحديث بيانات البيع");
+      void qc.invalidateQueries({ queryKey: ["products", salonId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="glass-card rounded-2xl mt-4 overflow-hidden">
+      <div className="p-4 border-b border-border">
+        <h2 className="font-bold flex items-center gap-2">
+          <ShoppingBag className="size-4 text-primary" /> منتجات التجزئة (نقطة البيع)
+        </h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          فعّل المادة للبيع وحدد سعر البيع المستقل عن التكلفة.
+        </p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/30 text-xs text-muted-foreground">
+            <tr>
+              <th className="text-right p-3 font-medium">المادة</th>
+              <th className="text-right p-3 font-medium">المتاح</th>
+              <th className="text-right p-3 font-medium">التكلفة</th>
+              <th className="text-right p-3 font-medium">سعر البيع</th>
+              <th className="text-right p-3 font-medium">للبيع</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(products.data ?? []).map((p) => (
+              <tr key={p.id} className="border-t border-border">
+                <td className="p-3 font-semibold">{p.name}</td>
+                <td className="p-3">
+                  {p.stock} {p.unit}
+                </td>
+                <td className="p-3 text-muted-foreground">{formatSAR(Number(p.cost_per_unit))}</td>
+                <td className="p-3">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      aria-label={`سعر بيع ${p.name}`}
+                      value={draft[p.id] ?? Number(p.sale_price)}
+                      onChange={(e) =>
+                        setDraft({ ...draft, [p.id]: Number(e.target.value) || 0 })
+                      }
+                      className="h-9 w-28 rounded-lg bg-muted/40 border border-border px-2 text-sm"
+                    />
+                    <button
+                      onClick={() =>
+                        save.mutate({
+                          id: p.id,
+                          patch: { sale_price: draft[p.id] ?? Number(p.sale_price) },
+                        })
+                      }
+                      disabled={save.isPending}
+                      className="h-9 px-3 rounded-lg border border-border text-xs disabled:opacity-60"
+                    >
+                      حفظ
+                    </button>
+                  </div>
+                </td>
+                <td className="p-3">
+                  <button
+                    onClick={() => save.mutate({ id: p.id, patch: { is_for_sale: !p.is_for_sale } })}
+                    disabled={save.isPending}
+                    className={cn(
+                      "h-9 px-3 rounded-lg border text-xs font-semibold disabled:opacity-60",
+                      p.is_for_sale
+                        ? "border-primary/40 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground",
+                    )}
+                  >
+                    {p.is_for_sale ? "مفعّل للبيع" : "غير مفعّل"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {products.isSuccess && (products.data ?? []).length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                  لا توجد مواد مخزون بعد.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
