@@ -80,42 +80,70 @@ function allowedForPath(pathname: string, role: AppRole | undefined): boolean {
   return !!role && rule.roles.includes(role);
 }
 
+type NavGroup =
+  | "main"
+  | "bookings"
+  | "sales"
+  | "inventory"
+  | "team"
+  | "accounts"
+  | "admin";
+
+/** Section headers for the sidebar, in display order. */
+const GROUPS: { id: NavGroup; label: string }[] = [
+  { id: "main", label: "الرئيسية" },
+  { id: "bookings", label: "الحجوزات والعملاء" },
+  { id: "sales", label: "المبيعات والصندوق" },
+  { id: "inventory", label: "الخدمات والمخزون" },
+  { id: "team", label: "الموظفون والرواتب" },
+  { id: "accounts", label: "الحسابات والمحاسبة" },
+  { id: "admin", label: "الإدارة والتقارير" },
+];
+
 const nav: {
   to: string;
   label: string;
   icon: typeof LayoutDashboard;
   manager: boolean;
+  group: NavGroup;
   platform?: boolean;
   module?: string;
 }[] = [
-  { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true },
-  { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true },
-  { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false, module: "bookings" },
-  { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false, module: "calendar" },
-  { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true },
-  { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true },
-  { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true },
-  { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services" },
-  { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory" },
-  { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory" },
-  { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory" },
-  { to: "/accounting", label: "المحاسبة الضريبية", icon: Calculator, manager: true },
-  { to: "/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true },
-  { to: "/financials", label: "التقارير المالية", icon: LineChart, manager: true },
-  { to: "/assets", label: "الأصول الثابتة", icon: Building, manager: true },
-  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff" },
-  { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll" },
-  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance" },
-  { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers" },
-  { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true, module: "coupons" },
-  { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices" },
-  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings" },
-  { to: "/branches", label: "الفروع", icon: Building2, manager: true },
-  { to: "/reports", label: "التقارير", icon: BarChart3, manager: true },
-  { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true },
-  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true },
-  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true },
+  { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true, group: "main" },
+  { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true, group: "main" },
+
+  { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false, module: "bookings", group: "bookings" },
+  { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false, module: "calendar", group: "bookings" },
+  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings", group: "bookings" },
+  { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers", group: "bookings" },
+  { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true, module: "coupons", group: "bookings" },
+
+  { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, group: "sales" },
+  { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "sales" },
+  { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, group: "sales" },
+  { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true, group: "sales" },
+
+  { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "inventory" },
+  { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "inventory" },
+  { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "inventory" },
+  { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "inventory" },
+
+  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "team" },
+  { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll", group: "team" },
+  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "team" },
+
+  { to: "/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, group: "accounts" },
+  { to: "/accounting", label: "القيود والضرائب", icon: Calculator, manager: true, group: "accounts" },
+  { to: "/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "accounts" },
+  { to: "/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "accounts" },
+
+  { to: "/reports", label: "التقارير", icon: BarChart3, manager: true, group: "admin" },
+  { to: "/branches", label: "الفروع", icon: Building2, manager: true, group: "admin" },
+  { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "admin" },
+  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, group: "admin" },
+  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, group: "admin" },
 ];
+
 
 export function AppShell({
   children,
