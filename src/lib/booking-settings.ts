@@ -27,7 +27,12 @@ export interface BookingSettings {
   maxDailyBookings: number; // 0 = unlimited
   foundingDate: string;     // "YYYY-MM-DD" — reference for sequential numbering
   holdGraceMin: number;     // minutes past appointment before hold auto-cancels
+  cancelWindowMin: number;  // 0 = anytime; minutes before start that cancelling is still allowed
+  restockOnCancel: boolean; // return service materials to stock when a deducted booking is cancelled
+  maxAdvanceDays: number;   // 0 = unlimited; how far ahead a booking may be made
+  allowSameStaffBackToBack: boolean; // when false, buffer is enforced strictly
 }
+
 
 const UNUSED_STORAGE_KEY = "lamsa_booking_settings_v1";
 
@@ -61,6 +66,10 @@ function defaults(): BookingSettings {
     maxDailyBookings: 0,
     foundingDate: new Date().toISOString().slice(0, 10),
     holdGraceMin: 5,
+    cancelWindowMin: 60,
+    restockOnCancel: true,
+    maxAdvanceDays: 60,
+    allowSameStaffBackToBack: false,
   };
 }
 
@@ -132,6 +141,10 @@ export const bookingSettingsActions = {
   setMaxDaily(n: number) { state = { ...state, maxDailyBookings: Math.max(0, Math.floor(n)) }; persist(); },
   setHoldGrace(min: number) { state = { ...state, holdGraceMin: Math.max(0, Math.floor(min)) }; persist(); },
   setFoundingDate(d: string) { state = { ...state, foundingDate: d }; persist(); },
+  setCancelWindow(min: number) { state = { ...state, cancelWindowMin: Math.max(0, Math.floor(min)) }; persist(); },
+  setRestockOnCancel(v: boolean) { state = { ...state, restockOnCancel: v }; persist(); },
+  setMaxAdvanceDays(n: number) { state = { ...state, maxAdvanceDays: Math.max(0, Math.floor(n)) }; persist(); },
+  setAllowBackToBack(v: boolean) { state = { ...state, allowSameStaffBackToBack: v }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
     const id = crypto.randomUUID();
     state = { ...state, breaks: [...state.breaks, { ...b, id }] };
@@ -193,6 +206,10 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   if (start.getTime() < now + settings.minLeadMin * 60000) {
     return { type: "lead", message: `يجب الحجز قبل ${settings.minLeadMin} دقيقة على الأقل` };
   }
+  if (settings.maxAdvanceDays > 0 && start.getTime() > now + settings.maxAdvanceDays * 86400000) {
+    return { type: "lead", message: `لا يمكن الحجز لأكثر من ${settings.maxAdvanceDays} يوماً مقدماً` };
+  }
+
 
   const day = start.getDay() as Weekday;
   const sched = settings.workDays[day];
@@ -225,7 +242,7 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   for (const b of bookings) {
     if (b.id === input.ignoreBookingId) continue;
     if (b.status === "cancelled" || b.status === "no_show") continue;
-    const r = bookingRange(b, settings.bufferMin);
+    const r = bookingRange(b, settings.allowSameStaffBackToBack ? 0 : settings.bufferMin);
     const overlaps = newStart < r.end && newEnd > r.start;
     if (!overlaps) continue;
     if (b.staffId === input.staffId) {
@@ -356,5 +373,24 @@ export function getDayAvailabilitySummary(q: SlotQuery) {
     available: slots.filter((slot) => slot.available).length,
     unavailable: slots.filter((slot) => !slot.available).length,
     unavailableByReason,
+  };
+}
+
+// ============== Cancellation policy ==============
+
+/**
+ * Merchant-configurable cancellation window. `cancelWindowMin = 0` means the
+ * booking may be cancelled at any time.
+ */
+export function cancellationCheck(startsAt: string): { allowed: boolean; reason?: string } {
+  const settings = getBookingSettings();
+  if (!settings.cancelWindowMin) return { allowed: true };
+  const start = new Date(startsAt).getTime();
+  if (Number.isNaN(start)) return { allowed: true };
+  const remainingMin = (start - Date.now()) / 60000;
+  if (remainingMin >= settings.cancelWindowMin) return { allowed: true };
+  return {
+    allowed: false,
+    reason: `يجب الإلغاء قبل ${settings.cancelWindowMin} دقيقة على الأقل من موعد الحجز`,
   };
 }

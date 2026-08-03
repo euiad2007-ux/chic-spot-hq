@@ -27,6 +27,8 @@ import {
   History,
   Menu,
   X,
+  ClipboardCheck,
+  Calculator,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -83,6 +85,8 @@ const nav: {
   { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true },
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services" },
   { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory" },
+  { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory" },
+  { to: "/accounting", label: "المحاسبة الضريبية", icon: Calculator, manager: true },
   { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff" },
   { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll" },
   { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance" },

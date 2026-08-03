@@ -221,7 +221,11 @@ export interface Booking {
   walletApproved?: boolean;              // customer approved wallet deduction
   walletApprovalRequestedAt?: string;
   holdExpiresAt?: string;                // ISO; auto-cancel after this instant
+  // Inventory: true once service materials were deducted (at invoicing).
+  // Cancelling a booking only restocks when this is true.
+  stockDeducted?: boolean;
 }
+
 
 
 export interface Invoice {
@@ -596,6 +600,42 @@ export const actions = {
   },
   removeBooking(id: string) { state = { ...state, bookings: state.bookings.filter((x) => x.id !== id) }; persist(); },
 
+  /**
+   * Cancels a booking. Inventory is only touched when the booking's materials
+   * were actually deducted (i.e. it was invoiced) — cancelling an unpaid or
+   * held booking never consumes stock.
+   */
+  cancelBooking(id: string, reason?: string, restock = true): { ok: boolean; restocked: boolean; error?: string } {
+    const b = state.bookings.find((x) => x.id === id);
+    if (!b) return { ok: false, restocked: false, error: "الحجز غير موجود" };
+    if (b.status === "cancelled") return { ok: false, restocked: false, error: "الحجز ملغي مسبقاً" };
+
+    const shouldRestock = restock && b.stockDeducted === true;
+    let nextInventory = state.inventory;
+    if (shouldRestock) {
+      const consumed = materialsForBooking(b.serviceIds, state.services);
+      nextInventory = state.inventory.map((it) => {
+        const used = consumed.find((c) => c.itemId === it.id);
+        return used ? { ...it, stock: it.stock + used.qty } : it;
+      });
+    }
+
+    const note = reason ? `إلغاء: ${reason}` : "تم الإلغاء";
+    state = {
+      ...state,
+      inventory: nextInventory,
+      bookings: state.bookings.map((x) => x.id === id ? {
+        ...x,
+        status: "cancelled" as BookingStatus,
+        stockDeducted: shouldRestock ? false : x.stockDeducted,
+        notes: (x.notes ? x.notes + " · " : "") + note,
+      } : x),
+    };
+    persist();
+    return { ok: true, restocked: shouldRestock };
+  },
+
+
   // Customer approves a wallet-payment booking created by admin
   approveWalletPayment(bookingId: string): { ok: boolean; error?: string } {
     const b = state.bookings.find((x) => x.id === bookingId);
@@ -668,7 +708,7 @@ export const actions = {
       ...state,
       invoices: [...state.invoices, inv],
       inventory: nextInv,
-      bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
+      bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid", stockDeducted: true } : x),
       customers: state.customers.map((c) => {
         if (c.id === b.customerId) {
           const walletUsed = Math.max(0, Math.min(b.walletUsed ?? 0, c.walletBalance ?? 0));

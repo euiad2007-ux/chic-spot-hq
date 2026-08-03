@@ -7,7 +7,7 @@ import {
   LOYALTY_REDEEM_RATE,
 } from "@/lib/salon-store";
 import { useCoupons } from "@/lib/coupon-store";
-import { checkBookingConflict, getDaySlots, findEarliestSlot, getBookingSettings } from "@/lib/booking-settings";
+import { checkBookingConflict, getDaySlots, findEarliestSlot, getBookingSettings, cancellationCheck } from "@/lib/booking-settings";
 import { useSession, auth } from "@/lib/auth-store";
 import {
   CalendarDays, Sparkles, Clock, LogOut, Plus, X, Scissors, Star,
@@ -593,7 +593,19 @@ function BookingsTab({ upcoming, past, services, staff, invoices }: any) {
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                     <div className="text-sm font-bold">{formatSAR(b.price - b.discount)}</div>
-                    <button onClick={() => { if (confirm("إلغاء الحجز؟")) { actions.updateBooking(b.id, { status: "cancelled" }); toast.success("تم الإلغاء"); } }} className="text-xs text-destructive hover:underline">إلغاء</button>
+                    <button
+                      onClick={() => {
+                        const policy = cancellationCheck(b.startsAt);
+                        if (!policy.allowed) return toast.error(policy.reason ?? "تعذر الإلغاء");
+                        if (!confirm("إلغاء الحجز؟")) return;
+                        const res = actions.cancelBooking(b.id, undefined, getBookingSettings().restockOnCancel);
+                        if (!res.ok) return toast.error(res.error ?? "تعذر الإلغاء");
+                        toast.success("تم الإلغاء");
+                      }}
+                      className="text-xs text-destructive hover:underline"
+                    >
+                      إلغاء
+                    </button>
                   </div>
                 </div>
               );
