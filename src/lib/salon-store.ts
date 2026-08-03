@@ -221,7 +221,11 @@ export interface Booking {
   walletApproved?: boolean;              // customer approved wallet deduction
   walletApprovalRequestedAt?: string;
   holdExpiresAt?: string;                // ISO; auto-cancel after this instant
+  // Inventory: true once service materials were deducted (at invoicing).
+  // Cancelling a booking only restocks when this is true.
+  stockDeducted?: boolean;
 }
+
 
 
 export interface Invoice {
