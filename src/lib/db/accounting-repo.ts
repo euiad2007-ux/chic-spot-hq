@@ -135,3 +135,106 @@ export async function loadTaxReport(salonId: string, from: string, to: string): 
     ledger,
   };
 }
+
+/* --------------------------- monthly VAT summary -------------------------- */
+
+export interface MonthlyTaxRow {
+  period: string;       // "YYYY-MM"
+  label: string;        // Arabic month label
+  invoices: number;
+  taxable: number;
+  outputVat: number;
+  gross: number;
+  expenses: number;
+  inputVat: number;
+  netVatDue: number;
+  profit: number;
+}
+
+const AR_MONTHS = [
+  "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+  "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
+];
+
+export const periodLabel = (period: string) => {
+  const [y, m] = period.split("-");
+  const idx = Number(m) - 1;
+  return `${AR_MONTHS[idx] ?? m} ${y}`;
+};
+
+/** Twelve monthly VAT returns for one calendar year, ready for filing. */
+export async function loadMonthlyTaxSeries(salonId: string, year: number): Promise<MonthlyTaxRow[]> {
+  const settings = await loadTaxSettings(salonId);
+  const rate = settings.vat_rate / 100;
+  const from = `${year}-01-01`;
+  const to = `${year}-12-31`;
+
+  const [invRes, expRes] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("subtotal,discount,vat,total,created_at")
+      .eq("salon_id", salonId)
+      .gte("created_at", `${from}T00:00:00`)
+      .lte("created_at", `${to}T23:59:59`),
+    supabase
+      .from("expenses")
+      .select("amount,vat_amount,spent_on")
+      .eq("salon_id", salonId)
+      .gte("spent_on", from)
+      .lte("spent_on", to),
+  ]);
+  if (invRes.error) throw new Error(invRes.error.message);
+  if (expRes.error) throw new Error(expRes.error.message);
+
+  const rows: MonthlyTaxRow[] = Array.from({ length: 12 }, (_, i) => {
+    const period = `${year}-${String(i + 1).padStart(2, "0")}`;
+    return {
+      period,
+      label: periodLabel(period),
+      invoices: 0,
+      taxable: 0,
+      outputVat: 0,
+      gross: 0,
+      expenses: 0,
+      inputVat: 0,
+      netVatDue: 0,
+      profit: 0,
+    };
+  });
+
+  for (const i of invRes.data ?? []) {
+    const idx = Number(String(i.created_at).slice(5, 7)) - 1;
+    const row = rows[idx];
+    if (!row) continue;
+    row.invoices += 1;
+    row.taxable += Number(i.subtotal) - Number(i.discount);
+    row.outputVat += Number(i.vat);
+    row.gross += Number(i.total);
+  }
+
+  for (const e of expRes.data ?? []) {
+    const idx = Number(String(e.spent_on).slice(5, 7)) - 1;
+    const row = rows[idx];
+    if (!row) continue;
+    const amount = Number(e.amount);
+    const explicit = Number(e.vat_amount ?? 0);
+    const vat = explicit > 0
+      ? explicit
+      : settings.expenses_include_vat && rate > 0
+        ? amount - amount / (1 + rate)
+        : 0;
+    row.expenses += amount;
+    row.inputVat += vat;
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    taxable: r2(r.taxable),
+    outputVat: r2(r.outputVat),
+    gross: r2(r.gross),
+    expenses: r2(r.expenses),
+    inputVat: r2(r.inputVat),
+    netVatDue: r2(r.outputVat - r.inputVat),
+    profit: r2(r.taxable - (r.expenses - r.inputVat)),
+  }));
+}

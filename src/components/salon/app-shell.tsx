@@ -29,6 +29,7 @@ import {
   X,
   ClipboardCheck,
   Calculator,
+  PackageSearch,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -44,6 +45,9 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/cash", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/expenses", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/inventory", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/stocktake", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/stock-log", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/accounting", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/branches", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/reports", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
@@ -86,6 +90,7 @@ const nav: {
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services" },
   { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory" },
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory" },
+  { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory" },
   { to: "/accounting", label: "المحاسبة الضريبية", icon: Calculator, manager: true },
   { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff" },
   { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll" },

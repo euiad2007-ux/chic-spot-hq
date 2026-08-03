@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ClipboardCheck, CheckCircle2, Trash2 } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { InventoryAlertsPanel } from "@/components/salon/inventory-alerts";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { listBranches } from "@/lib/db/ops-repo";
@@ -103,6 +104,8 @@ function StocktakePage() {
       toast.success("تم اعتماد الجرد وتحديث المخزون");
       void qc.invalidateQueries({ queryKey: ["stocktakes", salonId] });
       void qc.invalidateQueries({ queryKey: ["stocktake-items", salonId] });
+      void qc.invalidateQueries({ queryKey: ["inventory-alerts", salonId] });
+      void qc.invalidateQueries({ queryKey: ["stock-log", salonId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -117,8 +120,10 @@ function StocktakePage() {
   });
 
   return (
-    <AppShell title="جرد المستودع" subtitle="عدّ الكميات الفعلية وطابقها مع أرصدة النظام">
+    <AppShell title="جرد المستودع" subtitle="جرد دوري وتنبيهات نقص ومطابقة أرصدة المخزون">
       <div className="space-y-4">
+        <InventoryAlertsPanel salonId={salonId} />
+
         <section className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
           <label className="block space-y-1">
             <span className="text-xs text-muted-foreground">تاريخ الجرد</span>
