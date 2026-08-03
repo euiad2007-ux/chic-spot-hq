@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Download, History, Printer } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
@@ -209,9 +209,8 @@ function ActivityLogPage() {
                 const diffs = diffFields(r);
                 const isOpen = open === r.id;
                 return (
-                  <>
+                  <Fragment key={r.id}>
                     <tr
-                      key={r.id}
                       onClick={() => setOpen(isOpen ? null : r.id)}
                       className="border-t border-border cursor-pointer hover:bg-muted/30"
                     >
@@ -240,7 +239,7 @@ function ActivityLogPage() {
                       </td>
                     </tr>
                     {isOpen && diffs.length > 0 && (
-                      <tr key={`${r.id}-d`} className="bg-muted/20">
+                      <tr className="bg-muted/20">
                         <td colSpan={5} className="p-3">
                           <table className="w-full text-xs">
                             <thead className="text-muted-foreground">
@@ -263,7 +262,7 @@ function ActivityLogPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
               {rows.length === 0 && (
