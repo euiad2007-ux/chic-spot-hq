@@ -18,6 +18,7 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSpecialistRouteImport } from './routes/_authenticated/specialist'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
@@ -78,6 +79,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/pos': typeof AuthenticatedPosRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/specialist': typeof AuthenticatedSpecialistRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/pos': typeof AuthenticatedPosRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/specialist': typeof AuthenticatedSpecialistRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/specialist': typeof AuthenticatedSpecialistRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/payroll'
     | '/platform'
     | '/pos'
+    | '/reports'
     | '/services'
     | '/settings'
     | '/specialist'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/payroll'
     | '/platform'
     | '/pos'
+    | '/reports'
     | '/services'
     | '/settings'
     | '/specialist'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
     | '/_authenticated/pos'
+    | '/_authenticated/reports'
     | '/_authenticated/services'
     | '/_authenticated/settings'
     | '/_authenticated/specialist'
@@ -406,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pos': {
@@ -548,6 +567,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSpecialistRoute: typeof AuthenticatedSpecialistRoute
@@ -572,6 +592,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSpecialistRoute: AuthenticatedSpecialistRoute,
