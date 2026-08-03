@@ -87,6 +87,10 @@ const nav: {
   { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true, module: "coupons" },
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices" },
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings" },
+  { to: "/branches", label: "الفروع", icon: Building2, manager: true },
+  { to: "/reports", label: "التقارير", icon: BarChart3, manager: true },
+  { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true },
+  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true },
 ];
 
 export function AppShell({
