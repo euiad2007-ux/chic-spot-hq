@@ -141,6 +141,10 @@ export const bookingSettingsActions = {
   setMaxDaily(n: number) { state = { ...state, maxDailyBookings: Math.max(0, Math.floor(n)) }; persist(); },
   setHoldGrace(min: number) { state = { ...state, holdGraceMin: Math.max(0, Math.floor(min)) }; persist(); },
   setFoundingDate(d: string) { state = { ...state, foundingDate: d }; persist(); },
+  setCancelWindow(min: number) { state = { ...state, cancelWindowMin: Math.max(0, Math.floor(min)) }; persist(); },
+  setRestockOnCancel(v: boolean) { state = { ...state, restockOnCancel: v }; persist(); },
+  setMaxAdvanceDays(n: number) { state = { ...state, maxAdvanceDays: Math.max(0, Math.floor(n)) }; persist(); },
+  setAllowBackToBack(v: boolean) { state = { ...state, allowSameStaffBackToBack: v }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
     const id = crypto.randomUUID();
     state = { ...state, breaks: [...state.breaks, { ...b, id }] };
