@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
+import { TopupRequestsPanel } from "@/components/salon/topup-requests";
 
 
 export const Route = createFileRoute("/_authenticated/customers")({
