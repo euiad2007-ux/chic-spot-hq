@@ -361,20 +361,6 @@ export function findEarliestSlot(opts: EarliestOptions): EarliestSlot | null {
   return best;
 }
 
-export function getDayAvailabilitySummary(q: SlotQuery) {
-  const slots = getDaySlots(q);
-  const unavailableByReason = slots.reduce<Record<string, number>>((acc, slot) => {
-    if (!slot.available) acc[slot.reason ?? "unavailable"] = (acc[slot.reason ?? "unavailable"] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  return {
-    total: slots.length,
-    available: slots.filter((slot) => slot.available).length,
-    unavailable: slots.filter((slot) => !slot.available).length,
-    unavailableByReason,
-  };
-}
 
 // ============== Cancellation policy ==============
 
