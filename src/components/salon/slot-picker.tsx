@@ -40,7 +40,7 @@ export function SlotPicker({
                 !selected && slot.available && "border-success/45 bg-success/15 text-success hover:border-success hover:bg-success/25",
                 !slot.available && "border-destructive/30 bg-destructive/10 text-destructive/65 line-through cursor-not-allowed opacity-80",
               )}
-              title={slot.available ? "متاح" : reasonLabel(slot.reason)}
+              title={slot.available ? "متاح" : getSlotReasonLabel(slot.reason)}
             >
               {slot.available ? <CheckCircle2 className="size-3.5" /> : <XCircle className="size-3.5" />}
               <span>{slot.time}</span>
