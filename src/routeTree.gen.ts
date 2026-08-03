@@ -50,6 +50,7 @@ import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authen
 import { Route as AuthenticatedAccountingTrialBalanceRouteImport } from './routes/_authenticated/accounting.trial-balance'
 import { Route as AuthenticatedAccountingJournalRouteImport } from './routes/_authenticated/accounting.journal'
 import { Route as AuthenticatedAccountingFinancialsRouteImport } from './routes/_authenticated/accounting.financials'
+import { Route as AuthenticatedAccountingEinvoiceRouteImport } from './routes/_authenticated/accounting.einvoice'
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
 import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
 
@@ -265,6 +266,12 @@ const AuthenticatedAccountingFinancialsRoute =
     path: '/financials',
     getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
+const AuthenticatedAccountingEinvoiceRoute =
+  AuthenticatedAccountingEinvoiceRouteImport.update({
+    id: '/einvoice',
+    path: '/einvoice',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
 const AuthenticatedAccountingAssetsRoute =
   AuthenticatedAccountingAssetsRouteImport.update({
     id: '/assets',
@@ -316,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/accounting/einvoice': typeof AuthenticatedAccountingEinvoiceRoute
   '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
@@ -359,6 +367,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/accounting/einvoice': typeof AuthenticatedAccountingEinvoiceRoute
   '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
@@ -405,6 +414,7 @@ export interface FileRoutesById {
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/_authenticated/accounting/einvoice': typeof AuthenticatedAccountingEinvoiceRoute
   '/_authenticated/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
   '/_authenticated/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/_authenticated/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
@@ -451,6 +461,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/accounting/accounts'
     | '/accounting/assets'
+    | '/accounting/einvoice'
     | '/accounting/financials'
     | '/accounting/journal'
     | '/accounting/trial-balance'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/accounting/accounts'
     | '/accounting/assets'
+    | '/accounting/einvoice'
     | '/accounting/financials'
     | '/accounting/journal'
     | '/accounting/trial-balance'
@@ -539,6 +551,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users'
     | '/_authenticated/accounting/accounts'
     | '/_authenticated/accounting/assets'
+    | '/_authenticated/accounting/einvoice'
     | '/_authenticated/accounting/financials'
     | '/_authenticated/accounting/journal'
     | '/_authenticated/accounting/trial-balance'
@@ -843,6 +856,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingFinancialsRouteImport
       parentRoute: typeof AuthenticatedAccountingRoute
     }
+    '/_authenticated/accounting/einvoice': {
+      id: '/_authenticated/accounting/einvoice'
+      path: '/einvoice'
+      fullPath: '/accounting/einvoice'
+      preLoaderRoute: typeof AuthenticatedAccountingEinvoiceRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
     '/_authenticated/accounting/assets': {
       id: '/_authenticated/accounting/assets'
       path: '/assets'
@@ -863,6 +883,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAccountingRouteChildren {
   AuthenticatedAccountingAccountsRoute: typeof AuthenticatedAccountingAccountsRoute
   AuthenticatedAccountingAssetsRoute: typeof AuthenticatedAccountingAssetsRoute
+  AuthenticatedAccountingEinvoiceRoute: typeof AuthenticatedAccountingEinvoiceRoute
   AuthenticatedAccountingFinancialsRoute: typeof AuthenticatedAccountingFinancialsRoute
   AuthenticatedAccountingJournalRoute: typeof AuthenticatedAccountingJournalRoute
   AuthenticatedAccountingTrialBalanceRoute: typeof AuthenticatedAccountingTrialBalanceRoute
@@ -874,6 +895,7 @@ const AuthenticatedAccountingRouteChildren: AuthenticatedAccountingRouteChildren
   {
     AuthenticatedAccountingAccountsRoute: AuthenticatedAccountingAccountsRoute,
     AuthenticatedAccountingAssetsRoute: AuthenticatedAccountingAssetsRoute,
+    AuthenticatedAccountingEinvoiceRoute: AuthenticatedAccountingEinvoiceRoute,
     AuthenticatedAccountingFinancialsRoute:
       AuthenticatedAccountingFinancialsRoute,
     AuthenticatedAccountingJournalRoute: AuthenticatedAccountingJournalRoute,

@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Scale } from "lucide-react";
+import { Download, Printer, Scale } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
 import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
+import { exportCsv, printReport, stampName } from "@/lib/export";
 import { KIND_LABEL, loadTrialBalanceRange, type AccountKind } from "@/lib/db/coa-repo";
 
 export const Route = createFileRoute("/_authenticated/accounting/trial-balance")({
@@ -78,11 +79,31 @@ function TrialBalancePage() {
               </button>
             ))}
           </div>
+          <div className="ms-auto flex gap-2 print:hidden">
+            <button
+              onClick={() =>
+                exportCsv(
+                  stampName("trial-balance"),
+                  ["الرمز", "الحساب", "النوع", "مدين", "دائن", "الرصيد"],
+                  rows.map((r) => [r.code, r.name, KIND_LABEL[r.kind], r.debit, r.credit, r.balance]),
+                )
+              }
+              className="h-10 px-3 rounded-xl border border-border font-bold text-sm inline-flex items-center gap-2"
+            >
+              <Download className="size-4" /> تصدير CSV
+            </button>
+            <button
+              onClick={printReport}
+              className="h-10 px-3 rounded-xl border border-border font-bold text-sm inline-flex items-center gap-2"
+            >
+              <Printer className="size-4" /> طباعة
+            </button>
+          </div>
           <span
             className={
               tb.data?.balanced
-                ? "ms-auto rounded-full bg-success/10 text-success px-3 py-1 text-xs font-bold"
-                : "ms-auto rounded-full bg-destructive/10 text-destructive px-3 py-1 text-xs font-bold"
+                ? "rounded-full bg-success/10 text-success px-3 py-1 text-xs font-bold"
+                : "rounded-full bg-destructive/10 text-destructive px-3 py-1 text-xs font-bold"
             }
           >
             {tb.data?.balanced ? "القيود متوازنة" : "القيود غير متوازنة"}

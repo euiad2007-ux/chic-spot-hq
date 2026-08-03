@@ -487,6 +487,33 @@ export interface AuditEntry {
   entity_id: string | null;
   created_at: string;
   after: unknown;
+  before?: unknown;
+  user_id?: string | null;
+}
+
+export interface AuditFilter {
+  action?: string;
+  entity?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+/** Full audit trail with before/after snapshots, filterable by action, table and date. */
+export async function listAuditTrail(salonId: string, f: AuditFilter = {}): Promise<AuditEntry[]> {
+  let q = supabase
+    .from("audit_log")
+    .select("id, action, entity, entity_id, created_at, before, after, user_id")
+    .eq("salon_id", salonId);
+  if (f.action) q = q.eq("action", f.action);
+  if (f.entity) q = q.eq("entity", f.entity);
+  if (f.from) q = q.gte("created_at", `${f.from}T00:00:00`);
+  if (f.to) q = q.lte("created_at", `${f.to}T23:59:59`);
+  const { data, error } = await q
+    .order("created_at", { ascending: false })
+    .limit(f.limit ?? 500);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as AuditEntry[];
 }
 
 export async function listAudit(salonId: string, limit = 50): Promise<AuditEntry[]> {

@@ -37,6 +37,7 @@ import {
   NotebookPen,
   Scale,
   Percent,
+  FileCode2,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -143,6 +144,7 @@ const nav: {
   { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale, manager: true, group: "accounts" },
   { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "accounts" },
   { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, group: "accounts" },
+  { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, group: "accounts" },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "accounts" },
 
   { to: "/reports", label: "التقارير", icon: BarChart3, manager: true, group: "admin" },
