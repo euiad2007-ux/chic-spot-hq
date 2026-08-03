@@ -232,7 +232,11 @@ function BookingsPage() {
                       {canComplete && (
                         <button
                           title="إلغاء"
-                          onClick={() => { actions.updateBooking(b.id, { status: "cancelled" }); toast.info("تم إلغاء الحجز"); }}
+                          onClick={() => {
+                            const res = actions.cancelBooking(b.id, undefined, getBookingSettings().restockOnCancel);
+                            if (!res.ok) return toast.error(res.error ?? "تعذر الإلغاء");
+                            toast.info(res.restocked ? "تم الإلغاء وإرجاع المواد إلى المخزون" : "تم إلغاء الحجز (لم يُخصم مخزون)");
+                          }}
                           className="size-9 rounded-lg border border-border hover:border-destructive/50 hover:text-destructive grid place-items-center transition"
                         >
                           <X className="size-4" />
