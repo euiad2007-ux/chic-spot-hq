@@ -375,3 +375,22 @@ export function getDayAvailabilitySummary(q: SlotQuery) {
     unavailableByReason,
   };
 }
+
+// ============== Cancellation policy ==============
+
+/**
+ * Merchant-configurable cancellation window. `cancelWindowMin = 0` means the
+ * booking may be cancelled at any time.
+ */
+export function cancellationCheck(startsAt: string): { allowed: boolean; reason?: string } {
+  const settings = getBookingSettings();
+  if (!settings.cancelWindowMin) return { allowed: true };
+  const start = new Date(startsAt).getTime();
+  if (Number.isNaN(start)) return { allowed: true };
+  const remainingMin = (start - Date.now()) / 60000;
+  if (remainingMin >= settings.cancelWindowMin) return { allowed: true };
+  return {
+    allowed: false,
+    reason: `يجب الإلغاء قبل ${settings.cancelWindowMin} دقيقة على الأقل من موعد الحجز`,
+  };
+}
