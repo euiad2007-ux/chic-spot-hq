@@ -623,6 +623,152 @@ export type Database = {
           },
         ]
       }
+      credit_note_items: {
+        Row: {
+          created_at: string
+          credit_note_id: string
+          id: string
+          kind: string
+          name: string
+          qty: number
+          ref_id: string | null
+          salon_id: string
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          credit_note_id: string
+          id?: string
+          kind?: string
+          name: string
+          qty?: number
+          ref_id?: string | null
+          salon_id: string
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          credit_note_id?: string
+          id?: string
+          kind?: string
+          name?: string
+          qty?: number
+          ref_id?: string | null
+          salon_id?: string
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_note_items_credit_note_id_fkey"
+            columns: ["credit_note_id"]
+            isOneToOne: false
+            referencedRelation: "credit_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_note_items_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_notes: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          id: string
+          invoice_id: string | null
+          invoice_number: string | null
+          journal_entry_id: string | null
+          number: string
+          reason: string | null
+          salon_id: string
+          seq: number
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          vat: number
+          vat_rate: number
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          journal_entry_id?: string | null
+          number: string
+          reason?: string | null
+          salon_id: string
+          seq?: number
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vat?: number
+          vat_rate?: number
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string | null
+          journal_entry_id?: string | null
+          number?: string
+          reason?: string | null
+          salon_id?: string
+          seq?: number
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          vat?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -690,6 +836,94 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "customers_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      einvoice_submissions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          credit_note_id: string | null
+          doc_number: string | null
+          doc_type: string
+          doc_uuid: string | null
+          env: string
+          error: string | null
+          id: string
+          invoice_hash: string | null
+          invoice_id: string | null
+          previous_hash: string | null
+          qr: string | null
+          response: Json | null
+          salon_id: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          xml: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          credit_note_id?: string | null
+          doc_number?: string | null
+          doc_type?: string
+          doc_uuid?: string | null
+          env?: string
+          error?: string | null
+          id?: string
+          invoice_hash?: string | null
+          invoice_id?: string | null
+          previous_hash?: string | null
+          qr?: string | null
+          response?: Json | null
+          salon_id: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          xml?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          credit_note_id?: string | null
+          doc_number?: string | null
+          doc_type?: string
+          doc_uuid?: string | null
+          env?: string
+          error?: string | null
+          id?: string
+          invoice_hash?: string | null
+          invoice_id?: string | null
+          previous_hash?: string | null
+          qr?: string | null
+          response?: Json | null
+          salon_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          xml?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "einvoice_submissions_credit_note_id_fkey"
+            columns: ["credit_note_id"]
+            isOneToOne: false
+            referencedRelation: "credit_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einvoice_submissions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einvoice_submissions_salon_id_fkey"
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
@@ -766,6 +1000,68 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "cash_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_years: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          closing_entry_id: string | null
+          created_at: string
+          end_date: string
+          id: string
+          net_profit: number
+          note: string | null
+          salon_id: string
+          start_date: string
+          status: string
+          total_expenses: number
+          total_revenue: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_entry_id?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          net_profit?: number
+          note?: string | null
+          salon_id: string
+          start_date: string
+          status?: string
+          total_expenses?: number
+          total_revenue?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_entry_id?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          net_profit?: number
+          note?: string | null
+          salon_id?: string
+          start_date?: string
+          status?: string
+          total_expenses?: number
+          total_revenue?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_years_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
         ]
@@ -2255,6 +2551,59 @@ export type Database = {
           },
         ]
       }
+      zatca_config: {
+        Row: {
+          binary_token: string | null
+          common_name: string | null
+          created_at: string
+          enabled: boolean
+          env: string
+          last_hash: string | null
+          last_submitted_at: string | null
+          salon_id: string
+          secret: string | null
+          seller_name: string | null
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          binary_token?: string | null
+          common_name?: string | null
+          created_at?: string
+          enabled?: boolean
+          env?: string
+          last_hash?: string | null
+          last_submitted_at?: string | null
+          salon_id: string
+          secret?: string | null
+          seller_name?: string | null
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          binary_token?: string | null
+          common_name?: string | null
+          created_at?: string
+          enabled?: boolean
+          env?: string
+          last_hash?: string | null
+          last_submitted_at?: string | null
+          salon_id?: string
+          secret?: string | null
+          seller_name?: string | null
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zatca_config_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: true
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2267,6 +2616,10 @@ export type Database = {
         Returns: boolean
       }
       claim_platform_owner: { Args: never; Returns: boolean }
+      close_fiscal_year: {
+        Args: { _note?: string; _salon: string; _year: number }
+        Returns: string
+      }
       close_shift: {
         Args: { _counted: number; _note?: string; _shift: string }
         Returns: Json
@@ -2290,6 +2643,19 @@ export type Database = {
       is_salon_member: {
         Args: { _salon: string; _uid: string }
         Returns: boolean
+      }
+      is_salon_owner: {
+        Args: { _salon: string; _uid: string }
+        Returns: boolean
+      }
+      issue_credit_note: {
+        Args: {
+          _invoice: string
+          _lines: Json
+          _reason: string
+          _salon: string
+        }
+        Returns: string
       }
       open_shift: {
         Args: { _branch: string; _opening_float?: number; _salon: string }
@@ -2334,6 +2700,28 @@ export type Database = {
           name: string
           role_label: string
         }[]
+      }
+      record_einvoice_submission: {
+        Args: {
+          _credit_note: string
+          _doc_number: string
+          _doc_type: string
+          _doc_uuid: string
+          _env: string
+          _error?: string
+          _hash: string
+          _invoice: string
+          _qr: string
+          _response?: Json
+          _salon: string
+          _status: string
+          _xml: string
+        }
+        Returns: string
+      }
+      reopen_fiscal_year: {
+        Args: { _salon: string; _year: number }
+        Returns: undefined
       }
       seed_chart_accounts: { Args: { _salon: string }; Returns: number }
       unpost_accounting_period: {
