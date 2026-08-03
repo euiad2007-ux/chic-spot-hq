@@ -27,7 +27,12 @@ export interface BookingSettings {
   maxDailyBookings: number; // 0 = unlimited
   foundingDate: string;     // "YYYY-MM-DD" — reference for sequential numbering
   holdGraceMin: number;     // minutes past appointment before hold auto-cancels
+  cancelWindowMin: number;  // 0 = anytime; minutes before start that cancelling is still allowed
+  restockOnCancel: boolean; // return service materials to stock when a deducted booking is cancelled
+  maxAdvanceDays: number;   // 0 = unlimited; how far ahead a booking may be made
+  allowSameStaffBackToBack: boolean; // when false, buffer is enforced strictly
 }
+
 
 const UNUSED_STORAGE_KEY = "lamsa_booking_settings_v1";
 
