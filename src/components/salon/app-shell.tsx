@@ -188,25 +188,37 @@ export function AppShell({
   const initial = (account?.salonName ?? account?.fullName ?? "S").trim().charAt(0) || "S";
 
   const navLinks = (onNavigate?: () => void) =>
-    items.map((n) => {
-      const Icon = n.icon;
+    GROUPS.map((g) => {
+      const groupItems = items.filter((n) => n.group === g.id);
+      if (groupItems.length === 0) return null;
       return (
-        <Link
-          key={n.to}
-          to={n.to}
-          onClick={onNavigate}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-            isActive(n.to)
-              ? "bg-gradient-to-l from-primary/20 to-accent/10 text-foreground border border-primary/30 shadow-[var(--shadow-glow)]"
-              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
-          )}
-        >
-          <Icon className="size-4" />
-          <span>{n.label}</span>
-        </Link>
+        <div key={g.id} className="space-y-1">
+          <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+            {g.label}
+          </div>
+          {groupItems.map((n) => {
+            const Icon = n.icon;
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                  isActive(n.to)
+                    ? "bg-gradient-to-l from-primary/20 to-accent/10 text-foreground border border-primary/30 shadow-[var(--shadow-glow)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                )}
+              >
+                <Icon className="size-4" />
+                <span>{n.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       );
     });
+
 
   if (permitted === false) {
     return (
