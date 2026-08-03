@@ -79,7 +79,16 @@ export async function saveZatcaConfig(
     secret?: string;
   },
 ): Promise<void> {
-  const row: Record<string, unknown> = {
+  const row: {
+    salon_id: string;
+    enabled: boolean;
+    env: string;
+    vat_number: string | null;
+    seller_name: string | null;
+    common_name: string | null;
+    binary_token?: string;
+    secret?: string;
+  } = {
     salon_id: salonId,
     enabled: input.enabled,
     env: input.env,
@@ -89,6 +98,7 @@ export async function saveZatcaConfig(
   };
   if (input.binary_token?.trim()) row.binary_token = input.binary_token.trim();
   if (input.secret?.trim()) row.secret = input.secret.trim();
+
 
   const { error } = await supabase.from("zatca_config").upsert(row, { onConflict: "salon_id" });
   if (error) throw new Error(error.message);
@@ -144,8 +154,8 @@ export async function recordSubmission(input: {
   const { data, error } = await supabase.rpc("record_einvoice_submission", {
     _salon: input.salonId,
     _doc_type: input.docType,
-    _invoice: input.invoiceId ?? undefined,
-    _credit_note: input.creditNoteId ?? undefined,
+    _invoice: (input.invoiceId ?? null) as unknown as string,
+    _credit_note: (input.creditNoteId ?? null) as unknown as string,
     _doc_number: input.docNumber,
     _doc_uuid: input.docUuid,
     _hash: input.hash,
