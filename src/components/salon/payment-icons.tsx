@@ -104,23 +104,3 @@ export function PaymentIcon({ id, className }: { id: PaymentMethodId; className?
       );
   }
 }
-
-export function PaymentMethodsRow({
-  methods,
-  className,
-  size = "md",
-}: {
-  methods: PaymentMethodId[];
-  className?: string;
-  size?: "sm" | "md";
-}) {
-  if (!methods?.length) return null;
-  const iconClass = size === "sm" ? "h-6 w-10" : "h-8 w-14";
-  return (
-    <div className={cn("flex items-center gap-2 flex-wrap", className)}>
-      {methods.map((m) => (
-        <PaymentIcon key={m} id={m} className={iconClass} />
-      ))}
-    </div>
-  );
-}
