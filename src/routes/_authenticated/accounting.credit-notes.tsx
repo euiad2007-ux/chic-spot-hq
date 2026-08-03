@@ -8,7 +8,7 @@ import { AppShell } from "@/components/salon/app-shell";
 import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
-import { downloadCsv } from "@/lib/export";
+import { exportCsv, stampName } from "@/lib/export";
 import {
   findInvoiceToCredit,
   issueCreditNote,
@@ -241,8 +241,8 @@ function CreditNotesPage() {
             />
             <button
               onClick={() =>
-                downloadCsv(
-                  `credit-notes-${from}-${to}`,
+                exportCsv(
+                  stampName(`credit-notes-${from}-${to}`),
                   ["الرقم", "الفاتورة", "التاريخ", "الوعاء", "الضريبة", "الإجمالي", "السبب"],
                   rows.map((r) => [
                     r.number,
