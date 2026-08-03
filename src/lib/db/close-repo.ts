@@ -38,7 +38,7 @@ export async function closeFiscalYear(salonId: string, year: number, note?: stri
   const { data, error } = await supabase.rpc("close_fiscal_year", {
     _salon: salonId,
     _year: year,
-    _note: note?.trim() || null,
+    _note: note?.trim() || undefined,
   });
   if (error) throw new Error(error.message);
   return data as string;
