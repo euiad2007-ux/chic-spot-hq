@@ -233,6 +233,7 @@ export type Database = {
           staff_id: string | null
           starts_at: string
           status: Database["public"]["Enums"]["booking_status"]
+          stock_deducted: boolean
           updated_at: string
           wallet_approved: boolean
           wallet_used: number
@@ -261,6 +262,7 @@ export type Database = {
           staff_id?: string | null
           starts_at: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stock_deducted?: boolean
           updated_at?: string
           wallet_approved?: boolean
           wallet_used?: number
@@ -289,6 +291,7 @@ export type Database = {
           staff_id?: string | null
           starts_at?: string
           status?: Database["public"]["Enums"]["booking_status"]
+          stock_deducted?: boolean
           updated_at?: string
           wallet_approved?: boolean
           wallet_used?: number
@@ -658,6 +661,7 @@ export type Database = {
           shift_id: string | null
           spent_on: string
           updated_at: string
+          vat_amount: number
           vendor: string | null
         }
         Insert: {
@@ -673,6 +677,7 @@ export type Database = {
           shift_id?: string | null
           spent_on?: string
           updated_at?: string
+          vat_amount?: number
           vendor?: string | null
         }
         Update: {
@@ -688,6 +693,7 @@ export type Database = {
           shift_id?: string | null
           spent_on?: string
           updated_at?: string
+          vat_amount?: number
           vendor?: string | null
         }
         Relationships: [
@@ -789,6 +795,124 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_stocktake_lines: {
+        Row: {
+          cost_per_unit: number
+          counted_qty: number
+          created_at: string
+          diff_qty: number
+          id: string
+          item_id: string
+          salon_id: string
+          stocktake_id: string
+          system_qty: number
+        }
+        Insert: {
+          cost_per_unit?: number
+          counted_qty?: number
+          created_at?: string
+          diff_qty?: number
+          id?: string
+          item_id: string
+          salon_id: string
+          stocktake_id: string
+          system_qty?: number
+        }
+        Update: {
+          cost_per_unit?: number
+          counted_qty?: number
+          created_at?: string
+          diff_qty?: number
+          id?: string
+          item_id?: string
+          salon_id?: string
+          stocktake_id?: string
+          system_qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_stocktake_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stocktake_lines_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stocktake_lines_stocktake_id_fkey"
+            columns: ["stocktake_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_stocktakes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_stocktakes: {
+        Row: {
+          applied_at: string | null
+          branch_id: string | null
+          counted_on: string
+          created_at: string
+          created_by: string | null
+          diff_qty: number
+          diff_value: number
+          id: string
+          note: string | null
+          salon_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string | null
+          branch_id?: string | null
+          counted_on?: string
+          created_at?: string
+          created_by?: string | null
+          diff_qty?: number
+          diff_value?: number
+          id?: string
+          note?: string | null
+          salon_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string | null
+          branch_id?: string | null
+          counted_on?: string
+          created_at?: string
+          created_by?: string | null
+          diff_qty?: number
+          diff_value?: number
+          id?: string
+          note?: string | null
+          salon_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_stocktakes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_stocktakes_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
         ]
@@ -1365,6 +1489,7 @@ export type Database = {
           currency: string
           custom_domain: string | null
           domain_status: string
+          expenses_include_vat: boolean
           id: string
           is_suspended: boolean
           name: string
@@ -1374,10 +1499,12 @@ export type Database = {
           slug: string
           subscription_ends_at: string | null
           subscription_status: string
+          tax_number: string | null
           trial_ends_at: string | null
           updated_at: string
           vat_number: string | null
           vat_pct: number
+          vat_rate: number
         }
         Insert: {
           admin_notes?: string | null
@@ -1385,6 +1512,7 @@ export type Database = {
           currency?: string
           custom_domain?: string | null
           domain_status?: string
+          expenses_include_vat?: boolean
           id?: string
           is_suspended?: boolean
           name: string
@@ -1394,10 +1522,12 @@ export type Database = {
           slug: string
           subscription_ends_at?: string | null
           subscription_status?: string
+          tax_number?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           vat_number?: string | null
           vat_pct?: number
+          vat_rate?: number
         }
         Update: {
           admin_notes?: string | null
@@ -1405,6 +1535,7 @@ export type Database = {
           currency?: string
           custom_domain?: string | null
           domain_status?: string
+          expenses_include_vat?: boolean
           id?: string
           is_suspended?: boolean
           name?: string
@@ -1414,10 +1545,12 @@ export type Database = {
           slug?: string
           subscription_ends_at?: string | null
           subscription_status?: string
+          tax_number?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           vat_number?: string | null
           vat_pct?: number
+          vat_rate?: number
         }
         Relationships: []
       }
@@ -1850,6 +1983,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_stocktake: { Args: { p_stocktake_id: string }; Returns: undefined }
       can_manage_salon: {
         Args: { _salon: string; _uid: string }
         Returns: boolean
