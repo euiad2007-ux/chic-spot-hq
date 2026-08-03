@@ -113,7 +113,76 @@ export async function deleteAccount(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export interface TrialBalanceRangeRow {
+  code: string;
+  name: string;
+  kind: AccountKind;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+/** Trial balance for any date range, aggregated from posted journal lines. */
+export async function loadTrialBalanceRange(
+  salonId: string,
+  from: string,
+  to: string,
+): Promise<{
+  rows: TrialBalanceRangeRow[];
+  totalDebit: number;
+  totalCredit: number;
+  balanced: boolean;
+}> {
+  const [accounts, lines] = await Promise.all([
+    listAccounts(salonId),
+    supabase
+      .from("journal_lines")
+      .select("account_code,account_name,debit,credit,journal_entries!inner(entry_date,salon_id)")
+      .eq("salon_id", salonId)
+      .gte("journal_entries.entry_date", from)
+      .lte("journal_entries.entry_date", to)
+      .limit(5000),
+  ]);
+  if (lines.error) throw new Error(lines.error.message);
+
+  const meta = new Map(accounts.map((a) => [a.code, a]));
+  const map = new Map<string, TrialBalanceRangeRow>();
+
+  type Raw = {
+    account_code: string;
+    account_name: string | null;
+    debit: number | string;
+    credit: number | string;
+  };
+
+  for (const l of (lines.data ?? []) as unknown as Raw[]) {
+    const acc = meta.get(l.account_code);
+    const cur =
+      map.get(l.account_code) ??
+      {
+        code: l.account_code,
+        name: acc?.name ?? l.account_name ?? l.account_code,
+        kind: (acc?.kind ?? "expense") as AccountKind,
+        debit: 0,
+        credit: 0,
+        balance: 0,
+      };
+    cur.debit += Number(l.debit);
+    cur.credit += Number(l.credit);
+    map.set(l.account_code, cur);
+  }
+
+  const rows = [...map.values()]
+    .map((r) => ({ ...r, debit: r2(r.debit), credit: r2(r.credit), balance: r2(r.debit - r.credit) }))
+    .sort((a, b) => a.code.localeCompare(b.code));
+
+  const totalDebit = r2(rows.reduce((a, r) => a + r.debit, 0));
+  const totalCredit = r2(rows.reduce((a, r) => a + r.credit, 0));
+  return { rows, totalDebit, totalCredit, balanced: Math.abs(totalDebit - totalCredit) < 0.01 };
+}
+
 /** General ledger for one account across a date range, with a running balance. */
+
 export async function loadLedger(
   salonId: string,
   accountCode: string,
