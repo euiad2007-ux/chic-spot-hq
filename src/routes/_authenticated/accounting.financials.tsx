@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LineChart, Scale } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { loadFinancials, type StatementLine } from "@/lib/db/coa-repo";
@@ -46,6 +47,7 @@ function FinancialsPage() {
   return (
     <AppShell title="التقارير المالية" subtitle="قائمة الدخل والميزانية العمومية من القيود المرحّلة">
       <div className="space-y-4">
+        <AccountingNav />
         <section className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
           <label className="space-y-1 block">
             <span className="text-xs text-muted-foreground">من</span>

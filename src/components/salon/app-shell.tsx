@@ -34,6 +34,9 @@ import {
   Building,
   LineChart,
   ShieldCheck,
+  NotebookPen,
+  Scale,
+  Percent,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -55,6 +58,8 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/accounts", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/financials", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/assets", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/accounting/financials", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/accounting/assets", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/users", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/branches", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/reports", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -132,10 +137,13 @@ const nav: {
   { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll", group: "team" },
   { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "team" },
 
-  { to: "/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, group: "accounts" },
-  { to: "/accounting", label: "القيود والضرائب", icon: Calculator, manager: true, group: "accounts" },
-  { to: "/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "accounts" },
-  { to: "/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "accounts" },
+  { to: "/accounting", label: "لوحة المحاسبة", icon: Calculator, manager: true, group: "accounts" },
+  { to: "/accounting/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, group: "accounts" },
+  { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen, manager: true, group: "accounts" },
+  { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale, manager: true, group: "accounts" },
+  { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "accounts" },
+  { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, group: "accounts" },
+  { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "accounts" },
 
   { to: "/reports", label: "التقارير", icon: BarChart3, manager: true, group: "admin" },
   { to: "/branches", label: "الفروع", icon: Building2, manager: true, group: "admin" },

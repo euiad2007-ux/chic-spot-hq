@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Building, Plus, Trash2, TrendingDown } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import {
@@ -157,6 +158,7 @@ function AssetsPage() {
       }
     >
       <div className="space-y-4">
+        <AccountingNav />
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="إجمالي تكلفة الأصول" value={formatSAR(totals.cost)} />
           <Stat label="مجمّع الإهلاك المرحّل" value={formatSAR(totals.accumulated)} />

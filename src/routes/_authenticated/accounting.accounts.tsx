@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { BookOpen, Layers, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { SOURCE_LABEL } from "@/lib/db/journal-repo";
@@ -138,6 +139,7 @@ function AccountsPage() {
       }
     >
       <div className="space-y-4">
+        <AccountingNav />
         <nav className="flex flex-wrap gap-2">
           <TabBtn active={tab === "tree"} onClick={() => setTab("tree")} label="شجرة الحسابات" />
           <TabBtn active={tab === "ledger"} onClick={() => setTab("ledger")} label="دفتر الأستاذ العام" />

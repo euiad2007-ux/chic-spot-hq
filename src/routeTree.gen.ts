@@ -41,6 +41,7 @@ import { Route as AuthenticatedBranchesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedBookingSettingsRouteImport } from './routes/_authenticated/booking-settings'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
+import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenticated/activity-log'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
 import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
@@ -213,6 +214,11 @@ const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedActivityLogRoute =
   AuthenticatedActivityLogRouteImport.update({
     id: '/activity-log',
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
+  '/assets': typeof AuthenticatedAssetsRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -322,6 +329,7 @@ export interface FileRoutesByTo {
   '/site': typeof SiteRoute
   '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
+  '/assets': typeof AuthenticatedAssetsRoute
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/_authenticated/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
   '/_authenticated/activity-log': typeof AuthenticatedActivityLogRoute
+  '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/accounting'
     | '/accounts'
     | '/activity-log'
+    | '/assets'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/site'
     | '/accounts'
     | '/activity-log'
+    | '/assets'
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/_authenticated/accounting'
     | '/_authenticated/accounts'
     | '/_authenticated/activity-log'
+    | '/_authenticated/assets'
     | '/_authenticated/attendance'
     | '/_authenticated/booking-settings'
     | '/_authenticated/bookings'
@@ -768,6 +780,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assets': {
+      id: '/_authenticated/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/activity-log': {
       id: '/_authenticated/activity-log'
       path: '/activity-log'
@@ -873,6 +892,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRouteWithChildren
   AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRoute
   AuthenticatedActivityLogRoute: typeof AuthenticatedActivityLogRoute
+  AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBookingSettingsRoute: typeof AuthenticatedBookingSettingsRoute
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
@@ -906,6 +926,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountingRoute: AuthenticatedAccountingRouteWithChildren,
   AuthenticatedAccountsRoute: AuthenticatedAccountsRoute,
   AuthenticatedActivityLogRoute: AuthenticatedActivityLogRoute,
+  AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBookingSettingsRoute: AuthenticatedBookingSettingsRoute,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,

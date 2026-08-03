@@ -5,13 +5,12 @@ import { toast } from "sonner";
 import { Calculator, Percent } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { AccountingNav } from "@/components/salon/accounting-nav";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { payMethodLabel } from "@/lib/db/ops-repo";
 import { loadTaxReport, saveTaxSettings } from "@/lib/db/accounting-repo";
 import { MonthlyTaxPanel } from "@/components/salon/monthly-tax";
-import { JournalPanel } from "@/components/salon/journal-panel";
-import { JournalForm } from "@/components/salon/journal-form";
 
 export const Route = createFileRoute("/_authenticated/accounting/vat")({
   head: () => ({
@@ -39,7 +38,7 @@ function AccountingPage() {
   const salonId = account?.salonId ?? null;
   const qc = useQueryClient();
 
-  const [tab, setTab] = useState<"period" | "monthly" | "journal" | "manual">("period");
+  const [tab, setTab] = useState<"period" | "monthly">("period");
   const [from, setFrom] = useState(monthStart());
   const [to, setTo] = useState(today());
   const [taxNumber, setTaxNumber] = useState<string | null>(null);
@@ -76,6 +75,7 @@ function AccountingPage() {
   return (
     <AppShell title="المحاسبة الضريبية" subtitle="إقرار ضريبة القيمة المضافة والترحيل المحاسبي">
       <div className="space-y-4">
+        <AccountingNav />
         <nav className="flex flex-wrap gap-2">
           {TABS.map((t) => (
             <button
@@ -93,8 +93,6 @@ function AccountingPage() {
         </nav>
 
         {tab === "monthly" && <MonthlyTaxPanel salonId={salonId} />}
-        {tab === "journal" && <JournalPanel salonId={salonId} />}
-        {tab === "manual" && <JournalForm salonId={salonId} />}
 
         <div className={tab === "period" ? "space-y-4" : "hidden"}>
         <section className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
@@ -239,11 +237,9 @@ function AccountingPage() {
   );
 }
 
-const TABS: { id: "period" | "monthly" | "journal" | "manual"; label: string }[] = [
+const TABS: { id: "period" | "monthly"; label: string }[] = [
   { id: "period", label: "إقرار فترة" },
   { id: "monthly", label: "التقارير الشهرية" },
-  { id: "journal", label: "الترحيل المحاسبي" },
-  { id: "manual", label: "قيد يدوي" },
 ];
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "good" | "bad" }) {
