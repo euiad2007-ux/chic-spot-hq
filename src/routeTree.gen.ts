@@ -45,6 +45,13 @@ import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenticated/activity-log'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
 import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
+import { Route as AuthenticatedAccountingIndexRouteImport } from './routes/_authenticated/accounting.index'
+import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
+import { Route as AuthenticatedAccountingTrialBalanceRouteImport } from './routes/_authenticated/accounting.trial-balance'
+import { Route as AuthenticatedAccountingJournalRouteImport } from './routes/_authenticated/accounting.journal'
+import { Route as AuthenticatedAccountingFinancialsRouteImport } from './routes/_authenticated/accounting.financials'
+import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
+import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
@@ -228,13 +235,55 @@ const AuthenticatedAccountingRoute = AuthenticatedAccountingRouteImport.update({
   path: '/accounting',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAccountingIndexRoute =
+  AuthenticatedAccountingIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
+const AuthenticatedAccountingVatRoute =
+  AuthenticatedAccountingVatRouteImport.update({
+    id: '/vat',
+    path: '/vat',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
+const AuthenticatedAccountingTrialBalanceRoute =
+  AuthenticatedAccountingTrialBalanceRouteImport.update({
+    id: '/trial-balance',
+    path: '/trial-balance',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
+const AuthenticatedAccountingJournalRoute =
+  AuthenticatedAccountingJournalRouteImport.update({
+    id: '/journal',
+    path: '/journal',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
+const AuthenticatedAccountingFinancialsRoute =
+  AuthenticatedAccountingFinancialsRouteImport.update({
+    id: '/financials',
+    path: '/financials',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
+const AuthenticatedAccountingAssetsRoute =
+  AuthenticatedAccountingAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
+const AuthenticatedAccountingAccountsRoute =
+  AuthenticatedAccountingAccountsRouteImport.update({
+    id: '/accounts',
+    path: '/accounts',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
-  '/accounting': typeof AuthenticatedAccountingRoute
+  '/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
   '/assets': typeof AuthenticatedAssetsRoute
@@ -265,13 +314,19 @@ export interface FileRoutesByFullPath {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
+  '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
+  '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
+  '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/accounting/': typeof AuthenticatedAccountingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
-  '/accounting': typeof AuthenticatedAccountingRoute
   '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
   '/assets': typeof AuthenticatedAssetsRoute
@@ -302,6 +357,13 @@ export interface FileRoutesByTo {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
+  '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
+  '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
+  '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/accounting': typeof AuthenticatedAccountingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -310,7 +372,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
-  '/_authenticated/accounting': typeof AuthenticatedAccountingRoute
+  '/_authenticated/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
   '/_authenticated/activity-log': typeof AuthenticatedActivityLogRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
@@ -341,6 +403,13 @@ export interface FileRoutesById {
   '/_authenticated/stocktake': typeof AuthenticatedStocktakeRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
+  '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
+  '/_authenticated/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/_authenticated/accounting/journal': typeof AuthenticatedAccountingJournalRoute
+  '/_authenticated/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
+  '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/_authenticated/accounting/': typeof AuthenticatedAccountingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -380,13 +449,19 @@ export interface FileRouteTypes {
     | '/stocktake'
     | '/subscription'
     | '/users'
+    | '/accounting/accounts'
+    | '/accounting/assets'
+    | '/accounting/financials'
+    | '/accounting/journal'
+    | '/accounting/trial-balance'
+    | '/accounting/vat'
+    | '/accounting/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/no-access'
     | '/site'
-    | '/accounting'
     | '/accounts'
     | '/activity-log'
     | '/assets'
@@ -417,6 +492,13 @@ export interface FileRouteTypes {
     | '/stocktake'
     | '/subscription'
     | '/users'
+    | '/accounting/accounts'
+    | '/accounting/assets'
+    | '/accounting/financials'
+    | '/accounting/journal'
+    | '/accounting/trial-balance'
+    | '/accounting/vat'
+    | '/accounting'
   id:
     | '__root__'
     | '/'
@@ -455,6 +537,13 @@ export interface FileRouteTypes {
     | '/_authenticated/stocktake'
     | '/_authenticated/subscription'
     | '/_authenticated/users'
+    | '/_authenticated/accounting/accounts'
+    | '/_authenticated/accounting/assets'
+    | '/_authenticated/accounting/financials'
+    | '/_authenticated/accounting/journal'
+    | '/_authenticated/accounting/trial-balance'
+    | '/_authenticated/accounting/vat'
+    | '/_authenticated/accounting/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -719,11 +808,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/accounting/': {
+      id: '/_authenticated/accounting/'
+      path: '/'
+      fullPath: '/accounting/'
+      preLoaderRoute: typeof AuthenticatedAccountingIndexRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
+    '/_authenticated/accounting/vat': {
+      id: '/_authenticated/accounting/vat'
+      path: '/vat'
+      fullPath: '/accounting/vat'
+      preLoaderRoute: typeof AuthenticatedAccountingVatRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
+    '/_authenticated/accounting/trial-balance': {
+      id: '/_authenticated/accounting/trial-balance'
+      path: '/trial-balance'
+      fullPath: '/accounting/trial-balance'
+      preLoaderRoute: typeof AuthenticatedAccountingTrialBalanceRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
+    '/_authenticated/accounting/journal': {
+      id: '/_authenticated/accounting/journal'
+      path: '/journal'
+      fullPath: '/accounting/journal'
+      preLoaderRoute: typeof AuthenticatedAccountingJournalRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
+    '/_authenticated/accounting/financials': {
+      id: '/_authenticated/accounting/financials'
+      path: '/financials'
+      fullPath: '/accounting/financials'
+      preLoaderRoute: typeof AuthenticatedAccountingFinancialsRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
+    '/_authenticated/accounting/assets': {
+      id: '/_authenticated/accounting/assets'
+      path: '/assets'
+      fullPath: '/accounting/assets'
+      preLoaderRoute: typeof AuthenticatedAccountingAssetsRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
+    '/_authenticated/accounting/accounts': {
+      id: '/_authenticated/accounting/accounts'
+      path: '/accounts'
+      fullPath: '/accounting/accounts'
+      preLoaderRoute: typeof AuthenticatedAccountingAccountsRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
   }
 }
 
+interface AuthenticatedAccountingRouteChildren {
+  AuthenticatedAccountingAccountsRoute: typeof AuthenticatedAccountingAccountsRoute
+  AuthenticatedAccountingAssetsRoute: typeof AuthenticatedAccountingAssetsRoute
+  AuthenticatedAccountingFinancialsRoute: typeof AuthenticatedAccountingFinancialsRoute
+  AuthenticatedAccountingJournalRoute: typeof AuthenticatedAccountingJournalRoute
+  AuthenticatedAccountingTrialBalanceRoute: typeof AuthenticatedAccountingTrialBalanceRoute
+  AuthenticatedAccountingVatRoute: typeof AuthenticatedAccountingVatRoute
+  AuthenticatedAccountingIndexRoute: typeof AuthenticatedAccountingIndexRoute
+}
+
+const AuthenticatedAccountingRouteChildren: AuthenticatedAccountingRouteChildren =
+  {
+    AuthenticatedAccountingAccountsRoute: AuthenticatedAccountingAccountsRoute,
+    AuthenticatedAccountingAssetsRoute: AuthenticatedAccountingAssetsRoute,
+    AuthenticatedAccountingFinancialsRoute:
+      AuthenticatedAccountingFinancialsRoute,
+    AuthenticatedAccountingJournalRoute: AuthenticatedAccountingJournalRoute,
+    AuthenticatedAccountingTrialBalanceRoute:
+      AuthenticatedAccountingTrialBalanceRoute,
+    AuthenticatedAccountingVatRoute: AuthenticatedAccountingVatRoute,
+    AuthenticatedAccountingIndexRoute: AuthenticatedAccountingIndexRoute,
+  }
+
+const AuthenticatedAccountingRouteWithChildren =
+  AuthenticatedAccountingRoute._addFileChildren(
+    AuthenticatedAccountingRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRoute
+  AuthenticatedAccountingRoute: typeof AuthenticatedAccountingRouteWithChildren
   AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRoute
   AuthenticatedActivityLogRoute: typeof AuthenticatedActivityLogRoute
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
@@ -757,7 +923,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAccountingRoute: AuthenticatedAccountingRoute,
+  AuthenticatedAccountingRoute: AuthenticatedAccountingRouteWithChildren,
   AuthenticatedAccountsRoute: AuthenticatedAccountsRoute,
   AuthenticatedActivityLogRoute: AuthenticatedActivityLogRoute,
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
@@ -803,13 +969,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
