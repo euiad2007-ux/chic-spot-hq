@@ -9,6 +9,8 @@ import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { payMethodLabel } from "@/lib/db/ops-repo";
 import { loadTaxReport, saveTaxSettings } from "@/lib/db/accounting-repo";
+import { MonthlyTaxPanel } from "@/components/salon/monthly-tax";
+import { JournalPanel } from "@/components/salon/journal-panel";
 
 export const Route = createFileRoute("/_authenticated/accounting")({
   head: () => ({
@@ -36,6 +38,7 @@ function AccountingPage() {
   const salonId = account?.salonId ?? null;
   const qc = useQueryClient();
 
+  const [tab, setTab] = useState<"period" | "monthly" | "journal">("period");
   const [from, setFrom] = useState(monthStart());
   const [to, setTo] = useState(today());
   const [taxNumber, setTaxNumber] = useState<string | null>(null);
@@ -70,8 +73,28 @@ function AccountingPage() {
   const d = report.data;
 
   return (
-    <AppShell title="المحاسبة الضريبية" subtitle="إقرار ضريبة القيمة المضافة والربح التشغيلي">
+    <AppShell title="المحاسبة الضريبية" subtitle="إقرار ضريبة القيمة المضافة والترحيل المحاسبي">
       <div className="space-y-4">
+        <nav className="flex flex-wrap gap-2">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={
+                tab === t.id
+                  ? "h-10 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm"
+                  : "h-10 px-4 rounded-xl border border-border font-bold text-sm text-muted-foreground"
+              }
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+
+        {tab === "monthly" && <MonthlyTaxPanel salonId={salonId} />}
+        {tab === "journal" && <JournalPanel salonId={salonId} />}
+
+        <div className={tab === "period" ? "space-y-4" : "hidden"}>
         <section className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
           <label className="block space-y-1">
             <span className="text-xs text-muted-foreground">من</span>
@@ -208,10 +231,17 @@ function AccountingPage() {
             </div>
           </section>
         </div>
+        </div>
       </div>
     </AppShell>
   );
 }
+
+const TABS: { id: "period" | "monthly" | "journal"; label: string }[] = [
+  { id: "period", label: "إقرار فترة" },
+  { id: "monthly", label: "التقارير الشهرية" },
+  { id: "journal", label: "الترحيل المحاسبي" },
+];
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "good" | "bad" }) {
   return (
