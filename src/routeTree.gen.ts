@@ -31,6 +31,7 @@ import { Route as AuthenticatedCouponsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
 import { Route as AuthenticatedCashRouteImport } from './routes/_authenticated/cash'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedBranchesRouteImport } from './routes/_authenticated/branches'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
 import { Route as AuthenticatedBookingSettingsRouteImport } from './routes/_authenticated/booking-settings'
 import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
@@ -144,6 +145,11 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBranchesRoute = AuthenticatedBranchesRouteImport.update({
+  id: '/branches',
+  path: '/branches',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/branches': typeof AuthenticatedBranchesRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/cash': typeof AuthenticatedCashRoute
   '/client': typeof AuthenticatedClientRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/attendance': typeof AuthenticatedAttendanceRoute
   '/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/bookings': typeof AuthenticatedBookingsRoute
+  '/branches': typeof AuthenticatedBranchesRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/cash': typeof AuthenticatedCashRoute
   '/client': typeof AuthenticatedClientRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/booking-settings': typeof AuthenticatedBookingSettingsRoute
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
+  '/_authenticated/branches': typeof AuthenticatedBranchesRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/cash': typeof AuthenticatedCashRoute
   '/_authenticated/client': typeof AuthenticatedClientRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
+    | '/branches'
     | '/calendar'
     | '/cash'
     | '/client'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/booking-settings'
     | '/bookings'
+    | '/branches'
     | '/calendar'
     | '/cash'
     | '/client'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/_authenticated/attendance'
     | '/_authenticated/booking-settings'
     | '/_authenticated/bookings'
+    | '/_authenticated/branches'
     | '/_authenticated/calendar'
     | '/_authenticated/cash'
     | '/_authenticated/client'
@@ -487,6 +499,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/branches': {
+      id: '/_authenticated/branches'
+      path: '/branches'
+      fullPath: '/branches'
+      preLoaderRoute: typeof AuthenticatedBranchesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/bookings': {
       id: '/_authenticated/bookings'
       path: '/bookings'
@@ -515,6 +534,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBookingSettingsRoute: typeof AuthenticatedBookingSettingsRoute
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
+  AuthenticatedBranchesRoute: typeof AuthenticatedBranchesRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCashRoute: typeof AuthenticatedCashRoute
   AuthenticatedClientRoute: typeof AuthenticatedClientRoute
@@ -538,6 +558,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBookingSettingsRoute: AuthenticatedBookingSettingsRoute,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
+  AuthenticatedBranchesRoute: AuthenticatedBranchesRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCashRoute: AuthenticatedCashRoute,
   AuthenticatedClientRoute: AuthenticatedClientRoute,
