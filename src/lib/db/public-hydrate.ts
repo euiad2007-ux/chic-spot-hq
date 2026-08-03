@@ -29,14 +29,9 @@ export function hydratePublicSite(): Promise<void> {
     if (tenant && !tenant.isSuspended) {
       salon = { id: tenant.id, name: tenant.name };
     } else if (!tenant) {
-      const { data } = await supabase
-        .from("salons")
-        .select("id, name")
-        .eq("is_suspended", false)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      salon = data ?? null;
+      const { data } = await supabase.rpc("public_salon_lookup", {});
+      const row = (data as { id: string; name: string }[] | null)?.[0];
+      salon = row ? { id: row.id, name: row.name } : null;
     }
 
     if (!salon) {
@@ -45,7 +40,7 @@ export function hydratePublicSite(): Promise<void> {
       return;
     }
     const [settingsRes, servicesRes, teamRes] = await Promise.all([
-      supabase.from("salon_settings").select("site").eq("salon_id", salon.id).maybeSingle(),
+      supabase.rpc("public_salon_site", { _salon: salon.id }),
       supabase.from("services").select("*").eq("salon_id", salon.id).eq("active", true),
       supabase.rpc("public_salon_team", { _salon: salon.id }),
     ]);
@@ -73,7 +68,7 @@ export function hydratePublicSite(): Promise<void> {
     }));
 
     hydrateSalonStore(emptyState(services, staff));
-    const siteDoc = settingsRes.data?.site;
+    const siteDoc = settingsRes.data;
     const stored =
       siteDoc && typeof siteDoc === "object" && !Array.isArray(siteDoc)
         ? (siteDoc as Record<string, unknown>)

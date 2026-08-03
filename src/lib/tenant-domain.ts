@@ -55,7 +55,7 @@ type LookupRow = {
 async function lookup(): Promise<DomainTenant | null> {
   const slug = tenantSlugOverride();
   if (slug) {
-    const { data } = await supabase.rpc("public_salon_lookup", { _slug: slug, _domains: null });
+    const { data } = await supabase.rpc("public_salon_lookup", { _slug: slug });
     const row = (data as LookupRow[] | null)?.[0];
     if (!row) return null;
     return { id: row.id, name: row.name, slug: row.slug, isSuspended: false, fromDomain: false };
@@ -65,7 +65,7 @@ async function lookup(): Promise<DomainTenant | null> {
   if (!host || isPlatformHost(host)) return null;
 
   const candidates = host.startsWith("www.") ? [host, host.slice(4)] : [host, `www.${host}`];
-  const { data } = await supabase.rpc("public_salon_lookup", { _slug: null, _domains: candidates });
+  const { data } = await supabase.rpc("public_salon_lookup", { _domains: candidates });
   const row = (data as LookupRow[] | null)?.[0];
   if (!row || row.domain_status !== "verified") return null;
   return { id: row.id, name: row.name, slug: row.slug, isSuspended: false, fromDomain: true };
