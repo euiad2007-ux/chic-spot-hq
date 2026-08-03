@@ -243,6 +243,7 @@ const TABS: { id: "period" | "monthly" | "journal" | "manual"; label: string }[]
   { id: "period", label: "إقرار فترة" },
   { id: "monthly", label: "التقارير الشهرية" },
   { id: "journal", label: "الترحيل المحاسبي" },
+  { id: "manual", label: "قيد يدوي" },
 ];
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "good" | "bad" }) {
