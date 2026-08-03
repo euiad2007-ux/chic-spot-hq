@@ -206,6 +206,10 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   if (start.getTime() < now + settings.minLeadMin * 60000) {
     return { type: "lead", message: `يجب الحجز قبل ${settings.minLeadMin} دقيقة على الأقل` };
   }
+  if (settings.maxAdvanceDays > 0 && start.getTime() > now + settings.maxAdvanceDays * 86400000) {
+    return { type: "lead", message: `لا يمكن الحجز لأكثر من ${settings.maxAdvanceDays} يوماً مقدماً` };
+  }
+
 
   const day = start.getDay() as Weekday;
   const sched = settings.workDays[day];
