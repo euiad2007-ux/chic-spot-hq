@@ -9,7 +9,8 @@ const BASE: Record<string, string> = {
 export interface ZatcaSendResult {
   status: "generated" | "reported" | "cleared" | "rejected" | "failed";
   env: string;
-  response: unknown;
+  /** JSON (or raw text) response from the gateway, kept as a string for transport. */
+  response: string | null;
   error: string | null;
 }
 
@@ -32,7 +33,7 @@ export async function reportDocument(input: {
     return {
       status: "generated",
       env: "offline",
-      response: { note: "تم التوليد محليًا: لم يتم إكمال ربط الاعتماد مع هيئة الضريبة" },
+      response: JSON.stringify({ note: "تم التوليد محليًا: لم يتم إكمال ربط الاعتماد مع هيئة الضريبة" }),
       error: null,
     };
   }
@@ -68,12 +69,7 @@ export async function reportDocument(input: {
   }
 
   const text = await res.text();
-  let body: unknown = text;
-  try {
-    body = text ? JSON.parse(text) : null;
-  } catch {
-    /* keep raw text */
-  }
+  const body = text || null;
 
   if (!res.ok) {
     return {

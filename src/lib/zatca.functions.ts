@@ -29,7 +29,9 @@ export const sendToZatca = createServerFn({ method: "POST" })
       return {
         status: "generated" as const,
         env: "offline",
-        response: { note: "الربط مع هيئة الضريبة غير مفعّل — تم التوليد والأرشفة محليًا" },
+        response: JSON.stringify({
+          note: "الربط مع هيئة الضريبة غير مفعّل — تم التوليد والأرشفة محليًا",
+        }),
         error: null,
       };
     }
