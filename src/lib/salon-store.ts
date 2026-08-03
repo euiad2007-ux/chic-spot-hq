@@ -708,7 +708,7 @@ export const actions = {
       ...state,
       invoices: [...state.invoices, inv],
       inventory: nextInv,
-      bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid" } : x),
+      bookings: state.bookings.map((x) => x.id === bookingId ? { ...x, status: "completed", payStatus: "paid", stockDeducted: true } : x),
       customers: state.customers.map((c) => {
         if (c.id === b.customerId) {
           const walletUsed = Math.max(0, Math.min(b.walletUsed ?? 0, c.walletBalance ?? 0));
