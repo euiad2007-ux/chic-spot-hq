@@ -272,6 +272,7 @@ const bookingRow = (b: Booking, salon_id: string): Row => ({
   coupon_discount: b.couponDiscount ?? 0, wallet_used: b.walletUsed ?? 0,
   wallet_approved: b.walletApproved ?? false, payment_method: b.paymentMethod ?? null,
   hold_expires_at: b.holdExpiresAt ?? null, status: b.status, pay_status: b.payStatus,
+  stock_deducted: b.stockDeducted ?? false,
   notes: b.notes ?? null,
 });
 
