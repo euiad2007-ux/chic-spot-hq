@@ -44,6 +44,7 @@ import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
 import { Route as AuthenticatedAccountingIndexRouteImport } from './routes/_authenticated/accounting.index'
 import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
+import { Route as AuthenticatedAccountingJournalRouteImport } from './routes/_authenticated/accounting.journal'
 import { Route as AuthenticatedAccountingFinancialsRouteImport } from './routes/_authenticated/accounting.financials'
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
 import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
@@ -227,6 +228,12 @@ const AuthenticatedAccountingVatRoute =
     path: '/vat',
     getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
+const AuthenticatedAccountingJournalRoute =
+  AuthenticatedAccountingJournalRouteImport.update({
+    id: '/journal',
+    path: '/journal',
+    getParentRoute: () => AuthenticatedAccountingRoute,
+  } as any)
 const AuthenticatedAccountingFinancialsRoute =
   AuthenticatedAccountingFinancialsRouteImport.update({
     id: '/financials',
@@ -282,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
   '/accounting/': typeof AuthenticatedAccountingIndexRoute
 }
@@ -320,6 +328,7 @@ export interface FileRoutesByTo {
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
   '/accounting': typeof AuthenticatedAccountingIndexRoute
 }
@@ -361,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/_authenticated/accounting/financials': typeof AuthenticatedAccountingFinancialsRoute
+  '/_authenticated/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
   '/_authenticated/accounting/': typeof AuthenticatedAccountingIndexRoute
 }
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/accounting/accounts'
     | '/accounting/assets'
     | '/accounting/financials'
+    | '/accounting/journal'
     | '/accounting/vat'
     | '/accounting/'
   fileRoutesByTo: FileRoutesByTo
@@ -440,6 +451,7 @@ export interface FileRouteTypes {
     | '/accounting/accounts'
     | '/accounting/assets'
     | '/accounting/financials'
+    | '/accounting/journal'
     | '/accounting/vat'
     | '/accounting'
   id:
@@ -480,6 +492,7 @@ export interface FileRouteTypes {
     | '/_authenticated/accounting/accounts'
     | '/_authenticated/accounting/assets'
     | '/_authenticated/accounting/financials'
+    | '/_authenticated/accounting/journal'
     | '/_authenticated/accounting/vat'
     | '/_authenticated/accounting/'
   fileRoutesById: FileRoutesById
@@ -739,6 +752,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingVatRouteImport
       parentRoute: typeof AuthenticatedAccountingRoute
     }
+    '/_authenticated/accounting/journal': {
+      id: '/_authenticated/accounting/journal'
+      path: '/journal'
+      fullPath: '/accounting/journal'
+      preLoaderRoute: typeof AuthenticatedAccountingJournalRouteImport
+      parentRoute: typeof AuthenticatedAccountingRoute
+    }
     '/_authenticated/accounting/financials': {
       id: '/_authenticated/accounting/financials'
       path: '/financials'
@@ -767,6 +787,7 @@ interface AuthenticatedAccountingRouteChildren {
   AuthenticatedAccountingAccountsRoute: typeof AuthenticatedAccountingAccountsRoute
   AuthenticatedAccountingAssetsRoute: typeof AuthenticatedAccountingAssetsRoute
   AuthenticatedAccountingFinancialsRoute: typeof AuthenticatedAccountingFinancialsRoute
+  AuthenticatedAccountingJournalRoute: typeof AuthenticatedAccountingJournalRoute
   AuthenticatedAccountingVatRoute: typeof AuthenticatedAccountingVatRoute
   AuthenticatedAccountingIndexRoute: typeof AuthenticatedAccountingIndexRoute
 }
@@ -777,6 +798,7 @@ const AuthenticatedAccountingRouteChildren: AuthenticatedAccountingRouteChildren
     AuthenticatedAccountingAssetsRoute: AuthenticatedAccountingAssetsRoute,
     AuthenticatedAccountingFinancialsRoute:
       AuthenticatedAccountingFinancialsRoute,
+    AuthenticatedAccountingJournalRoute: AuthenticatedAccountingJournalRoute,
     AuthenticatedAccountingVatRoute: AuthenticatedAccountingVatRoute,
     AuthenticatedAccountingIndexRoute: AuthenticatedAccountingIndexRoute,
   }
