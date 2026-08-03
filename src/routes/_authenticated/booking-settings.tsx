@@ -100,6 +100,61 @@ function BookingSettingsPage() {
             onChange={(v) => bookingSettingsActions.setMaxDaily(v)}
             hint="0 يعني بدون حد. يوقف قبول حجوزات جديدة عند الوصول للحد."
           />
+          <Numeric
+            icon={<CalendarClock className="size-3.5" />}
+            label="أقصى مدة للحجز المسبق"
+            suffix="يوم"
+            value={settings.maxAdvanceDays}
+            onChange={(v) => bookingSettingsActions.setMaxAdvanceDays(v)}
+            hint="0 يعني بدون حد للحجز المستقبلي"
+          />
+          <Numeric
+            icon={<Clock className="size-3.5" />}
+            label="مهلة الإلغاء قبل الموعد"
+            suffix="دقيقة"
+            value={settings.cancelWindowMin}
+            onChange={(v) => bookingSettingsActions.setCancelWindow(v)}
+            hint="0 يعني السماح بالإلغاء في أي وقت"
+          />
+          <Numeric
+            icon={<Clock className="size-3.5" />}
+            label="مهلة إلغاء الحجز غير المدفوع بعد الموعد"
+            suffix="دقيقة"
+            value={settings.holdGraceMin}
+            onChange={(v) => bookingSettingsActions.setHoldGrace(v)}
+            hint="يُلغى الحجز المحفوظ بدون دفع تلقائياً بعد هذه المهلة"
+          />
+
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+            <span className="text-xs font-semibold text-muted-foreground">
+              إرجاع مواد الخدمة إلى المخزون عند الإلغاء
+              <span className="block text-[11px] font-normal mt-1">
+                لا يُخصم المخزون إلا عند إصدار الفاتورة، ويُعاد عند إلغاء حجز مخصوم.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings.restockOnCancel}
+              onChange={(e) => bookingSettingsActions.setRestockOnCancel(e.target.checked)}
+              className="size-4 accent-primary"
+            />
+          </label>
+
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+            <span className="text-xs font-semibold text-muted-foreground">
+              السماح بحجوزات متتالية للموظف بدون فاصل
+              <span className="block text-[11px] font-normal mt-1">
+                عند التعطيل يُفرض الزمن الإضافي بين كل حجزين لنفس الموظف.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings.allowSameStaffBackToBack}
+              onChange={(e) => bookingSettingsActions.setAllowBackToBack(e.target.checked)}
+              className="size-4 accent-primary"
+            />
+          </label>
+
           <div>
             <label className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
               <CalendarClock className="size-3.5" /> تاريخ تأسيس الفرع
