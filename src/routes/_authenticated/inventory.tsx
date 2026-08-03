@@ -201,6 +201,9 @@ function InventoryPage() {
         </div>
       </div>
 
+      <RetailPanel />
+
+
       {open && (
         <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm grid place-items-center p-4" onClick={() => setOpen(false)}>
           <div className="glass-card rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
