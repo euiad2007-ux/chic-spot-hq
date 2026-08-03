@@ -1137,6 +1137,104 @@ export type Database = {
           },
         ]
       }
+      journal_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          entry_date: string
+          id: string
+          memo: string | null
+          period: string
+          salon_id: string
+          source: string
+          source_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          entry_date: string
+          id?: string
+          memo?: string | null
+          period: string
+          salon_id: string
+          source: string
+          source_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          id?: string
+          memo?: string | null
+          period?: string
+          salon_id?: string
+          source?: string
+          source_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_lines: {
+        Row: {
+          account_code: string
+          account_name: string
+          created_at: string
+          credit: number
+          debit: number
+          entry_id: string
+          id: string
+          salon_id: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          entry_id: string
+          id?: string
+          salon_id: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          entry_id?: string
+          id?: string
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_lines_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_lines_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaves: {
         Row: {
           created_at: string
@@ -1450,6 +1548,7 @@ export type Database = {
       salon_settings: {
         Row: {
           booking: Json
+          inventory: Json
           payroll: Json
           rewards: Json
           salon_id: string
@@ -1458,6 +1557,7 @@ export type Database = {
         }
         Insert: {
           booking?: Json
+          inventory?: Json
           payroll?: Json
           rewards?: Json
           salon_id: string
@@ -1466,6 +1566,7 @@ export type Database = {
         }
         Update: {
           booking?: Json
+          inventory?: Json
           payroll?: Json
           rewards?: Json
           salon_id?: string
@@ -2079,6 +2180,10 @@ export type Database = {
         }
         Returns: Json
       }
+      post_accounting_period: {
+        Args: { _from: string; _salon: string; _to: string }
+        Returns: Json
+      }
       public_salon_lookup: {
         Args: { _domains?: string[]; _slug?: string }
         Returns: {
@@ -2098,6 +2203,10 @@ export type Database = {
           name: string
           role_label: string
         }[]
+      }
+      unpost_accounting_period: {
+        Args: { _period: string; _salon: string }
+        Returns: number
       }
       wallet_transfer: {
         Args: { _amount: number; _note?: string; _to_wallet: string }
