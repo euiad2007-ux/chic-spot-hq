@@ -7,7 +7,7 @@ import {
   LOYALTY_REDEEM_RATE,
 } from "@/lib/salon-store";
 import { useCoupons } from "@/lib/coupon-store";
-import { checkBookingConflict, getDaySlots, findEarliestSlot, getBookingSettings } from "@/lib/booking-settings";
+import { checkBookingConflict, getDaySlots, findEarliestSlot, getBookingSettings, cancellationCheck } from "@/lib/booking-settings";
 import { useSession, auth } from "@/lib/auth-store";
 import {
   CalendarDays, Sparkles, Clock, LogOut, Plus, X, Scissors, Star,
