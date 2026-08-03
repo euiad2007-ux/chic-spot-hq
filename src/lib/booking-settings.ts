@@ -34,7 +34,6 @@ export interface BookingSettings {
 }
 
 
-const UNUSED_STORAGE_KEY = "lamsa_booking_settings_v1";
 
 const DAY_LABELS_AR: Record<Weekday, string> = {
   0: "الأحد",
