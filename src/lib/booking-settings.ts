@@ -242,7 +242,7 @@ export function checkBookingConflict(input: ConflictCheckInput): ConflictReason 
   for (const b of bookings) {
     if (b.id === input.ignoreBookingId) continue;
     if (b.status === "cancelled" || b.status === "no_show") continue;
-    const r = bookingRange(b, settings.bufferMin);
+    const r = bookingRange(b, settings.allowSameStaffBackToBack ? 0 : settings.bufferMin);
     const overlaps = newStart < r.end && newEnd > r.start;
     if (!overlaps) continue;
     if (b.staffId === input.staffId) {
