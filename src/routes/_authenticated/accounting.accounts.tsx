@@ -19,7 +19,7 @@ import {
   type AccountKind,
 } from "@/lib/db/coa-repo";
 
-export const Route = createFileRoute("/_authenticated/accounts")({
+export const Route = createFileRoute("/_authenticated/accounting/accounts")({
   head: () => ({
     meta: [
       { title: "دليل الحسابات ودفتر الأستاذ العام | Salon Flow" },

@@ -8,7 +8,7 @@ import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { loadFinancials, type StatementLine } from "@/lib/db/coa-repo";
 
-export const Route = createFileRoute("/_authenticated/financials")({
+export const Route = createFileRoute("/_authenticated/accounting/financials")({
   head: () => ({
     meta: [
       { title: "التقارير المالية — قائمة الدخل والميزانية | Salon Flow" },

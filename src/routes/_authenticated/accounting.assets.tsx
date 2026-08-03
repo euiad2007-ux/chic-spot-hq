@@ -18,7 +18,7 @@ import {
   saveAsset,
 } from "@/lib/db/assets-repo";
 
-export const Route = createFileRoute("/_authenticated/assets")({
+export const Route = createFileRoute("/_authenticated/accounting/assets")({
   head: () => ({
     meta: [
       { title: "الأصول الثابتة والإهلاك الشهري | Salon Flow" },

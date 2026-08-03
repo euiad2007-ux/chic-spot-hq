@@ -13,7 +13,7 @@ import { MonthlyTaxPanel } from "@/components/salon/monthly-tax";
 import { JournalPanel } from "@/components/salon/journal-panel";
 import { JournalForm } from "@/components/salon/journal-form";
 
-export const Route = createFileRoute("/_authenticated/accounting")({
+export const Route = createFileRoute("/_authenticated/accounting/vat")({
   head: () => ({
     meta: [
       { title: "المحاسبة الضريبية — إقرار ضريبة القيمة المضافة | Salon Flow" },
