@@ -8,6 +8,8 @@ import {
   NotebookPen,
   Scale,
   FileCode2,
+  FileMinus2,
+  Lock,
 } from "lucide-react";
 
 /** Sub-navigation shared by every page inside the accounting section. */
@@ -19,8 +21,11 @@ const LINKS: { to: string; label: string; icon: typeof BookOpen; exact?: boolean
   { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart },
   { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Calculator },
   { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2 },
+  { to: "/accounting/credit-notes", label: "الملاحظات الدائنة", icon: FileMinus2 },
+  { to: "/accounting/closing", label: "الإقفال السنوي", icon: Lock },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building },
 ];
+
 
 export function AccountingNav() {
   return (
