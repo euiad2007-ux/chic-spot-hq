@@ -1,11 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type JournalSource = "invoice" | "expense" | "stocktake";
+export type JournalSource =
+  | "invoice"
+  | "expense"
+  | "stocktake"
+  | "payslip"
+  | "purchase"
+  | "depreciation"
+  | "manual";
 
 export const SOURCE_LABEL: Record<string, string> = {
   invoice: "فاتورة مبيعات",
   expense: "مصروف",
   stocktake: "تسوية جرد",
+  payslip: "راتب موظف",
+  purchase: "شراء مخزون",
+  depreciation: "إهلاك أصل",
+  manual: "قيد يدوي",
 };
 
 export interface JournalLine {
@@ -18,6 +29,7 @@ export interface JournalLine {
 
 export interface JournalEntry {
   id: string;
+  source_id?: string | null;
   entry_date: string;
   period: string;
   source: string;
@@ -39,6 +51,14 @@ export interface PostResult {
   invoices: number;
   expenses: number;
   stocktakes: number;
+  payslips: number;
+  purchases: number;
+}
+
+export interface JournalLineInput {
+  account_code: string;
+  debit: number;
+  credit: number;
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -57,7 +77,39 @@ export async function postPeriod(salonId: string, from: string, to: string): Pro
     invoices: Number(d.invoices ?? 0),
     expenses: Number(d.expenses ?? 0),
     stocktakes: Number(d.stocktakes ?? 0),
+    payslips: Number(d.payslips ?? 0),
+    purchases: Number(d.purchases ?? 0),
   };
+}
+
+/** Records a balanced manual journal entry. */
+export async function createEntry(
+  salonId: string,
+  date: string,
+  memo: string,
+  lines: JournalLineInput[],
+): Promise<string> {
+  const clean = lines
+    .filter((l) => l.account_code.trim() && (l.debit > 0 || l.credit > 0))
+    .map((l) => ({
+      account_code: l.account_code.trim(),
+      debit: Math.max(0, l.debit),
+      credit: Math.max(0, l.credit),
+    }));
+  const { data, error } = await supabase.rpc("create_journal_entry", {
+    _salon: salonId,
+    _date: date,
+    _memo: memo,
+    _lines: clean,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+/** Deletes a manual entry. Auto-posted entries are removed by re-posting the period. */
+export async function deleteEntry(id: string): Promise<void> {
+  const { error } = await supabase.rpc("delete_journal_entry", { _entry: id });
+  if (error) throw new Error(error.message);
 }
 
 /** Removes every entry posted for a month, so the period can be re-posted. */
@@ -73,7 +125,7 @@ export async function unpostPeriod(salonId: string, period: string): Promise<num
 export async function listJournal(salonId: string, period: string): Promise<JournalEntry[]> {
   const { data, error } = await supabase
     .from("journal_entries")
-    .select("id,entry_date,period,source,memo,amount,journal_lines(id,account_code,account_name,debit,credit)")
+    .select("id,entry_date,period,source,source_id,memo,amount,journal_lines(id,account_code,account_name,debit,credit)")
     .eq("salon_id", salonId)
     .eq("period", period)
     .order("entry_date", { ascending: false })
@@ -82,6 +134,7 @@ export async function listJournal(salonId: string, period: string): Promise<Jour
 
   return (data ?? []).map((e) => ({
     id: e.id,
+    source_id: (e as { source_id?: string | null }).source_id ?? null,
     entry_date: e.entry_date,
     period: e.period,
     source: e.source,

@@ -455,6 +455,56 @@ export type Database = {
           },
         ]
       }
+      chart_accounts: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_system: boolean
+          kind: string
+          name: string
+          note: string | null
+          parent_code: string | null
+          salon_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          kind: string
+          name: string
+          note?: string | null
+          parent_code?: string | null
+          salon_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          kind?: string
+          name?: string
+          note?: string | null
+          parent_code?: string | null
+          salon_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_accounts_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_redemptions: {
         Row: {
           amount: number
@@ -716,6 +766,78 @@ export type Database = {
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "cash_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fixed_assets: {
+        Row: {
+          acquired_on: string
+          branch_id: string | null
+          category: string | null
+          cost: number
+          created_at: string
+          created_by: string | null
+          disposal_amount: number
+          disposed_on: string | null
+          id: string
+          name: string
+          note: string | null
+          salon_id: string
+          salvage_value: number
+          status: string
+          updated_at: string
+          useful_life_months: number
+        }
+        Insert: {
+          acquired_on?: string
+          branch_id?: string | null
+          category?: string | null
+          cost?: number
+          created_at?: string
+          created_by?: string | null
+          disposal_amount?: number
+          disposed_on?: string | null
+          id?: string
+          name: string
+          note?: string | null
+          salon_id: string
+          salvage_value?: number
+          status?: string
+          updated_at?: string
+          useful_life_months?: number
+        }
+        Update: {
+          acquired_on?: string
+          branch_id?: string | null
+          category?: string | null
+          cost?: number
+          created_at?: string
+          created_by?: string | null
+          disposal_amount?: number
+          disposed_on?: string | null
+          id?: string
+          name?: string
+          note?: string | null
+          salon_id?: string
+          salvage_value?: number
+          status?: string
+          updated_at?: string
+          useful_life_months?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_assets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
         ]
@@ -2149,10 +2271,15 @@ export type Database = {
         Args: { _counted: number; _note?: string; _shift: string }
         Returns: Json
       }
+      create_journal_entry: {
+        Args: { _date: string; _lines: Json; _memo: string; _salon: string }
+        Returns: string
+      }
       create_salon: {
         Args: { _name: string; _phone?: string; _slug: string }
         Returns: string
       }
+      delete_journal_entry: { Args: { _entry: string }; Returns: boolean }
       ensure_client_profile: { Args: never; Returns: string }
       grant_platform_owner: { Args: { _email: string }; Returns: boolean }
       is_platform_owner: { Args: { _uid: string }; Returns: boolean }
@@ -2184,6 +2311,10 @@ export type Database = {
         Args: { _from: string; _salon: string; _to: string }
         Returns: Json
       }
+      post_depreciation: {
+        Args: { _period: string; _salon: string }
+        Returns: Json
+      }
       public_salon_lookup: {
         Args: { _domains?: string[]; _slug?: string }
         Returns: {
@@ -2204,6 +2335,7 @@ export type Database = {
           role_label: string
         }[]
       }
+      seed_chart_accounts: { Args: { _salon: string }; Returns: number }
       unpost_accounting_period: {
         Args: { _period: string; _salon: string }
         Returns: number
