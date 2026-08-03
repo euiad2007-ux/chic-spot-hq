@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
+import { TopupRequestsPanel } from "@/components/salon/topup-requests";
 
 
 export const Route = createFileRoute("/_authenticated/customers")({
@@ -101,12 +102,16 @@ function CustomersPage() {
         </button>
       }
     >
-      <div className="glass-card rounded-2xl p-4 mb-4">
-        <div className="relative">
-          <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="بحث بالاسم، الجوال، أو كود الإحالة" className="w-full h-10 rounded-lg bg-muted/40 border border-border pr-10 pl-3 text-sm" />
+      <div className="mb-4 space-y-4">
+        <TopupRequestsPanel />
+        <div className="glass-card rounded-2xl p-4">
+          <div className="relative">
+            <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="بحث بالاسم، الجوال، أو كود الإحالة" className="w-full h-10 rounded-lg bg-muted/40 border border-border pr-10 pl-3 text-sm" />
+          </div>
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {rows.map((c) => (

@@ -17,6 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { BookingCalendar } from "@/components/salon/booking-calendar";
+import { supabase } from "@/integrations/supabase/client";
+import { hydrateAll, currentSalonId } from "@/lib/db/hydrate";
 
 export const Route = createFileRoute("/_authenticated/client")({
   head: () => ({
@@ -339,26 +341,47 @@ function WalletTab({ me }: any) {
   const [xferTo, setXferTo] = useState("");
   const [xferAmt, setXferAmt] = useState("");
   const [xferNote, setXferNote] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const doTopUp = () => {
+  /** Customers cannot credit their own wallet: they file a request the salon approves. */
+  const doTopUp = async () => {
     const amt = Number(topup);
     if (!Number.isFinite(amt) || amt <= 0) return toast.error("أدخلي مبلغاً صحيحاً");
     const num = card.num.replace(/\s/g, "");
     if (!/^\d{15,19}$/.test(num)) return toast.error("رقم البطاقة غير صحيح");
     if (!/^\d{2}\/\d{2}$/.test(card.exp)) return toast.error("تاريخ الانتهاء MM/YY");
     if (!/^\d{3,4}$/.test(card.cvv)) return toast.error("CVV غير صحيح");
-    actions.walletAdjust(me.id, amt, `شحن ببطاقة تنتهي بـ ${num.slice(-4)}`);
+    setBusy(true);
+    const { error } = await supabase.from("wallet_topup_requests").insert({
+      salon_id: me.salonId ?? currentSalonId(),
+      customer_id: me.id,
+      amount: amt,
+      method: "card",
+      note: `شحن ببطاقة تنتهي بـ ${num.slice(-4)}`,
+    });
+    setBusy(false);
+    if (error) return toast.error("تعذر إرسال طلب الشحن");
     setTopup(""); setCard({ num: "", exp: "", cvv: "" });
-    toast.success(`تم شحن ${formatSAR(amt)}`);
+    toast.success(`تم إرسال طلب شحن ${formatSAR(amt)} — يُعتمد من المتجر`);
   };
 
-  const doTransfer = () => {
+  const doTransfer = async () => {
     const amt = Number(xferAmt);
-    const res = actions.walletTransfer(me.id, xferTo, amt, xferNote);
-    if (!res.ok) return toast.error(res.error ?? "فشل التحويل");
+    if (!Number.isFinite(amt) || amt <= 0) return toast.error("أدخلي مبلغاً صحيحاً");
+    if (!isValidWalletId(xferTo)) return toast.error("صيغة رقم المحفظة غير صحيحة");
+    setBusy(true);
+    const { error } = await supabase.rpc("wallet_transfer", {
+      _to_wallet: xferTo,
+      _amount: amt,
+      _note: xferNote || undefined,
+    });
+    if (error) { setBusy(false); return toast.error(error.message || "فشل التحويل"); }
+    await hydrateAll(true);
+    setBusy(false);
     setXferTo(""); setXferAmt(""); setXferNote("");
     toast.success("تم التحويل بنجاح");
   };
+
 
   const logs = me.walletLog ?? [];
 

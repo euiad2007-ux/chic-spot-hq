@@ -1910,6 +1910,60 @@ export type Database = {
           },
         ]
       }
+      wallet_topup_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          id: string
+          method: string
+          note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salon_id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id: string
+          id?: string
+          method?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          id?: string
+          method?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_topup_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_topup_requests_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -1984,6 +2038,7 @@ export type Database = {
     }
     Functions: {
       apply_stocktake: { Args: { p_stocktake_id: string }; Returns: undefined }
+      approve_wallet_topup: { Args: { _request: string }; Returns: Json }
       can_manage_salon: {
         Args: { _salon: string; _uid: string }
         Returns: boolean
@@ -2024,6 +2079,17 @@ export type Database = {
         }
         Returns: Json
       }
+      public_salon_lookup: {
+        Args: { _domains?: string[]; _slug?: string }
+        Returns: {
+          custom_domain: string
+          domain_status: string
+          id: string
+          name: string
+          slug: string
+        }[]
+      }
+      public_salon_site: { Args: { _salon: string }; Returns: Json }
       public_salon_team: {
         Args: { _salon: string }
         Returns: {
@@ -2032,6 +2098,10 @@ export type Database = {
           name: string
           role_label: string
         }[]
+      }
+      wallet_transfer: {
+        Args: { _amount: number; _note?: string; _to_wallet: string }
+        Returns: Json
       }
     }
     Enums: {
