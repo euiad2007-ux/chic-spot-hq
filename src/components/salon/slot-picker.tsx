@@ -1,20 +1,7 @@
 import { CheckCircle2, XCircle } from "lucide-react";
-import type { Slot } from "@/lib/booking-settings";
+import { getSlotReasonLabel, type Slot } from "@/lib/booking-settings";
 import { cn } from "@/lib/utils";
 
-const REASON_LABEL: Record<NonNullable<Slot["reason"]>, string> = {
-  closed: "اليوم مغلق",
-  past: "وقت مضى",
-  lead: "قبل الحد الأدنى للحجز",
-  outside_hours: "خارج ساعات الدوام",
-  break: "وقت استراحة",
-  overlap: "محجوز مسبقاً",
-  customer_busy: "لديك حجز آخر",
-};
-
-function reasonLabel(reason?: Slot["reason"]) {
-  return reason ? REASON_LABEL[reason] : "غير متاح";
-}
 
 export function SlotPicker({
   slots,
@@ -53,7 +40,7 @@ export function SlotPicker({
                 !selected && slot.available && "border-success/45 bg-success/15 text-success hover:border-success hover:bg-success/25",
                 !slot.available && "border-destructive/30 bg-destructive/10 text-destructive/65 line-through cursor-not-allowed opacity-80",
               )}
-              title={slot.available ? "متاح" : reasonLabel(slot.reason)}
+              title={slot.available ? "متاح" : getSlotReasonLabel(slot.reason)}
             >
               {slot.available ? <CheckCircle2 className="size-3.5" /> : <XCircle className="size-3.5" />}
               <span>{slot.time}</span>

@@ -34,7 +34,6 @@ export interface BookingSettings {
 }
 
 
-const UNUSED_STORAGE_KEY = "lamsa_booking_settings_v1";
 
 const DAY_LABELS_AR: Record<Weekday, string> = {
   0: "الأحد",
@@ -361,20 +360,6 @@ export function findEarliestSlot(opts: EarliestOptions): EarliestSlot | null {
   return best;
 }
 
-export function getDayAvailabilitySummary(q: SlotQuery) {
-  const slots = getDaySlots(q);
-  const unavailableByReason = slots.reduce<Record<string, number>>((acc, slot) => {
-    if (!slot.available) acc[slot.reason ?? "unavailable"] = (acc[slot.reason ?? "unavailable"] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  return {
-    total: slots.length,
-    available: slots.filter((slot) => slot.available).length,
-    unavailable: slots.filter((slot) => !slot.available).length,
-    unavailableByReason,
-  };
-}
 
 // ============== Cancellation policy ==============
 
