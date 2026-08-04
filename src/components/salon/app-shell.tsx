@@ -170,6 +170,8 @@ export function AppShell({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: account, isLoading: accountLoading } = useAccount();
+  // Alerts the reception/admin when a booking's service time passed without starting.
+  useLatenessWatcher({ enabled: !!account });
   const [menuOpen, setMenuOpen] = useState(false);
 
   const permitted = accountLoading || !account ? null : allowedForPath(pathname, account.role);
