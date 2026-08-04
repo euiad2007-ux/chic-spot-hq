@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
-import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, CalendarDays as CalendarDaysIcon } from "lucide-react";
+import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, AlarmClock, CalendarDays as CalendarDaysIcon } from "lucide-react";
+import { DelayLog } from "@/components/salon/delay-log";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -323,7 +324,7 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
   revenue: number;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "allowances" | "leaves" | "notes" | "points">("overview");
+  const [tab, setTab] = useState<"overview" | "allowances" | "leaves" | "notes" | "points" | "delays">("overview");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
@@ -380,6 +381,7 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
             ["leaves", "الإجازات", CalendarDaysIcon],
             ["notes", "الملاحظات", StickyNote],
             ["points", "النقاط", Award],
+            ["delays", "ملف التأخير", AlarmClock],
           ] as const).map(([k, label, Icon]) => (
 
             <button
@@ -512,6 +514,8 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
               </div>
             </div>
           )}
+
+          {tab === "delays" && <DelayLog staffId={staff.id} />}
 
           {tab === "points" && (
             <div className="space-y-4">

@@ -6,7 +6,7 @@ import {
   STATUS_LABEL, STATUS_TONE, PAY_LABEL,
   type BookingStatus, type BookingPaymentMethod, type Customer, type Service,
 } from "@/lib/salon-store";
-import { findEarliestSlot, useBookingSettings, getBookingSettings } from "@/lib/booking-settings";
+import { findEarliestSlot, useBookingSettings, getBookingSettings, checkBookingConflict } from "@/lib/booking-settings";
 import { evalCoupon, couponActions } from "@/lib/coupon-store";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -401,6 +401,15 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
     if (!cid) return toast.error("اختر عميلاً أو أضف جديداً");
     if (selectedServices.length === 0) return toast.error("اختر خدمة واحدة على الأقل");
     if (!combined?.earliest) return toast.error("لا يوجد موظف/وقت متاح لهذه الخدمات");
+
+    // Final guard: never book in the past, outside work hours, or during a break
+    const conflict = checkBookingConflict({
+      staffId: combined.earliest.staffId,
+      startsAt: combined.earliest.startsAt,
+      durationMin: combined.durationMin,
+      customerId: cid,
+    });
+    if (conflict) return toast.error(conflict.message);
 
     // Re-validate coupon at submit
     let finalCouponDiscount = 0;
