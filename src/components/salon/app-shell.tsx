@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useLatenessWatcher } from "@/lib/lateness";
 import { useAccount } from "@/hooks/use-account";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
 
