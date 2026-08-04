@@ -20,6 +20,7 @@ import { BookingCalendar } from "@/components/salon/booking-calendar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { BookingStatus } from "@/lib/salon-store";
+import { useLatenessWatcher } from "@/lib/lateness";
 
 export const Route = createFileRoute("/_authenticated/specialist")({
   head: () => ({
@@ -35,11 +36,14 @@ type Tab = "today" | "calendar" | "profile" | "schedule" | "history" | "attendan
 
 function SpecialistPage() {
   const session = useSession();
+
   const navigate = useNavigate();
   const { bookings, services, customers, staff } = useSalon((s) => s);
   const bookingSettings = useBookingSettings((s) => s);
   const attendance = useAttendance((s) => s);
   const [tab, setTab] = useState<Tab>("today");
+  // Alerts this specialist when her own service time passed without starting.
+  useLatenessWatcher({ staffId: session?.id, enabled: !!session?.id });
 
   useEffect(() => {
     if (session === null) navigate({ to: "/auth" });
