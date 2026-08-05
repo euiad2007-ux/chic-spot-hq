@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import { useSiteSettings, settingsToCssVars, waLink, googleFontsHref } from "@/lib/site-settings";
-import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle, ShieldCheck } from "lucide-react";
+import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle, ShieldCheck, IdCard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PaymentIcon } from "@/components/salon/payment-icons";
