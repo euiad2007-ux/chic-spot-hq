@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import { useSiteSettings, settingsToCssVars, waLink, googleFontsHref } from "@/lib/site-settings";
-import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle, ShieldCheck } from "lucide-react";
+import { Scissors, Sparkles, Clock, MapPin, Phone, Star, LogIn, CalendarDays, MessageCircle, ShieldCheck, IdCard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PaymentIcon } from "@/components/salon/payment-icons";
@@ -85,9 +85,20 @@ function SitePage() {
             <a href={waHref} target="_blank" rel="noreferrer" className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-success/40 text-success text-sm hover:bg-success/10">
               <MessageCircle className="size-4" /> واتساب
             </a>
+            <Link
+              to="/auth"
+              search={{ role: "staff" } as never}
+              title="دخول الموظفين"
+              aria-label="دخول الموظفين"
+              className="inline-flex items-center gap-2 h-10 px-3 rounded-lg border border-primary/40 text-primary text-sm hover:bg-primary/10"
+            >
+              <IdCard className="size-4" />
+              <span className="hidden md:inline">دخول الموظفين</span>
+            </Link>
             <Link to="/auth" className="hidden sm:inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted">
               <LogIn className="size-4" /> دخول
             </Link>
+
             <Link to="/auth" className="inline-flex items-center gap-2 h-10 px-5 rounded-lg text-white text-sm font-semibold" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }}>
               <CalendarDays className="size-4" /> احجزي
             </Link>
