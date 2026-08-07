@@ -3,7 +3,9 @@ import { AppShell } from "@/components/salon/app-shell";
 import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
 import { useEffect, useRef, useState } from "react";
-import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard } from "lucide-react";
+import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard, Search } from "lucide-react";
+import { HeroTab, SectionsTab, ContactTab, SeoTab } from "@/components/salon/site-cms-tabs";
+
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PAYMENT_METHODS, PaymentIcon } from "@/components/salon/payment-icons";
@@ -27,15 +29,17 @@ const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
   { id: "bold", name: "جريء", desc: "ألوان قوية وعناوين ضخمة وحضور لافت" },
 ];
 
+type TabId = "design" | "hero" | "sections" | "contact" | "seo" | "images" | "payments" | "wa";
+
 function SettingsPage() {
   const s = useSiteSettings();
   const customers = useSalon((x) => x.customers);
-  const [tab, setTab] = useState<"design" | "images" | "payments" | "wa">("design");
+  const [tab, setTab] = useState<TabId>("design");
 
   return (
     <AppShell
       title="إعدادات الموقع"
-      subtitle="خصّص الألوان، الشكل، الصور، ورسائل واتساب"
+      subtitle="خصّص الهوية، الواجهة، الأقسام، الحجز، والـ SEO"
       action={
         <div className="flex items-center gap-2">
           <button
@@ -55,19 +59,23 @@ function SettingsPage() {
       }
     >
       {/* Tabs */}
-      <div className="glass-card rounded-2xl p-1.5 mb-6 inline-flex gap-1">
-        {[
+      <div className="glass-card rounded-2xl p-1.5 mb-6 flex flex-wrap gap-1">
+        {([
           { id: "design", label: "الهوية والشكل", icon: Palette },
+          { id: "hero", label: "الواجهة", icon: Sparkles },
+          { id: "sections", label: "الأقسام والمحتوى", icon: Layout },
+          { id: "contact", label: "التواصل والحجز", icon: MessageCircle },
+          { id: "seo", label: "SEO", icon: Search },
           { id: "images", label: "الصور", icon: ImageIcon },
           { id: "payments", label: "وسائل الدفع", icon: CreditCard },
-          { id: "wa", label: "رسائل واتساب", icon: MessageCircle },
-        ].map((t) => {
+          { id: "wa", label: "رسائل واتساب", icon: Send },
+        ] as { id: TabId; label: string; icon: any }[]).map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
           return (
             <button
               key={t.id}
-              onClick={() => setTab(t.id as any)}
+              onClick={() => setTab(t.id)}
               className={cn(
                 "inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium transition",
                 active ? "bg-gradient-to-l from-primary/25 to-accent/15 text-foreground border border-primary/30" : "text-muted-foreground hover:text-foreground",
@@ -81,12 +89,17 @@ function SettingsPage() {
       </div>
 
       {tab === "design" && <DesignTab s={s} />}
+      {tab === "hero" && <HeroTab s={s} />}
+      {tab === "sections" && <SectionsTab s={s} />}
+      {tab === "contact" && <ContactTab s={s} />}
+      {tab === "seo" && <SeoTab s={s} />}
       {tab === "images" && <ImagesTab s={s} />}
       {tab === "payments" && <PaymentsTab s={s} />}
       {tab === "wa" && <WhatsAppTab s={s} customers={customers} />}
     </AppShell>
   );
 }
+
 
 /* ---------------- Payments ---------------- */
 function PaymentsTab({ s }: { s: ReturnType<typeof useSiteSettings> }) {
