@@ -3,7 +3,9 @@ import { AppShell } from "@/components/salon/app-shell";
 import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
 import { useEffect, useRef, useState } from "react";
-import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard } from "lucide-react";
+import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard, Search } from "lucide-react";
+import { HeroTab, SectionsTab, ContactTab, SeoTab } from "@/components/salon/site-cms-tabs";
+
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PAYMENT_METHODS, PaymentIcon } from "@/components/salon/payment-icons";
