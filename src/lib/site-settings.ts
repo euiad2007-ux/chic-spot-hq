@@ -8,6 +8,41 @@ import nails1 from "@/assets/showcase/nails-1.jpg";
 import spa1 from "@/assets/showcase/spa-1.jpg";
 
 export type LayoutStyle = "elegant" | "minimal" | "bold";
+export type HeroAlign = "right" | "center" | "left";
+export type ButtonShape = "rounded" | "pill" | "square";
+export type BookingMode = "internal" | "whatsapp" | "call" | "link";
+export type SectionId = "showcase" | "services" | "gallery" | "team" | "contact";
+export type HeroButtonKind = "booking" | "whatsapp" | "services" | "call" | "link";
+
+export const SECTION_LABELS: Record<SectionId, string> = {
+  showcase: "لمساتنا",
+  services: "الخدمات",
+  gallery: "معرض الأعمال",
+  team: "فريق العمل",
+  contact: "التواصل",
+};
+
+export interface HeroButton {
+  label: string;
+  kind: HeroButtonKind;
+  url?: string;
+}
+
+export interface GalleryItem {
+  url: string;
+  title: string;
+  category: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
+  instagram: string;
+}
+
 export type PaymentMethodId =
   | "visa"
   | "mastercard"
@@ -22,6 +57,7 @@ export interface ShowcaseItem {
   label: string;
   url: string;
 }
+
 
 export interface SiteSettings {
   // Branding
@@ -57,7 +93,59 @@ export interface SiteSettings {
   waTemplatePromo: string;
   // Payment methods shown on the public site
   paymentMethods: PaymentMethodId[];
+  // Identity extras
+  faviconUrl: string;
+  buttonShape: ButtonShape;
+  fontScale: number; // 0.9 – 1.25
+  // Hero
+  heroTitle: string;
+  heroHighlight: string;
+  heroSubtitle: string;
+  heroAlign: HeroAlign;
+  heroHeight: number; // vh
+  heroOverlay: number; // 0 – 90
+  heroButtons: HeroButton[];
+  // Section content
+  showcaseTitle: string;
+  showcaseDesc: string;
+  servicesTitle: string;
+  servicesDesc: string;
+  servicesShowPrice: boolean;
+  galleryTitle: string;
+  galleryDesc: string;
+  galleryItems: GalleryItem[];
+  teamTitle: string;
+  teamDesc: string;
+  team: TeamMember[];
+  contactTitle: string;
+  contactDesc: string;
+  footerText: string;
+  // Sections visibility & order
+  sectionOrder: SectionId[];
+  hiddenSections: SectionId[];
+  // Contact & social
+  email: string;
+  mapsUrl: string;
+  instagram: string;
+  snapchat: string;
+  tiktok: string;
+  xLink: string;
+  facebook: string;
+  // Booking behaviour
+  bookingMode: BookingMode;
+  bookingUrl: string;
+  bookingLabel: string;
+  // SEO
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
+  // Media library (reusable uploads)
+  media: string[];
 }
+
 
 /* ---------------- Fonts ---------------- */
 export interface FontOption {
@@ -221,7 +309,55 @@ const defaults: SiteSettings = {
   waTemplateReminder: "تذكير 💜 لديك موعد في {salon} غدًا الساعة {time}. نتشرّف بحضورك.",
   waTemplatePromo: "عرض خاص من {salon} 🎁 خصم حصري لعميلاتنا المميزات هذا الأسبوع فقط!",
   paymentMethods: ["mada", "visa", "mastercard", "applepay", "googlepay", "stcpay", "amex", "cash"],
+  faviconUrl: "",
+  buttonShape: "rounded",
+  fontScale: 1,
+  heroTitle: "لمستك",
+  heroHighlight: "الخاصة",
+  heroSubtitle: "احجزي خدمات الشعر والمكياج والعناية بالبشرة والأظافر في دقائق — أخصائيات معتمدات وأجواء راقية بانتظارك.",
+  heroAlign: "center",
+  heroHeight: 88,
+  heroOverlay: 55,
+  heroButtons: [
+    { kind: "booking", label: "احجزي موعد" },
+    { kind: "whatsapp", label: "تواصلي عبر واتساب" },
+    { kind: "services", label: "تصفحي خدماتنا" },
+  ],
+  showcaseTitle: "لمسات من إبداعنا",
+  showcaseDesc: "تصفيفات شعر، مكياج، وعناية شاملة بأيدي محترفات",
+  servicesTitle: "خدماتنا",
+  servicesDesc: "مجموعة كاملة من خدمات التجميل الفاخرة",
+  servicesShowPrice: true,
+  galleryTitle: "معرض أعمالنا",
+  galleryDesc: "لقطات من أجوائنا وأعمالنا",
+  galleryItems: [],
+  teamTitle: "فريقنا",
+  teamDesc: "أخصائيات خبيرات لخدمتك",
+  team: [],
+  contactTitle: "تواصلي معنا",
+  contactDesc: "نحن هنا للإجابة على استفساراتك وحجز موعدك",
+  footerText: "جميع الحقوق محفوظة",
+  sectionOrder: ["showcase", "services", "gallery", "team", "contact"],
+  hiddenSections: [],
+  email: "",
+  mapsUrl: "",
+  instagram: "",
+  snapchat: "",
+  tiktok: "",
+  xLink: "",
+  facebook: "",
+  bookingMode: "internal",
+  bookingUrl: "",
+  bookingLabel: "احجزي الآن",
+  seoTitle: "",
+  seoDescription: "",
+  seoKeywords: "صالون تجميل, حجز مواعيد, مكياج, تصفيف شعر, عناية بالبشرة",
+  ogTitle: "",
+  ogDescription: "",
+  ogImage: "",
+  media: [heroImg, hair1, hair2, makeup1, makeup2, nails1, spa1],
 };
+
 
 let state: SiteSettings = defaults;
 let initialized = false;
@@ -316,8 +452,65 @@ export const siteActions = {
   },
   addShowcase(item: ShowcaseItem) { state = { ...state, showcase: [...state.showcase, item] }; persist(); },
   removeShowcase(idx: number) { state = { ...state, showcase: state.showcase.filter((_, i) => i !== idx) }; persist(); },
+  moveShowcase(idx: number, dir: -1 | 1) { state = { ...state, showcase: swap(state.showcase, idx, idx + dir) }; persist(); },
+
+  /* Media library */
+  addMedia(urls: string[]) {
+    const next = [...state.media];
+    urls.forEach((u) => { if (u && !next.includes(u)) next.unshift(u); });
+    state = { ...state, media: next };
+    persist();
+  },
+  removeMedia(url: string) { state = { ...state, media: state.media.filter((u) => u !== url) }; persist(); },
+
+  /* Gallery items */
+  addGalleryItem(item: GalleryItem) { state = { ...state, galleryItems: [...state.galleryItems, item] }; persist(); },
+  updateGalleryItem(idx: number, patch: Partial<GalleryItem>) {
+    state = { ...state, galleryItems: state.galleryItems.map((it, i) => (i === idx ? { ...it, ...patch } : it)) };
+    persist();
+  },
+  removeGalleryItem(idx: number) { state = { ...state, galleryItems: state.galleryItems.filter((_, i) => i !== idx) }; persist(); },
+  moveGalleryItem(idx: number, dir: -1 | 1) { state = { ...state, galleryItems: swap(state.galleryItems, idx, idx + dir) }; persist(); },
+
+  /* Team */
+  addTeamMember(m: TeamMember) { state = { ...state, team: [...state.team, m] }; persist(); },
+  updateTeamMember(idx: number, patch: Partial<TeamMember>) {
+    state = { ...state, team: state.team.map((it, i) => (i === idx ? { ...it, ...patch } : it)) };
+    persist();
+  },
+  removeTeamMember(idx: number) { state = { ...state, team: state.team.filter((_, i) => i !== idx) }; persist(); },
+  moveTeamMember(idx: number, dir: -1 | 1) { state = { ...state, team: swap(state.team, idx, idx + dir) }; persist(); },
+
+  /* Hero buttons */
+  addHeroButton(b: HeroButton) { state = { ...state, heroButtons: [...state.heroButtons, b] }; persist(); },
+  updateHeroButton(idx: number, patch: Partial<HeroButton>) {
+    state = { ...state, heroButtons: state.heroButtons.map((it, i) => (i === idx ? { ...it, ...patch } : it)) };
+    persist();
+  },
+  removeHeroButton(idx: number) { state = { ...state, heroButtons: state.heroButtons.filter((_, i) => i !== idx) }; persist(); },
+
+  /* Sections */
+  toggleSection(id: SectionId) {
+    const hidden = state.hiddenSections.includes(id)
+      ? state.hiddenSections.filter((x) => x !== id)
+      : [...state.hiddenSections, id];
+    state = { ...state, hiddenSections: hidden };
+    persist();
+  },
+  moveSection(idx: number, dir: -1 | 1) { state = { ...state, sectionOrder: swap(state.sectionOrder, idx, idx + dir) }; persist(); },
+
   reset() { state = defaults; persist(); },
 };
+
+function swap<T>(arr: T[], a: number, b: number): T[] {
+  if (a < 0 || b < 0 || a >= arr.length || b >= arr.length) return arr;
+  const next = [...arr];
+  const tmp = next[a]!;
+  next[a] = next[b]!;
+  next[b] = tmp;
+  return next;
+}
+
 
 // Helpers
 export function waLink(phone: string, message: string, defaultCountry = "966") {
@@ -348,11 +541,41 @@ export function settingsToCssVars(s: SiteSettings): React.CSSProperties {
     ["--muted-foreground" as any]: s.mutedTextColor,
     ["--font-sans" as any]: body,
     ["--font-display" as any]: heading,
+    ["--btn-radius" as any]: buttonRadius(s.buttonShape),
+    fontSize: `${Math.min(1.3, Math.max(0.85, s.fontScale || 1))}rem`,
     backgroundColor: s.background,
     color: s.textColor,
     fontFamily: body,
   } as React.CSSProperties;
 }
+
+export function buttonRadius(shape: ButtonShape): string {
+  return shape === "pill" ? "9999px" : shape === "square" ? "6px" : "14px";
+}
+
+/** Gallery items, migrating legacy string-only galleries. */
+export function galleryOf(s: SiteSettings): GalleryItem[] {
+  if (s.galleryItems.length) return s.galleryItems;
+  return s.gallery.map((url) => ({ url, title: "", category: "" }));
+}
+
+/** Visible sections in the configured order. */
+export function visibleSections(s: SiteSettings): SectionId[] {
+  const order = s.sectionOrder.length ? s.sectionOrder : (["showcase", "services", "gallery", "team", "contact"] as SectionId[]);
+  return order.filter((id) => !s.hiddenSections.includes(id));
+}
+
+/** Social links present in settings, ready to render. */
+export function socialLinks(s: SiteSettings): { id: string; label: string; url: string }[] {
+  return [
+    { id: "instagram", label: "Instagram", url: s.instagram },
+    { id: "snapchat", label: "Snapchat", url: s.snapchat },
+    { id: "tiktok", label: "TikTok", url: s.tiktok },
+    { id: "x", label: "X", url: s.xLink },
+    { id: "facebook", label: "Facebook", url: s.facebook },
+  ].filter((x) => !!x.url);
+}
+
 
 /** Build a Google Fonts URL loading all fonts referenced by the settings. */
 export function googleFontsHref(s: SiteSettings): string {
