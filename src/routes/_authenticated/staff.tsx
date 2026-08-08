@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/salon/app-shell";
+import { useAccount } from "@/hooks/use-account";
+import { listBranches } from "@/lib/db/ops-repo";
 import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
 import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, AlarmClock, CalendarDays as CalendarDaysIcon } from "lucide-react";
@@ -38,14 +41,17 @@ type FormShape = {
   jobTitle: string;
   contractType: "full_time" | "part_time" | "contract";
   annualLeaveDays: number;
+  branchId: string;
 };
+
+export interface StaffBranchOption { id: string; name: string }
 
 const emptyForm: FormShape = {
   name: "", role: "مصففة شعر", phone: "", email: "", hireDate: "",
   commissionPct: 20, salary: 0, active: true,
   gender: "female", nationalId: "", birthDate: "", nationality: "",
   address: "", emergencyName: "", emergencyPhone: "",
-  jobTitle: "", contractType: "full_time", annualLeaveDays: 21,
+  jobTitle: "", contractType: "full_time", annualLeaveDays: 21, branchId: "",
 };
 
 function StaffPage() {
@@ -54,6 +60,18 @@ function StaffPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [form, setForm] = useState<FormShape>(emptyForm);
+  const [branchFilter, setBranchFilter] = useState("");
+  const { data: account } = useAccount();
+  const salonId = account?.salonId ?? null;
+  const branchesQuery = useQuery({
+    queryKey: ["branches", salonId],
+    queryFn: () => listBranches(salonId!),
+    enabled: !!salonId,
+  });
+  const branches: StaffBranchOption[] = (branchesQuery.data ?? []).map((b) => ({ id: b.id, name: b.name }));
+  const visibleStaff = branchFilter
+    ? staff.filter((s) => !s.branchId || s.branchId === branchFilter)
+    : staff;
 
   const stats = useMemo(() => {
     const m = new Map<string, { count: number; revenue: number; upcoming: number }>();
@@ -71,7 +89,7 @@ function StaffPage() {
 
   const openNew = () => {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, branchId: branchFilter });
     setOpen(true);
   };
   const openEdit = (s: Staff) => {
@@ -95,6 +113,7 @@ function StaffPage() {
       jobTitle: s.jobTitle ?? "",
       contractType: s.contractType ?? "full_time",
       annualLeaveDays: s.annualLeaveDays ?? 21,
+      branchId: s.branchId ?? "",
     });
     setOpen(true);
   };
@@ -121,6 +140,7 @@ function StaffPage() {
       jobTitle: form.jobTitle || undefined,
       contractType: form.contractType,
       annualLeaveDays: form.annualLeaveDays,
+      branchId: form.branchId || null,
     };
     if (editingId) {
       actions.updateStaff(editingId, patch);
@@ -140,15 +160,38 @@ function StaffPage() {
   return (
     <AppShell
       title="الموظفون"
-      subtitle={`${staff.length} موظف`}
+      subtitle={`${visibleStaff.length} موظف`}
       action={
         <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)]">
           <Plus className="size-4" /> موظف جديد
         </button>
       }
     >
+      {branches.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground">موظفو الفرع</span>
+          <button
+            onClick={() => setBranchFilter("")}
+            className={cn("text-xs px-3 py-1.5 rounded-full border transition",
+              !branchFilter ? "bg-primary text-primary-foreground border-primary" : "border-border hover:text-primary")}
+          >
+            كل الفروع
+          </button>
+          {branches.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setBranchFilter(b.id)}
+              className={cn("text-xs px-3 py-1.5 rounded-full border transition",
+                branchFilter === b.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:text-primary")}
+            >
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {staff.map((s) => {
+        {visibleStaff.map((s) => {
           const st = stats.get(s.id) ?? { count: 0, revenue: 0, upcoming: 0 };
           const commission = (st.revenue * s.commissionPct) / 100;
           const allowancesTotal = (s.allowances ?? []).reduce((a, x) => a + x.amount, 0);
@@ -247,10 +290,11 @@ function StaffPage() {
   );
 }
 
-function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
+function EditDialog({ editing, form, setForm, branches, onClose, onSubmit }: {
   editing: boolean;
   form: FormShape;
   setForm: (f: FormShape) => void;
+  branches: StaffBranchOption[];
   onClose: () => void;
   onSubmit: () => void;
 }) {
@@ -289,6 +333,12 @@ function EditDialog({ editing, form, setForm, onClose, onSubmit }: {
             <h4 className="text-xs font-bold text-primary mb-3">البيانات التعاقدية</h4>
             <div className="grid grid-cols-2 gap-3">
               <div><label className={lbl}>المسمى الوظيفي</label><input value={form.role} onChange={(e) => set("role", e.target.value)} className={inp} /></div>
+              <div><label className={lbl}>الفرع</label>
+                <select value={form.branchId} onChange={(e) => set("branchId", e.target.value)} className={inp}>
+                  <option value="">كل الفروع</option>
+                  {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
               <div><label className={lbl}>المسمى التفصيلي</label><input value={form.jobTitle} onChange={(e) => set("jobTitle", e.target.value)} className={inp} placeholder="مثال: كبير الأخصائيين" /></div>
               <div><label className={lbl}>نوع العقد</label>
                 <select value={form.contractType} onChange={(e) => set("contractType", e.target.value as any)} className={inp}>
