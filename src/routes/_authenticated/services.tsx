@@ -47,19 +47,35 @@ const empty: FormState = {
 function ServicesPage() {
   const services = useSalon((s) => s.services);
   const staff = useSalon((s) => s.staff);
+  const { data: account } = useAccount();
+  const salonId = account?.salonId ?? null;
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [staffIds, setStaffIds] = useState<string[]>([]);
+  const [branchFilter, setBranchFilter] = useState("");
+
+  const branchesQuery = useQuery({
+    queryKey: ["branches", salonId],
+    queryFn: () => listBranches(salonId!),
+    enabled: !!salonId,
+  });
+  const branches: BranchOption[] = (branchesQuery.data ?? []).map((b) => ({ id: b.id, name: b.name }));
+  const branchName = (id?: string | null) =>
+    id ? branches.find((b) => b.id === id)?.name ?? "فرع محذوف" : "كل الفروع";
 
   const openNew = () => {
-    setEditing(null); setForm(empty); setStaffIds([]); setOpen(true);
+    setEditing(null);
+    setForm({ ...empty, branchId: branchFilter });
+    setStaffIds([]);
+    setOpen(true);
   };
   const openEdit = (s: Service) => {
     setEditing(s);
     setForm({
       name: s.name, category: s.category, price: s.price, durationMin: s.durationMin,
       prepMin: s.prepMin ?? 0, cleanupMin: s.cleanupMin ?? 0, materials: s.materials ?? [],
+      branchId: s.branchId ?? "",
     });
     setStaffIds(staff.filter((st) => st.services.includes(s.id)).map((st) => st.id));
     setOpen(true);
@@ -68,19 +84,24 @@ function ServicesPage() {
   const submit = () => {
     if (!form.name.trim()) return toast.error("اكتب اسم الخدمة");
     if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
+    const payload = { ...form, branchId: form.branchId || null };
     let serviceId = editing?.id;
     if (editing) {
-      actions.updateService(editing.id, form);
+      actions.updateService(editing.id, payload);
       toast.success("تم تحديث الخدمة");
     } else {
-      serviceId = actions.addService({ ...form, active: true });
+      serviceId = actions.addService({ ...payload, active: true });
       toast.success("تمت إضافة الخدمة");
     }
     if (serviceId) actions.setServiceStaff(serviceId, staffIds);
     setOpen(false);
   };
 
-  const grouped = services.reduce<Record<string, typeof services>>((acc, s) => {
+  const visible = branchFilter
+    ? services.filter((s) => !s.branchId || s.branchId === branchFilter)
+    : services;
+
+  const grouped = visible.reduce<Record<string, typeof services>>((acc, s) => {
     (acc[s.category] ||= []).push(s);
     return acc;
   }, {});
@@ -88,13 +109,42 @@ function ServicesPage() {
   return (
     <AppShell
       title="الخدمات"
-      subtitle={`${services.length} خدمة — تُستخدم في الحجوزات وجرد المواد`}
+      subtitle={`${visible.length} خدمة — تُستخدم في الحجوزات وجرد المواد`}
       action={
         <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)]">
           <Plus className="size-4" /> خدمة جديدة
         </button>
       }
     >
+      {branches.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Building2 className="size-3.5" /> عرض خدمات الفرع
+          </span>
+          <button
+            onClick={() => setBranchFilter("")}
+            className={cn(
+              "text-xs px-3 py-1.5 rounded-full border transition",
+              !branchFilter ? "bg-primary text-primary-foreground border-primary" : "border-border hover:text-primary",
+            )}
+          >
+            كل الفروع
+          </button>
+          {branches.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setBranchFilter(b.id)}
+              className={cn(
+                "text-xs px-3 py-1.5 rounded-full border transition",
+                branchFilter === b.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:text-primary",
+              )}
+            >
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="space-y-6">
         {Object.entries(grouped).map(([cat, list]) => (
           <div key={cat}>
@@ -104,7 +154,9 @@ function ServicesPage() {
               <span className="text-xs text-muted-foreground">({list.length})</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {list.map((s) => <ServiceCard key={s.id} s={s} onEdit={() => openEdit(s)} />)}
+              {list.map((s) => (
+                <ServiceCard key={s.id} s={s} branchLabel={branchName(s.branchId)} onEdit={() => openEdit(s)} />
+              ))}
             </div>
           </div>
         ))}
@@ -114,6 +166,7 @@ function ServicesPage() {
         <ServiceDialog
           form={form}
           setForm={setForm}
+          branches={branches}
           staffIds={staffIds}
           setStaffIds={setStaffIds}
           onClose={() => setOpen(false)}
@@ -123,6 +176,7 @@ function ServicesPage() {
       )}
     </AppShell>
   );
+
 }
 
 function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
