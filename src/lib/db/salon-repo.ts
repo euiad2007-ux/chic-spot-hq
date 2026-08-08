@@ -70,7 +70,9 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
     durationMin: num(r.duration_min, 30),
     prepMin: num(r.prep_min),
     cleanupMin: num(r.cleanup_min),
+    branchId: (r.branch_id as string | null) ?? null,
     active: r.active !== false,
+
     materials: materials
       .filter((m) => m.service_id === r.id)
       .map((m) => ({ itemId: m.item_id, qty: num(m.qty) })),
