@@ -273,6 +273,8 @@ function StaffPage() {
           editing={!!editingId}
           form={form}
           setForm={setForm}
+          branches={branches}
+
           onClose={() => { setOpen(false); setEditingId(null); }}
           onSubmit={submit}
         />
