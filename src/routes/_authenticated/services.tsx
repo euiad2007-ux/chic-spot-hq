@@ -179,7 +179,7 @@ function ServicesPage() {
 
 }
 
-function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
+function ServiceCard({ s, branchLabel, onEdit }: { s: Service; branchLabel: string; onEdit: () => void }) {
   const inventory = useSalon((st) => st.inventory);
   const staff = useSalon((st) => st.staff);
   const total = serviceTotalMin(s);
@@ -193,10 +193,12 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
           <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
             <span className="flex items-center gap-1"><Clock className="size-3" /> {s.durationMin} د</span>
             <span className="flex items-center gap-1 text-primary/80"><Timer className="size-3" /> إجمالي {total} د</span>
+            <span className="flex items-center gap-1"><Building2 className="size-3" /> {branchLabel}</span>
             <span className={cn("size-1.5 rounded-full", s.active ? "bg-success" : "bg-muted-foreground")} />
             <span>{s.active ? "متاحة" : "متوقفة"}</span>
           </div>
         </div>
+
         <div className="flex opacity-0 group-hover:opacity-100 transition">
           <button onClick={onEdit} className="size-8 rounded-lg hover:bg-primary/10 hover:text-primary grid place-items-center" title="تعديل">
             <Pencil className="size-4" />
