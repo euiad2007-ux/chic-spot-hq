@@ -105,7 +105,9 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
       points: num(r.points),
       pointsLog: meta.pointsLog ?? [],
       services: serviceStaff.filter((x) => x.staff_id === r.id).map((x) => x.service_id),
+      branchId: (r.branch_id as string | null) ?? null,
       active: r.active !== false,
+
       gender: (r.gender ?? undefined) as Staff["gender"],
       nationalId: r.national_id ?? undefined,
       birthDate: r.birth_date ?? undefined,
