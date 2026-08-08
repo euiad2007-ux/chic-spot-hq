@@ -241,6 +241,8 @@ function buildSnapshot(s: SalonState, salonId: string): Snapshot {
 const serviceRow = (s: Service, salon_id: string): Row => ({
   id: s.id, salon_id, name: s.name, category: s.category || null, price: s.price,
   duration_min: s.durationMin, prep_min: s.prepMin, cleanup_min: s.cleanupMin, active: s.active,
+  branch_id: s.branchId ?? null,
+
 });
 
 const inventoryRow = (i: InventoryItem, salon_id: string): Row => ({
@@ -257,7 +259,9 @@ const staffRow = (s: Staff, salon_id: string): Row => ({
   contract_type: s.contractType ?? null, hire_date: s.hireDate || null,
   base_salary: s.salary ?? 0, allowances: s.allowances ?? [], commission_pct: s.commissionPct ?? 0,
   annual_leave_days: s.annualLeaveDays ?? 21, points: Math.round(s.points ?? 0),
-  active: s.active, meta: { notes: s.notes ?? [], pointsLog: s.pointsLog ?? [] },
+  active: s.active, branch_id: s.branchId ?? null,
+  meta: { notes: s.notes ?? [], pointsLog: s.pointsLog ?? [] },
+
 });
 
 const customerRow = (c: Customer, salon_id: string): Row => ({
