@@ -275,15 +275,17 @@ function ServiceCard({ s, branchLabel, onEdit }: { s: Service; branchLabel: stri
   );
 }
 
-function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
+function ServiceDialog({ form, setForm, branches, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
   form: FormState;
   setForm: (f: FormState) => void;
+  branches: BranchOption[];
   staffIds: string[];
   setStaffIds: (ids: string[] | ((prev: string[]) => string[])) => void;
   onClose: () => void;
   onSubmit: () => void;
   isEdit: boolean;
 }) {
+
   const inventory = useSalon((s) => s.inventory);
   const staff = useSalon((s) => s.staff);
   const total = form.prepMin + form.durationMin + form.cleanupMin;
