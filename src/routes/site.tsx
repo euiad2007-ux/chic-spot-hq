@@ -97,7 +97,7 @@ function SitePage() {
     if (site.bookingMode === "whatsapp") return waHref;
     if (site.bookingMode === "call") return `tel:${site.phone}`;
     if (site.bookingMode === "link" && site.bookingUrl) return site.bookingUrl;
-    return "/auth";
+    return "/store-login";
   }, [site.bookingMode, site.bookingUrl, site.phone, waHref]);
 
   const external = site.bookingMode !== "internal";
@@ -213,17 +213,7 @@ function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            to="/auth"
-            search={{ role: "staff" } as never}
-            title="دخول الموظفين"
-            aria-label="دخول الموظفين"
-            className="btn hidden sm:inline-flex items-center gap-2 h-10 px-3 border border-primary/40 text-primary text-sm hover:bg-primary/10 transition"
-          >
-            <IdCard className="size-4" aria-hidden />
-            <span className="hidden xl:inline">دخول الموظفين</span>
-          </Link>
-          <Link to="/auth" className="btn hidden sm:inline-flex items-center gap-2 h-10 px-4 border border-border text-sm hover:bg-muted transition">
+          <Link to="/store-login" className="btn hidden sm:inline-flex items-center gap-2 h-10 px-4 border border-border text-sm hover:bg-muted transition">
             <LogIn className="size-4" aria-hidden /> دخول
           </Link>
           <BookNow href={bookingHref} external={external} label={site.bookingLabel} site={site} className="h-10 px-5 text-sm" />
@@ -249,7 +239,7 @@ function SiteHeader({
             <a href={waHref} target="_blank" rel="noreferrer" className="px-3 py-3 rounded-lg text-sm font-semibold text-success hover:bg-success/10">
               واتساب
             </a>
-            <Link to="/auth" className="px-3 py-3 rounded-lg text-sm font-semibold hover:bg-muted">تسجيل الدخول</Link>
+            <Link to="/store-login" className="px-3 py-3 rounded-lg text-sm font-semibold hover:bg-muted">تسجيل الدخول</Link>
           </nav>
         </div>
       )}
@@ -275,7 +265,7 @@ function BookNow({
     );
   }
   return (
-    <Link to="/auth" className={cls} style={style}>
+    <Link to="/store-login" className={cls} style={style}>
       <CalendarDays className="size-4" aria-hidden /> {label}
     </Link>
   );
@@ -366,7 +356,7 @@ function Hero({ site, waHref, bookingHref, external }: { site: SiteSettings; waH
               : undefined;
             if (b.kind === "booking" && !external) {
               return (
-                <Link key={i} to="/auth" className={cls} style={style}>
+                <Link key={i} to="/store-login" className={cls} style={style}>
                   <CalendarDays className="size-4" aria-hidden /> {b.label}
                 </Link>
               );
@@ -758,8 +748,8 @@ function SiteFooter({ site, waHref }: { site: SiteSettings; waHref: string }) {
               </a>
             ))}
           </div>
-          <Link to="/auth" search={{ role: "staff" } as never} className="btn mt-5 inline-flex items-center gap-2 h-10 px-4 border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">
-            <IdCard className="size-4" aria-hidden /> دخول الموظفين
+          <Link to="/store-login" className="btn mt-5 inline-flex items-center gap-2 h-10 px-4 border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">
+            <IdCard className="size-4" aria-hidden /> دخول الموظفين والعملاء
           </Link>
         </div>
       </div>

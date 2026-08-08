@@ -9,12 +9,17 @@ import {
   Wallet,
   ShieldCheck,
   ArrowLeft,
+  Building2,
+  Check,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
 
+import heroImg from "@/assets/platform-hero.jpg";
+import dashboardImg from "@/assets/platform-dashboard.jpg";
+import posImg from "@/assets/platform-pos.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,12 +28,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "منصة سحابية لإدارة المشاغل: حجوزات بلا تعارض، فواتير ضريبية، مخزون، رواتب وحضور، محافظ ونقاط ولاء.",
+          "منصة سحابية لملاك المشاغل: حجوزات بلا تعارض، فواتير ضريبية، فروع متعددة، مخزون، رواتب وحضور، محافظ ونقاط ولاء.",
       },
       { property: "og:title", content: "Salon Flow — منصة إدارة المشاغل والصالونات" },
       {
         property: "og:description",
-        content: "أدر مشغلك بالكامل من مكان واحد: الحجوزات والخدمات والموظفين والفواتير والمخزون.",
+        content: "أدر مشغلك وفروعك بالكامل من مكان واحد: الحجوزات والخدمات والموظفين والفواتير والمخزون.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -39,11 +44,18 @@ export const Route = createFileRoute("/")({
 
 const features = [
   { icon: CalendarDays, title: "حجوزات ذكية", desc: "منع تعارض مواعيد الموظفين تلقائيًا وترقيم حجوزات تسلسلي." },
-  { icon: Receipt, title: "فواتير وضريبة", desc: "ترقيم تسلسلي، ضريبة القيمة المضافة، دفعات جزئية واسترجاع." },
+  { icon: Building2, title: "فروع متعددة", desc: "لكل فرع موظفوه وخدماته وصندوقه وتقاريره المستقلة." },
+  { icon: Receipt, title: "فواتير وضريبة", desc: "ترقيم تسلسلي، ضريبة القيمة المضافة، فواتير إلكترونية ZATCA." },
   { icon: Users2, title: "موظفون ورواتب", desc: "حضور بالموقع الجغرافي، عمولات، بدلات وكشوف رواتب شهرية." },
   { icon: Package, title: "مخزون دقيق", desc: "وحدات قياس مرنة، خصم تلقائي عند تنفيذ الخدمة وتنبيهات النقص." },
   { icon: Wallet, title: "محافظ وولاء", desc: "محفظة لكل عميل بسجل حركات كامل ونقاط ولاء وإحالات." },
-  { icon: ShieldCheck, title: "أمان متعدد المشاغل", desc: "كل مشغل معزول تمامًا بصلاحيات على مستوى قاعدة البيانات." },
+];
+
+const included = [
+  "موقع إلكتروني جاهز لكل مشغل بهويته وألوانه",
+  "لوحة دخول خاصة بالموظفين والعملاء",
+  "برنامج محاسبي كامل وتقارير مالية",
+  "نقطة بيع وصندوق ورديات",
 ];
 
 function Landing() {
@@ -63,7 +75,6 @@ function Landing() {
           window.location.replace(q ? `/site?tenant=${encodeURIComponent(q)}` : "/site");
         }
         return;
-
       }
       const account = await loadAccount();
       if (!account || cancelled) return;
@@ -73,7 +84,6 @@ function Landing() {
       cancelled = true;
     };
   }, [navigate]);
-
 
   return (
     <main dir="rtl" className="min-h-screen bg-background">
@@ -86,49 +96,62 @@ function Landing() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            to="/site"
+            to="/auth"
             className="hidden sm:inline-flex h-10 items-center px-4 rounded-lg border border-border text-sm hover:bg-muted"
           >
-            موقع الصالون
+            دخول الملاك
           </Link>
           <Link
             to="/auth"
             className="inline-flex h-10 items-center px-5 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-bold"
           >
-            دخول / تسجيل
+            سجّل مشغلك
           </Link>
         </div>
       </header>
 
-      <section className="px-4 sm:px-8 py-16 sm:py-24 text-center max-w-3xl mx-auto">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
-          نظام SaaS جاهز لآلاف المشاغل
-        </span>
-        <h1 className="mt-6 text-3xl sm:text-5xl font-extrabold leading-tight">
-          أدِر مشغلك بالكامل من <span className="gradient-text">لوحة واحدة</span>
-        </h1>
-        <p className="mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed">
-          حجوزات، خدمات، موظفون، رواتب، مخزون، فواتير ضريبية، محافظ ونقاط ولاء — مع عزل كامل لبيانات
-          كل مشغل وصلاحيات دقيقة لكل دور.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link
-            to="/auth"
-            className="inline-flex h-12 items-center gap-2 px-7 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold"
-          >
-            ابدأ تجربة 30 يومًا
-            <ArrowLeft className="size-4" />
-          </Link>
-          <Link
-            to="/site"
-            className="inline-flex h-12 items-center px-7 rounded-xl border border-border font-semibold hover:bg-muted"
-          >
-            استعراض موقع صالون
-          </Link>
+      <section className="relative overflow-hidden">
+        <img
+          src={heroImg}
+          alt="صالون تجميل فاخر بإضاءة ذهبية وكراسي بلون الليلك"
+          width={1600}
+          height={1008}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/85 to-background/60" />
+        <div className="relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
+            منصة SaaS لملاك المشاغل والصالونات
+          </span>
+          <h1 className="mt-6 text-3xl sm:text-5xl font-extrabold leading-tight">
+            أدِر مشغلك وفروعك من <span className="gradient-text">لوحة واحدة</span>
+          </h1>
+          <p className="mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed">
+            حجوزات، خدمات لكل فرع، موظفون، رواتب، مخزون، فواتير ضريبية، محافظ ونقاط ولاء — مع موقع
+            إلكتروني جاهز لكل مشغل وعزل كامل للبيانات.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              to="/auth"
+              className="inline-flex h-12 items-center gap-2 px-7 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold"
+            >
+              ابدأ تجربة 30 يومًا
+              <ArrowLeft className="size-4" />
+            </Link>
+            <Link
+              to="/site"
+              className="inline-flex h-12 items-center px-7 rounded-xl border border-border font-semibold hover:bg-muted bg-background/70"
+            >
+              استعراض موقع صالون
+            </Link>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">
+            التسجيل هنا لملاك المشاغل فقط — الموظفون والعملاء يدخلون من صفحة دخول المشغل.
+          </p>
         </div>
       </section>
 
-      <section className="px-4 sm:px-8 pb-20 max-w-5xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="px-4 sm:px-8 py-16 max-w-5xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((f) => (
           <article key={f.title} className="rounded-2xl border border-border bg-card/70 p-5">
             <span className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -138,6 +161,60 @@ function Landing() {
             <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
           </article>
         ))}
+      </section>
+
+      <section className="px-4 sm:px-8 pb-16 max-w-6xl mx-auto grid gap-6 lg:grid-cols-2 items-center">
+        <div className="rounded-3xl overflow-hidden border border-border">
+          <img
+            src={dashboardImg}
+            alt="مالكة مشغل تستعرض لوحة التحكم والتقارير على الحاسب"
+            loading="lazy"
+            width={1200}
+            height={900}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold">كل ما يحتاجه مشغلك جاهز من اليوم الأول</h2>
+          <ul className="mt-5 space-y-3">
+            {included.map((i) => (
+              <li key={i} className="flex items-start gap-2 text-sm">
+                <Check className="size-4 mt-0.5 text-primary shrink-0" />
+                <span>{i}</span>
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/auth"
+            className="mt-7 inline-flex h-11 items-center gap-2 px-6 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm"
+          >
+            أنشئ حساب مالك المشغل <ArrowLeft className="size-4" />
+          </Link>
+        </div>
+      </section>
+
+      <section className="px-4 sm:px-8 pb-20 max-w-6xl mx-auto grid gap-6 lg:grid-cols-2 items-center">
+        <div className="order-2 lg:order-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold">نقطة بيع وفواتير متوافقة مع الضريبة</h2>
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+            بِع الخدمات والمنتجات من شاشة واحدة، اطبع الفاتورة على طابعة حرارية، وأصدر فواتير
+            إلكترونية بـ QR متوافقة مع متطلبات الفاتورة الضريبية.
+          </p>
+          <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
+            <ShieldCheck className="size-4 text-primary" />
+            بيانات كل مشغل معزولة بصلاحيات على مستوى قاعدة البيانات
+          </div>
+        </div>
+        <div className="order-1 lg:order-2 rounded-3xl overflow-hidden border border-border">
+          <img
+            src={posImg}
+            alt="طابعة فواتير ودفع إلكتروني على كاونتر صالون"
+            loading="lazy"
+            width={1200}
+            height={900}
+            className="w-full h-full object-cover"
+          />
+        </div>
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">

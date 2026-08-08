@@ -27,6 +27,7 @@ import {
   History,
   Menu,
   X,
+  ChevronDown,
   ClipboardCheck,
   Calculator,
   PackageSearch,
@@ -184,6 +185,7 @@ export function AppShell({
     }
   }, [permitted, account, navigate]);
 
+  const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
     (n.platform ? account?.role === "platform_owner" : n.manager ? manager : true) &&
@@ -204,12 +206,21 @@ export function AppShell({
     GROUPS.map((g) => {
       const groupItems = items.filter((n) => n.group === g.id);
       if (groupItems.length === 0) return null;
+      const hasActive = groupItems.some((n) => isActive(n.to));
+      const expanded = closedGroups[g.id] === undefined ? true : !closedGroups[g.id];
+      const isOpen = expanded || hasActive;
       return (
         <div key={g.id} className="space-y-1">
-          <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
-            {g.label}
-          </div>
-          {groupItems.map((n) => {
+          <button
+            type="button"
+            onClick={() => setClosedGroups((prev) => ({ ...prev, [g.id]: !(prev[g.id] ?? false) }))}
+            aria-expanded={isOpen}
+            className="w-full flex items-center justify-between gap-2 px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 hover:text-foreground transition"
+          >
+            <span>{g.label}</span>
+            <ChevronDown className={cn("size-3.5 transition-transform", isOpen ? "" : "-rotate-90")} />
+          </button>
+          {isOpen && groupItems.map((n) => {
             const Icon = n.icon;
             return (
               <Link

@@ -2165,6 +2165,7 @@ export type Database = {
       services: {
         Row: {
           active: boolean
+          branch_id: string | null
           category: string | null
           cleanup_min: number
           created_at: string
@@ -2179,6 +2180,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          branch_id?: string | null
           category?: string | null
           cleanup_min?: number
           created_at?: string
@@ -2193,6 +2195,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          branch_id?: string | null
           category?: string | null
           cleanup_min?: number
           created_at?: string
@@ -2206,6 +2209,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "services_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "services_salon_id_fkey"
             columns: ["salon_id"]

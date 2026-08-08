@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/salon/app-shell";
 import {
   useSalon, actions, formatSAR, serviceTotalMin,
   costPerBase, measureLabel, serviceMaterialsCost,
   type Service, type ServiceMaterial,
 } from "@/lib/salon-store";
+import { useAccount } from "@/hooks/use-account";
+import { listBranches } from "@/lib/db/ops-repo";
 import { useState, useMemo } from "react";
-import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins } from "lucide-react";
+import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -14,13 +17,15 @@ export const Route = createFileRoute("/_authenticated/services")({
   head: () => ({
     meta: [
       { title: "الخدمات — لمسة" },
-      { name: "description", content: "إدارة خدمات المشغل والأسعار والمواد والأوقات." },
+      { name: "description", content: "إدارة خدمات المشغل والأسعار والمواد والأوقات لكل فرع." },
       { property: "og:title", content: "الخدمات" },
-      { property: "og:description", content: "إدارة الخدمات والأسعار والمواد والأوقات." },
+      { property: "og:description", content: "إدارة الخدمات والأسعار والمواد والأوقات لكل فرع." },
     ],
   }),
   component: ServicesPage,
 });
+
+interface BranchOption { id: string; name: string }
 
 type FormState = {
   name: string;
@@ -29,29 +34,48 @@ type FormState = {
   durationMin: number;
   prepMin: number;
   cleanupMin: number;
+  branchId: string;
   materials: ServiceMaterial[];
 };
 
 const empty: FormState = {
-  name: "", category: "الشعر", price: 100, durationMin: 30, prepMin: 5, cleanupMin: 5, materials: [],
+  name: "", category: "الشعر", price: 100, durationMin: 30, prepMin: 5, cleanupMin: 5,
+  branchId: "", materials: [],
 };
+
 
 function ServicesPage() {
   const services = useSalon((s) => s.services);
   const staff = useSalon((s) => s.staff);
+  const { data: account } = useAccount();
+  const salonId = account?.salonId ?? null;
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [staffIds, setStaffIds] = useState<string[]>([]);
+  const [branchFilter, setBranchFilter] = useState("");
+
+  const branchesQuery = useQuery({
+    queryKey: ["branches", salonId],
+    queryFn: () => listBranches(salonId!),
+    enabled: !!salonId,
+  });
+  const branches: BranchOption[] = (branchesQuery.data ?? []).map((b) => ({ id: b.id, name: b.name }));
+  const branchName = (id?: string | null) =>
+    id ? branches.find((b) => b.id === id)?.name ?? "فرع محذوف" : "كل الفروع";
 
   const openNew = () => {
-    setEditing(null); setForm(empty); setStaffIds([]); setOpen(true);
+    setEditing(null);
+    setForm({ ...empty, branchId: branchFilter });
+    setStaffIds([]);
+    setOpen(true);
   };
   const openEdit = (s: Service) => {
     setEditing(s);
     setForm({
       name: s.name, category: s.category, price: s.price, durationMin: s.durationMin,
       prepMin: s.prepMin ?? 0, cleanupMin: s.cleanupMin ?? 0, materials: s.materials ?? [],
+      branchId: s.branchId ?? "",
     });
     setStaffIds(staff.filter((st) => st.services.includes(s.id)).map((st) => st.id));
     setOpen(true);
@@ -60,19 +84,24 @@ function ServicesPage() {
   const submit = () => {
     if (!form.name.trim()) return toast.error("اكتب اسم الخدمة");
     if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
+    const payload = { ...form, branchId: form.branchId || null };
     let serviceId = editing?.id;
     if (editing) {
-      actions.updateService(editing.id, form);
+      actions.updateService(editing.id, payload);
       toast.success("تم تحديث الخدمة");
     } else {
-      serviceId = actions.addService({ ...form, active: true });
+      serviceId = actions.addService({ ...payload, active: true });
       toast.success("تمت إضافة الخدمة");
     }
     if (serviceId) actions.setServiceStaff(serviceId, staffIds);
     setOpen(false);
   };
 
-  const grouped = services.reduce<Record<string, typeof services>>((acc, s) => {
+  const visible = branchFilter
+    ? services.filter((s) => !s.branchId || s.branchId === branchFilter)
+    : services;
+
+  const grouped = visible.reduce<Record<string, typeof services>>((acc, s) => {
     (acc[s.category] ||= []).push(s);
     return acc;
   }, {});
@@ -80,13 +109,42 @@ function ServicesPage() {
   return (
     <AppShell
       title="الخدمات"
-      subtitle={`${services.length} خدمة — تُستخدم في الحجوزات وجرد المواد`}
+      subtitle={`${visible.length} خدمة — تُستخدم في الحجوزات وجرد المواد`}
       action={
         <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)]">
           <Plus className="size-4" /> خدمة جديدة
         </button>
       }
     >
+      {branches.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Building2 className="size-3.5" /> عرض خدمات الفرع
+          </span>
+          <button
+            onClick={() => setBranchFilter("")}
+            className={cn(
+              "text-xs px-3 py-1.5 rounded-full border transition",
+              !branchFilter ? "bg-primary text-primary-foreground border-primary" : "border-border hover:text-primary",
+            )}
+          >
+            كل الفروع
+          </button>
+          {branches.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setBranchFilter(b.id)}
+              className={cn(
+                "text-xs px-3 py-1.5 rounded-full border transition",
+                branchFilter === b.id ? "bg-primary text-primary-foreground border-primary" : "border-border hover:text-primary",
+              )}
+            >
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="space-y-6">
         {Object.entries(grouped).map(([cat, list]) => (
           <div key={cat}>
@@ -96,7 +154,9 @@ function ServicesPage() {
               <span className="text-xs text-muted-foreground">({list.length})</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {list.map((s) => <ServiceCard key={s.id} s={s} onEdit={() => openEdit(s)} />)}
+              {list.map((s) => (
+                <ServiceCard key={s.id} s={s} branchLabel={branchName(s.branchId)} onEdit={() => openEdit(s)} />
+              ))}
             </div>
           </div>
         ))}
@@ -106,6 +166,7 @@ function ServicesPage() {
         <ServiceDialog
           form={form}
           setForm={setForm}
+          branches={branches}
           staffIds={staffIds}
           setStaffIds={setStaffIds}
           onClose={() => setOpen(false)}
@@ -115,9 +176,10 @@ function ServicesPage() {
       )}
     </AppShell>
   );
+
 }
 
-function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
+function ServiceCard({ s, branchLabel, onEdit }: { s: Service; branchLabel: string; onEdit: () => void }) {
   const inventory = useSalon((st) => st.inventory);
   const staff = useSalon((st) => st.staff);
   const total = serviceTotalMin(s);
@@ -131,10 +193,12 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
           <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
             <span className="flex items-center gap-1"><Clock className="size-3" /> {s.durationMin} د</span>
             <span className="flex items-center gap-1 text-primary/80"><Timer className="size-3" /> إجمالي {total} د</span>
+            <span className="flex items-center gap-1"><Building2 className="size-3" /> {branchLabel}</span>
             <span className={cn("size-1.5 rounded-full", s.active ? "bg-success" : "bg-muted-foreground")} />
             <span>{s.active ? "متاحة" : "متوقفة"}</span>
           </div>
         </div>
+
         <div className="flex opacity-0 group-hover:opacity-100 transition">
           <button onClick={onEdit} className="size-8 rounded-lg hover:bg-primary/10 hover:text-primary grid place-items-center" title="تعديل">
             <Pencil className="size-4" />
@@ -211,15 +275,17 @@ function ServiceCard({ s, onEdit }: { s: Service; onEdit: () => void }) {
   );
 }
 
-function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
+function ServiceDialog({ form, setForm, branches, staffIds, setStaffIds, onClose, onSubmit, isEdit }: {
   form: FormState;
   setForm: (f: FormState) => void;
+  branches: BranchOption[];
   staffIds: string[];
   setStaffIds: (ids: string[] | ((prev: string[]) => string[])) => void;
   onClose: () => void;
   onSubmit: () => void;
   isEdit: boolean;
 }) {
+
   const inventory = useSalon((s) => s.inventory);
   const staff = useSalon((s) => s.staff);
   const total = form.prepMin + form.durationMin + form.cleanupMin;
@@ -258,6 +324,20 @@ function ServiceDialog({ form, setForm, staffIds, setStaffIds, onClose, onSubmit
               <input type="number" min={0} value={form.durationMin} onChange={(e) => setForm({ ...form, durationMin: Number(e.target.value) })} className="input" />
             </Field>
           </div>
+
+          <Field label="الفرع المقدِّم للخدمة">
+            <select
+              value={form.branchId}
+              onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+              className="input"
+            >
+              <option value="">كل الفروع</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </Field>
+
 
           <div>
             <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
