@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StoreLoginRouteImport } from './routes/store-login'
 import { Route as SiteRouteImport } from './routes/site'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -56,6 +57,11 @@ import { Route as AuthenticatedAccountingClosingRouteImport } from './routes/_au
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
 import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
 
+const StoreLoginRoute = StoreLoginRouteImport.update({
+  id: '/store-login',
+  path: '/store-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
   path: '/site',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/store-login': typeof StoreLoginRoute
   '/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
@@ -351,6 +358,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/store-login': typeof StoreLoginRoute
   '/accounts': typeof AuthenticatedAccountsRoute
   '/activity-log': typeof AuthenticatedActivityLogRoute
   '/assets': typeof AuthenticatedAssetsRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
   '/site': typeof SiteRoute
+  '/store-login': typeof StoreLoginRoute
   '/_authenticated/accounting': typeof AuthenticatedAccountingRouteWithChildren
   '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
   '/_authenticated/activity-log': typeof AuthenticatedActivityLogRoute
@@ -448,6 +457,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/store-login'
     | '/accounting'
     | '/accounts'
     | '/activity-log'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/store-login'
     | '/accounts'
     | '/activity-log'
     | '/assets'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/no-access'
     | '/site'
+    | '/store-login'
     | '/_authenticated/accounting'
     | '/_authenticated/accounts'
     | '/_authenticated/activity-log'
@@ -591,10 +603,18 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   NoAccessRoute: typeof NoAccessRoute
   SiteRoute: typeof SiteRoute
+  StoreLoginRoute: typeof StoreLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/store-login': {
+      id: '/store-login'
+      path: '/store-login'
+      fullPath: '/store-login'
+      preLoaderRoute: typeof StoreLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/site': {
       id: '/site'
       path: '/site'
@@ -1032,6 +1052,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   NoAccessRoute: NoAccessRoute,
   SiteRoute: SiteRoute,
+  StoreLoginRoute: StoreLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

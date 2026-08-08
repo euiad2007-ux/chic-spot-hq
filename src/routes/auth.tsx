@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Scissors, Loader2, Store, User } from "lucide-react";
+import { Scissors, Loader2, Store } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "تسجيل الدخول — Salon Flow" },
+      { title: "دخول ملاك المشاغل — Salon Flow" },
       {
         name: "description",
         content: "سجّل الدخول إلى حساب مشغلك أو حسابك الشخصي لإدارة الحجوزات والخدمات والفواتير.",
@@ -33,7 +33,6 @@ function AuthPage() {
   const navigate = useNavigate();
   const refreshAccount = useRefreshAccount();
   const [mode, setMode] = useState<Mode>("signin");
-  const [asOwner, setAsOwner] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -75,13 +74,13 @@ function AuthPage() {
         await afterAuth();
       } else {
         if (!fullName.trim()) throw new Error("الاسم مطلوب");
-        if (asOwner && !salonName.trim()) throw new Error("اسم المشغل مطلوب");
+        if (!salonName.trim()) throw new Error("اسم المشغل مطلوب");
         const { needsConfirmation } = await signUp({
           email,
           password,
           fullName,
           phone,
-          salonName: asOwner ? salonName : undefined,
+          salonName,
         });
         if (needsConfirmation) {
           setSent(true);
@@ -195,33 +194,12 @@ function AuthPage() {
             <form onSubmit={onSubmit} className="space-y-4">
               {mode === "signup" && (
                 <>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setAsOwner(true)}
-                      className={
-                        "flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition " +
-                        (asOwner
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground hover:bg-muted/50")
-                      }
-                    >
-                      <Store className="size-4" />
-                      صاحب مشغل
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAsOwner(false)}
-                      className={
-                        "flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition " +
-                        (!asOwner
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground hover:bg-muted/50")
-                      }
-                    >
-                      <User className="size-4" />
-                      عميل
-                    </button>
+                  <div className="rounded-xl border border-primary/30 bg-primary/10 p-3 flex items-start gap-2 text-[11px] font-semibold text-primary">
+                    <Store className="size-4 shrink-0" aria-hidden />
+                    <span>
+                      التسجيل هنا لملاك المشاغل فقط. الموظفون والعملاء يدخلون من صفحة دخول المشغل
+                      الخاصة به.
+                    </span>
                   </div>
                   <Field
                     label="الاسم الكامل"
@@ -230,14 +208,12 @@ function AuthPage() {
                     autoComplete="name"
                     required
                   />
-                  {asOwner && (
-                    <Field
-                      label="اسم المشغل / الصالون"
-                      value={salonName}
-                      onChange={setSalonName}
-                      required
-                    />
-                  )}
+                  <Field
+                    label="اسم المشغل / الصالون"
+                    value={salonName}
+                    onChange={setSalonName}
+                    required
+                  />
                   <Field
                     label="رقم الجوال"
                     value={phone}
