@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/salon/app-shell";
 import {
   useSalon, actions, formatSAR, serviceTotalMin,
   costPerBase, measureLabel, serviceMaterialsCost,
   type Service, type ServiceMaterial,
 } from "@/lib/salon-store";
+import { useAccount } from "@/hooks/use-account";
+import { listBranches } from "@/lib/db/ops-repo";
 import { useState, useMemo } from "react";
-import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins } from "lucide-react";
+import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -14,13 +17,15 @@ export const Route = createFileRoute("/_authenticated/services")({
   head: () => ({
     meta: [
       { title: "الخدمات — لمسة" },
-      { name: "description", content: "إدارة خدمات المشغل والأسعار والمواد والأوقات." },
+      { name: "description", content: "إدارة خدمات المشغل والأسعار والمواد والأوقات لكل فرع." },
       { property: "og:title", content: "الخدمات" },
-      { property: "og:description", content: "إدارة الخدمات والأسعار والمواد والأوقات." },
+      { property: "og:description", content: "إدارة الخدمات والأسعار والمواد والأوقات لكل فرع." },
     ],
   }),
   component: ServicesPage,
 });
+
+interface BranchOption { id: string; name: string }
 
 type FormState = {
   name: string;
@@ -29,12 +34,15 @@ type FormState = {
   durationMin: number;
   prepMin: number;
   cleanupMin: number;
+  branchId: string;
   materials: ServiceMaterial[];
 };
 
 const empty: FormState = {
-  name: "", category: "الشعر", price: 100, durationMin: 30, prepMin: 5, cleanupMin: 5, materials: [],
+  name: "", category: "الشعر", price: 100, durationMin: 30, prepMin: 5, cleanupMin: 5,
+  branchId: "", materials: [],
 };
+
 
 function ServicesPage() {
   const services = useSalon((s) => s.services);
