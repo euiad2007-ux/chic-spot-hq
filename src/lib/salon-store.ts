@@ -28,7 +28,10 @@ export interface Service {
   cleanupMin: number;
   materials: ServiceMaterial[];
   active: boolean;
+  /** Branch that offers this service. `null` = available in every branch. */
+  branchId?: string | null;
 }
+
 
 export interface InventoryItem {
   id: string;
@@ -103,6 +106,9 @@ export interface Staff {
   pointsLog?: StaffPointLog[];
   services: string[];
   active: boolean;
+  /** Branch the employee belongs to. `null` = all branches. */
+  branchId?: string | null;
+
   // Personal (optional, backward compatible)
   gender?: "female" | "male";
   nationalId?: string;
