@@ -325,6 +325,20 @@ function ServiceDialog({ form, setForm, branches, staffIds, setStaffIds, onClose
             </Field>
           </div>
 
+          <Field label="الفرع المقدِّم للخدمة">
+            <select
+              value={form.branchId}
+              onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+              className="input"
+            >
+              <option value="">كل الفروع</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </Field>
+
+
           <div>
             <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">
               <Timer className="size-3" /> إدارة الوقت
