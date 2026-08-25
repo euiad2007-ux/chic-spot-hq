@@ -8,7 +8,9 @@ import {
 } from "@/lib/salon-store";
 import { findEarliestSlot, useBookingSettings, getBookingSettings, checkBookingConflict } from "@/lib/booking-settings";
 import { evalCoupon } from "@/lib/coupon-store";
-import { checkoutBookingOnServer } from "@/lib/db/checkout-repo";
+import { checkoutBookingOnServer, cancelExpiredHoldsOnServer } from "@/lib/db/checkout-repo";
+import { currentSalonId } from "@/lib/db/hydrate";
+
 
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
