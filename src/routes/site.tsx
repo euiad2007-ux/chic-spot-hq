@@ -19,6 +19,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PaymentIcon } from "@/components/salon/payment-icons";
+import type { PublicReview, PublicSalonMeta } from "@/lib/db/public-hydrate";
 
 /* ---------------- head assets ---------------- */
 
@@ -77,18 +78,61 @@ export const Route = createFileRoute("/site")({
   component: SitePage,
 });
 
+/* ---------------- structured data ---------------- */
+
+/** BeautySalon JSON-LD so the salon page is search-friendly. */
+function useSalonJsonLd(site: SiteSettings, meta: PublicSalonMeta) {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const id = "lamsa-jsonld";
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = id;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    const data: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "BeautySalon",
+      name: site.salonName,
+      description: site.seoDescription || site.heroSubtitle,
+      telephone: site.phone || undefined,
+      image: site.ogImage || site.heroImage || undefined,
+      address: site.address ? { "@type": "PostalAddress", streetAddress: site.address } : undefined,
+      openingHours: site.hours || undefined,
+      hasMap: site.mapsUrl || undefined,
+    };
+    if (meta.reviewCount > 0) {
+      data["aggregateRating"] = {
+        "@type": "AggregateRating",
+        ratingValue: meta.avgRating,
+        reviewCount: meta.reviewCount,
+      };
+    }
+    el.textContent = JSON.stringify(data);
+  }, [site, meta]);
+}
+
 /* ---------------- page ---------------- */
 
 function SitePage() {
+  return <SalonSiteView />;
+}
+
+/** The salon storefront. Renders for the current host/tenant, or for `slug`. */
+export function SalonSiteView({ slug }: { slug?: string }) {
   const { services, staff } = useSalon((s) => s);
+  const [meta, setMeta] = useState<PublicSalonMeta>({ salonId: null, avgRating: 0, reviewCount: 0, reviews: [] });
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite());
-  }, []);
+    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug).then(setMeta));
+  }, [slug]);
   const site = useSiteSettings();
 
   useHeadLink("lamsa-google-fonts", "stylesheet", googleFontsHref(site));
   useHeadLink("lamsa-favicon", "icon", site.faviconUrl);
   useSeo(site);
+  useSalonJsonLd(site, meta);
 
   const waHref = waLink(site.waNumber, `مرحبًا، أرغب في الاستفسار عن خدمات ${site.salonName}`, site.waCountryCode);
   const sections = visibleSections(site);
@@ -112,6 +156,8 @@ function SitePage() {
         return <GallerySection key={id} site={site} />;
       case "team":
         return <TeamSection key={id} site={site} staff={staff} />;
+      case "reviews":
+        return <ReviewsSection key={id} site={site} meta={meta} />;
       case "contact":
         return <ContactSection key={id} site={site} waHref={waHref} />;
       default:
@@ -165,6 +211,7 @@ function SiteHeader({
   }, []);
 
   const navLabels: Record<SectionId, string> = {
+    reviews: site.reviewsTitle,
     showcase: site.showcaseTitle,
     services: site.servicesTitle,
     gallery: site.galleryTitle,
@@ -643,6 +690,47 @@ function TeamSection({ site, staff }: { site: SiteSettings; staff: ReturnType<ty
                   <Instagram className="size-4" />
                 </a>
               )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </Reveal>
+  );
+}
+
+/* ---------------- reviews ---------------- */
+
+function Stars({ value, className }: { value: number; className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center gap-0.5", className)} aria-label={`${value} من 5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} className={cn("size-4", n <= Math.round(value) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40")} />
+      ))}
+    </span>
+  );
+}
+
+function ReviewsSection({ site, meta }: { site: SiteSettings; meta: PublicSalonMeta }) {
+  const reviews: PublicReview[] = meta.reviews;
+  if (!reviews.length) return null;
+  return (
+    <Reveal id="reviews" className="max-w-7xl mx-auto px-5 md:px-10 py-20 md:py-28">
+      <SectionHead site={site} eyebrow="Reviews" title={site.reviewsTitle} desc={site.reviewsDesc} />
+      <div className="flex flex-col items-center gap-2 mb-10">
+        <div className="text-4xl font-black" style={{ color: site.primary }}>{meta.avgRating.toFixed(1)}</div>
+        <Stars value={meta.avgRating} />
+        <div className="text-xs text-muted-foreground">{meta.reviewCount} تقييم</div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {reviews.map((r) => (
+          <article key={r.id} className="rounded-3xl border border-border/70 p-6" style={{ background: site.surface }}>
+            <Stars value={r.rating} />
+            {r.comment && <p className="text-sm leading-relaxed mt-3 text-muted-foreground">{r.comment}</p>}
+            <div className="mt-4 flex items-center gap-2">
+              <div className="size-8 rounded-full grid place-items-center text-white text-xs font-bold" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+                {r.displayName.charAt(0)}
+              </div>
+              <div className="text-xs font-bold">{r.displayName}</div>
             </div>
           </article>
         ))}
