@@ -44,6 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLatenessWatcher } from "@/lib/lateness";
 import { useAccount } from "@/hooks/use-account";
+import { useSiteSettings } from "@/lib/site-settings";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
@@ -172,6 +173,7 @@ export function AppShell({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: account, isLoading: accountLoading } = useAccount();
+  const site = useSiteSettings();
   // Alerts the reception/admin when a booking's service time passed without starting.
   useLatenessWatcher({ enabled: !!account });
   const [menuOpen, setMenuOpen] = useState(false);
