@@ -294,7 +294,7 @@ export function SectionsTab({ s }: { s: SiteSettings }) {
         <Head
           icon={ImageIcon}
           title={`معرض الأعمال (${galleryOf(s).length})`}
-          desc="صور مصنّفة تظهر في معرض الموقع مع إمكانية التصفية والعرض المكبّر."
+          desc="أضيفي صور الأعمال وصور الخدمات، ويمكنك رفع صورة «قبل» لعرض مقارنة قبل/بعد في صفحة المشغل."
           action={
             <button
               onClick={() => siteActions.addGalleryItem({ url: "", title: "", category: "" })}
@@ -307,10 +307,25 @@ export function SectionsTab({ s }: { s: SiteSettings }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {galleryOf(s).map((it, i) => (
             <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/20">
-              <ImagePick url={it.url} onPick={(u) => siteActions.updateGalleryItem(i, { url: u })} className="size-20 shrink-0" />
+              <div className="shrink-0 space-y-1">
+                <ImagePick url={it.url} onPick={(u) => siteActions.updateGalleryItem(i, { url: u })} className="size-20" />
+                <div className="text-[10px] text-center text-muted-foreground font-semibold">بعد</div>
+              </div>
+              <div className="shrink-0 space-y-1">
+                <ImagePick url={it.beforeUrl ?? ""} onPick={(u) => siteActions.updateGalleryItem(i, { beforeUrl: u })} className="size-20" />
+                <div className="text-[10px] text-center text-muted-foreground font-semibold">قبل (اختياري)</div>
+              </div>
               <div className="flex-1 min-w-0 space-y-2">
-                <Txt label="العنوان" value={it.title} onChange={(v) => siteActions.updateGalleryItem(i, { title: v })} />
+                <Txt label="العنوان / الخدمة" value={it.title} placeholder="صبغة شعر" onChange={(v) => siteActions.updateGalleryItem(i, { title: v })} />
                 <Txt label="التصنيف" value={it.category} placeholder="شعر / مكياج / أظافر" onChange={(v) => siteActions.updateGalleryItem(i, { category: v })} />
+                {it.beforeUrl ? (
+                  <button
+                    onClick={() => siteActions.updateGalleryItem(i, { beforeUrl: "" })}
+                    className="text-[11px] font-semibold text-destructive hover:underline"
+                  >
+                    حذف صورة «قبل»
+                  </button>
+                ) : null}
               </div>
               <div className="flex flex-col shrink-0">
                 <button onClick={() => siteActions.moveGalleryItem(i, -1)} className="size-8 grid place-items-center rounded hover:bg-muted"><ChevronUp className="size-4" /></button>
@@ -321,6 +336,7 @@ export function SectionsTab({ s }: { s: SiteSettings }) {
           ))}
         </div>
       </section>
+
 
       <section className="glass-card rounded-2xl p-5">
         <Head
