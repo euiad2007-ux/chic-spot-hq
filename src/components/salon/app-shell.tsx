@@ -79,6 +79,7 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/reports", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/activity-log", roles: ["platform_owner", "salon_owner"] },
+  { prefix: "/branch-audit", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/staff", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/payroll", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/attendance", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -163,6 +164,7 @@ const nav: {
   { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, group: "system" },
   { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "system" },
   { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, group: "system" },
+  { to: "/branch-audit", label: "سجل تدقيق الفروع", icon: Building2, manager: true, group: "system" },
 ];
 
 
@@ -236,6 +238,7 @@ export function AppShell({
       void logBranchSwitch({
         salonId,
         userId: account.userId,
+        userName: account.fullName ?? null,
         fromBranchId: from,
         fromBranchName: nameOf(from),
         toBranchId: id,
