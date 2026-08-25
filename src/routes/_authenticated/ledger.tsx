@@ -194,8 +194,11 @@ function LedgerPage() {
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold">الحركات ({rows.length})</h2>
+          <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <h2 className="font-bold flex items-center gap-2">
+              الحركات ({rows.length})
+              {busy && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+            </h2>
             <span className={filteredTotal >= 0 ? "font-bold text-success" : "font-bold text-destructive"}>
               صافي المعروض: {formatSAR(filteredTotal)}
             </span>
@@ -212,43 +215,96 @@ function LedgerPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.kind + r.id} className="border-t border-border">
-                    <td className="p-2 whitespace-nowrap">{new Date(r.at).toLocaleString("ar-SA")}</td>
-                    <td className="p-2 whitespace-nowrap">
-                      <span
+                {ledger.isLoading &&
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <tr key={`sk-${i}`} className="border-t border-border">
+                      {Array.from({ length: 5 }).map((__, j) => (
+                        <td key={j} className="p-2">
+                          <div className="h-4 rounded bg-muted animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                {!ledger.isLoading &&
+                  pageRows.map((r) => (
+                    <tr key={r.kind + r.id} className="border-t border-border">
+                      <td className="p-2 whitespace-nowrap">{new Date(r.at).toLocaleString("ar-SA")}</td>
+                      <td className="p-2 whitespace-nowrap">
+                        <span
+                          className={
+                            "rounded-lg px-2 py-1 text-xs font-bold " +
+                            (r.kind === "income"
+                              ? "bg-success/10 text-success"
+                              : "bg-destructive/10 text-destructive")
+                          }
+                        >
+                          {r.kind === "income" ? "تحصيل" : r.kind === "refund" ? "استرجاع" : "مصروف"}
+                        </span>
+                      </td>
+                      <td className="p-2">{r.label}</td>
+                      <td className="p-2">{methodLabel(r.method)}</td>
+                      <td
                         className={
-                          "rounded-lg px-2 py-1 text-xs font-bold " +
-                          (r.kind === "income"
-                            ? "bg-success/10 text-success"
-                            : "bg-destructive/10 text-destructive")
+                          "p-2 font-bold " + (r.amount >= 0 ? "text-success" : "text-destructive")
                         }
                       >
-                        {r.kind === "income" ? "تحصيل" : r.kind === "refund" ? "استرجاع" : "مصروف"}
-                      </span>
-                    </td>
-                    <td className="p-2">{r.label}</td>
-                    <td className="p-2">{methodLabel(r.method)}</td>
-                    <td
-                      className={
-                        "p-2 font-bold " + (r.amount >= 0 ? "text-success" : "text-destructive")
-                      }
-                    >
-                      {formatSAR(r.amount)}
-                    </td>
-                  </tr>
-                ))}
-                {rows.length === 0 && (
+                        {formatSAR(r.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                {!ledger.isLoading && rows.length === 0 && (
                   <tr>
                     <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                      {ledger.isLoading ? "جارٍ التحميل…" : "لا توجد حركات في هذه الفترة."}
+                      لا توجد حركات في هذه الفترة.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          {rows.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>عدد الصفوف</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="h-9 rounded-xl border border-border bg-muted/40 px-2 text-sm"
+                >
+                  {[25, 50, 100, 200].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+                <span>
+                  {(current - 1) * pageSize + 1}–{Math.min(current * pageSize, rows.length)} من {rows.length}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(current - 1)}
+                  disabled={current <= 1}
+                  className="h-9 px-3 rounded-xl border border-border text-sm font-bold inline-flex items-center gap-1 disabled:opacity-40"
+                >
+                  <ChevronRight className="size-4" /> السابق
+                </button>
+                <span className="text-sm font-bold">
+                  {current} / {pageCount}
+                </span>
+                <button
+                  onClick={() => setPage(current + 1)}
+                  disabled={current >= pageCount}
+                  className="h-9 px-3 rounded-xl border border-border text-sm font-bold inline-flex items-center gap-1 disabled:opacity-40"
+                >
+                  التالي <ChevronLeft className="size-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </section>
+
       </div>
     </AppShell>
   );
