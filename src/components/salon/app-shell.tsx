@@ -52,8 +52,9 @@ import { useAccount } from "@/hooks/use-account";
 import { useSiteSettings } from "@/lib/site-settings";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
 import { loadSalonDomain } from "@/lib/db/domain-repo";
-import { listBranches } from "@/lib/db/ops-repo";
+import { listBranches, logBranchSwitch, type Branch } from "@/lib/db/ops-repo";
 import { restoreActiveBranch, setActiveBranch, useActiveBranch } from "@/lib/active-branch";
+import { searchBranches } from "@/lib/branch-scope";
 
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
@@ -567,6 +568,124 @@ export function AppShell({
           })}
         </div>
       </nav>
+    </div>
+  );
+}
+
+/** Header branch scope picker: quick search, address preview and paused state. */
+function BranchPicker({
+  branches,
+  activeBranch,
+  onSelect,
+}: {
+  branches: Branch[];
+  activeBranch: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const current = branches.find((b) => b.id === activeBranch) ?? null;
+  const results = searchBranches(branches, q);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => {
+          setOpen((v) => !v);
+          setQ("");
+        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title="اختيار الفرع"
+        className="h-10 max-w-[220px] rounded-lg border border-border bg-muted/40 px-3 flex items-center gap-2 text-sm font-semibold hover:bg-muted/60 transition"
+      >
+        <Building2 className="size-4 text-primary shrink-0" />
+        <span className="truncate">{current ? current.name : "كل الفروع"}</span>
+        {current && !current.active && (
+          <span className="text-[10px] px-1.5 rounded-full border border-border text-muted-foreground shrink-0">
+            موقوف
+          </span>
+        )}
+        <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden />
+          <div
+            role="listbox"
+            aria-label="الفروع"
+            className="absolute z-50 mt-2 left-0 w-[300px] max-w-[85vw] rounded-xl border border-border bg-card shadow-xl overflow-hidden"
+          >
+            <div className="p-2 border-b border-border relative">
+              <Search className="size-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="ابحث باسم الفرع أو العنوان..."
+                aria-label="بحث في الفروع"
+                className="w-full h-9 rounded-lg bg-muted/40 border border-border pr-9 pl-3 text-sm outline-none focus:border-primary/50"
+              />
+            </div>
+            <ul className="max-h-72 overflow-y-auto p-1.5 space-y-1">
+              <li>
+                <button
+                  onClick={() => {
+                    onSelect(null);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "w-full text-right rounded-lg px-3 py-2 text-sm font-semibold hover:bg-muted/60 transition",
+                    !activeBranch && "bg-primary/10 text-primary",
+                  )}
+                >
+                  كل الفروع
+                  <span className="block text-[11px] font-normal text-muted-foreground">
+                    عرض بيانات المشغل كاملة
+                  </span>
+                </button>
+              </li>
+              {results.map((b) => (
+                <li key={b.id}>
+                  <button
+                    onClick={() => {
+                      onSelect(b.id);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "w-full text-right rounded-lg px-3 py-2 hover:bg-muted/60 transition",
+                      activeBranch === b.id && "bg-primary/10 text-primary",
+                    )}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-semibold">
+                      <span className="truncate">{b.name}</span>
+                      <span
+                        className={cn(
+                          "text-[10px] px-1.5 rounded-full border shrink-0",
+                          b.active
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground",
+                        )}
+                      >
+                        {b.active ? "مفعّل" : "موقوف"}
+                      </span>
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground truncate">
+                      {b.address || b.phone || "بدون عنوان مسجّل"}
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {results.length === 0 && (
+                <li className="px-3 py-4 text-xs text-muted-foreground text-center">
+                  لا توجد فروع مطابقة للبحث
+                </li>
+              )}
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   );
 }
