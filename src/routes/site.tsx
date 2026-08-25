@@ -236,9 +236,11 @@ export function SalonSiteView({ slug }: { slug?: string }) {
       >
         <MessageCircle className="size-7" />
       </a>
-      <SiteAssistant site={site} services={services} staff={staff} />
-    </div>
+        <SiteAssistant site={site} services={services} staff={staff} />
+      </div>
+    </>
   );
+
 }
 
 /* ---------------- header ---------------- */
