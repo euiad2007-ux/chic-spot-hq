@@ -1871,10 +1871,12 @@ export type Database = {
           created_at: string
           enabled_modules: string[]
           features: string[]
+          has_website: boolean
           id: string
           is_active: boolean
           max_branches: number
           max_customers: number
+          max_invoices: number
           max_services: number
           max_staff: number
           name: string
@@ -1887,10 +1889,12 @@ export type Database = {
           created_at?: string
           enabled_modules?: string[]
           features?: string[]
+          has_website?: boolean
           id?: string
           is_active?: boolean
           max_branches?: number
           max_customers?: number
+          max_invoices?: number
           max_services?: number
           max_staff?: number
           name: string
@@ -1903,10 +1907,12 @@ export type Database = {
           created_at?: string
           enabled_modules?: string[]
           features?: string[]
+          has_website?: boolean
           id?: string
           is_active?: boolean
           max_branches?: number
           max_customers?: number
+          max_invoices?: number
           max_services?: number
           max_staff?: number
           name?: string
@@ -2576,6 +2582,125 @@ export type Database = {
           },
         ]
       }
+      subscription_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          note: string | null
+          paid: number
+          period: string
+          period_end: string
+          period_start: string
+          plan_code: string | null
+          salon_id: string
+          status: string
+          total: number
+          updated_at: string
+          vat: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          paid?: number
+          period: string
+          period_end: string
+          period_start: string
+          plan_code?: string | null
+          salon_id: string
+          status?: string
+          total?: number
+          updated_at?: string
+          vat?: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          paid?: number
+          period?: string
+          period_end?: string
+          period_start?: string
+          plan_code?: string | null
+          salon_id?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          vat?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string | null
+          method: string
+          note: string | null
+          paid_at: string
+          reference: string | null
+          salon_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          method?: string
+          note?: string | null
+          paid_at?: string
+          reference?: string | null
+          salon_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          method?: string
+          note?: string | null
+          paid_at?: string
+          reference?: string | null
+          salon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           created_at: string
@@ -2607,6 +2732,101 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "suppliers_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          body: string
+          created_at: string
+          from_platform: boolean
+          id: string
+          salon_id: string
+          ticket_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          body: string
+          created_at?: string
+          from_platform?: boolean
+          id?: string
+          salon_id: string
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          body?: string
+          created_at?: string
+          from_platform?: boolean
+          id?: string
+          salon_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_reply_at: string | null
+          priority: string
+          salon_id: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_reply_at?: string | null
+          priority?: string
+          salon_id: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_reply_at?: string | null
+          priority?: string
+          salon_id?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_salon_id_fkey"
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
@@ -2899,6 +3119,40 @@ export type Database = {
       open_shift: {
         Args: { _branch: string; _opening_float?: number; _salon: string }
         Returns: string
+      }
+      platform_salons_overview: {
+        Args: never
+        Returns: {
+          admin_notes: string
+          bookings_count: number
+          branches_count: number
+          created_at: string
+          custom_domain: string
+          customers_count: number
+          domain_status: string
+          gross_sales: number
+          id: string
+          invoices_count: number
+          invoices_month: number
+          is_suspended: boolean
+          name: string
+          open_tickets: number
+          owner_email: string
+          owner_name: string
+          phone: string
+          plan: string
+          plan_name: string
+          plan_price: number
+          services_count: number
+          slug: string
+          staff_count: number
+          sub_billed: number
+          sub_due: number
+          sub_paid: number
+          subscription_ends_at: string
+          subscription_status: string
+          trial_ends_at: string
+        }[]
       }
       pos_checkout: {
         Args: {
