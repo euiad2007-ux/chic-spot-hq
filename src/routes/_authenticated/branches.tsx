@@ -69,6 +69,8 @@ function BranchesPage() {
   const qc = useQueryClient();
   const staff = useSalon((s) => s.staff);
 
+  const { plan } = usePlanCaps();
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Branch | null>(null);
   const [form, setForm] = useState<FormState>(empty);
@@ -100,7 +102,7 @@ function BranchesPage() {
   const save = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("اكتب اسم الفرع");
-      if (!editing && !withinLimit(plan?.maxBranches, list.length))
+      if (!editing && !withinLimit(plan?.maxBranches, (branches.data ?? []).length))
         throw new Error(limitMessage(plan, "فرع/فروع", plan!.maxBranches));
       if (editing) await updateBranch(editing.id, payload());
       else await createBranch(salonId!, payload());
