@@ -235,12 +235,13 @@ export function StoreLoginView({ slug }: { slug?: string }) {
           )}
         </div>
 
-        <Link
-          to="/site"
+        <SiteLink
+          slug={slug}
           className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" aria-hidden /> العودة إلى موقع {site.salonName}
-        </Link>
+        </SiteLink>
+
       </div>
     </main>
   );
