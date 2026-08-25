@@ -2775,6 +2775,7 @@ export type Database = {
       accept_staff_invite: { Args: { _code: string }; Returns: Json }
       apply_stocktake: { Args: { p_stocktake_id: string }; Returns: undefined }
       approve_wallet_topup: { Args: { _request: string }; Returns: Json }
+      can_access_invoice_object: { Args: { _name: string }; Returns: boolean }
       can_manage_salon: {
         Args: { _salon: string; _uid: string }
         Returns: boolean
