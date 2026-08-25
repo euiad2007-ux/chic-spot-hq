@@ -4,6 +4,10 @@ import { Crown, CheckCircle2, AlertTriangle } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
 import { SalonLinksPanel } from "@/components/salon/salon-links-panel";
+import {
+  MerchantSubscriptionInvoices,
+  MerchantSupport,
+} from "@/components/salon/merchant-subscription-panels";
 
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
@@ -127,6 +131,11 @@ function SubscriptionPage() {
             ترقية الباقة تُنفَّذ من إدارة المنصة. تواصل معنا لتغيير الباقة.
           </p>
         </section>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2 items-start">
+        <MerchantSubscriptionInvoices salonId={salonId} />
+        <MerchantSupport salonId={salonId} />
       </div>
 
       <div className="mt-4">
