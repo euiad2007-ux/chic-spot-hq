@@ -179,6 +179,17 @@ export function fontById(id: string): FontOption {
 }
 
 /* ---------------- Theme presets ---------------- */
+/** Hero fields that are remembered per theme (style) instead of globally. */
+export interface HeroTheme {
+  heroImage: string;
+  heroSubtitle: string;
+  heroCtaLabel: string;
+  heroCtaUrl: string;
+  heroOverlay: number;
+  heroAlign: HeroAlign;
+  heroHeight: number;
+}
+
 export interface ThemePreset {
   id: string;
   name: string;
@@ -192,6 +203,8 @@ export interface ThemePreset {
   mutedTextColor: string;
   headingFont: string;
   bodyFont: string;
+  /** Default hero look shipped with the style (overridable, saved per theme). */
+  hero?: Partial<HeroTheme>;
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
