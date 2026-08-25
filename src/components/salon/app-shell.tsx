@@ -89,24 +89,15 @@ function allowedForPath(pathname: string, role: AppRole | undefined): boolean {
   return !!role && rule.roles.includes(role);
 }
 
-type NavGroup =
-  | "main"
-  | "bookings"
-  | "sales"
-  | "inventory"
-  | "team"
-  | "accounts"
-  | "admin";
+type NavGroup = "main" | "daily" | "finance" | "manage" | "system";
 
 /** Section headers for the sidebar, in display order. */
 const GROUPS: { id: NavGroup; label: string }[] = [
   { id: "main", label: "الرئيسية" },
-  { id: "bookings", label: "الحجوزات والعملاء" },
-  { id: "sales", label: "المبيعات والصندوق" },
-  { id: "inventory", label: "الخدمات والمخزون" },
-  { id: "team", label: "الموظفون والرواتب" },
-  { id: "accounts", label: "الحسابات والمحاسبة" },
-  { id: "admin", label: "الإدارة والتقارير" },
+  { id: "daily", label: "العمليات اليومية" },
+  { id: "finance", label: "الإدارة المالية والمحاسبة" },
+  { id: "manage", label: "إدارة المشغل" },
+  { id: "system", label: "النظام والإعدادات" },
 ];
 
 const nav: {
@@ -121,41 +112,44 @@ const nav: {
   { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true, group: "main" },
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true, group: "main" },
 
-  { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false, module: "bookings", group: "bookings" },
-  { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false, module: "calendar", group: "bookings" },
-  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings", group: "bookings" },
-  { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers", group: "bookings" },
-  { to: "/coupons", label: "الكوبونات", icon: Ticket, manager: true, module: "coupons", group: "bookings" },
+  // Daily operations
+  { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false, module: "bookings", group: "daily" },
+  { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false, module: "calendar", group: "daily" },
+  { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, group: "daily" },
+  { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, group: "daily" },
+  { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers", group: "daily" },
+  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "daily" },
 
-  { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, group: "sales" },
-  { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "sales" },
-  { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, group: "sales" },
-  { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true, group: "sales" },
+  // Financial management & accounting
+  { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "finance" },
+  { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true, group: "finance" },
+  { to: "/accounting", label: "مركز المحاسبة", icon: Calculator, manager: true, group: "finance" },
+  { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen, manager: true, group: "finance" },
+  { to: "/accounting/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, group: "finance" },
+  { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale, manager: true, group: "finance" },
+  { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "finance" },
+  { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, group: "finance" },
+  { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, group: "finance" },
+  { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "finance" },
+  { to: "/payroll", label: "الرواتب والعمولات", icon: Wallet, manager: true, module: "payroll", group: "finance" },
+  { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, group: "finance" },
 
-  { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "inventory" },
-  { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "inventory" },
-  { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "inventory" },
-  { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "inventory" },
+  // Salon management
+  { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
+  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "manage" },
+  { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "manage" },
+  { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "manage" },
+  { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "manage" },
+  { to: "/coupons", label: "الكوبونات والعروض", icon: Ticket, manager: true, module: "coupons", group: "manage" },
+  { to: "/branches", label: "الفروع", icon: Building2, manager: true, group: "manage" },
 
-  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "team" },
-  { to: "/payroll", label: "الرواتب", icon: Wallet, manager: true, module: "payroll", group: "team" },
-  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "team" },
-
-  { to: "/accounting", label: "لوحة المحاسبة", icon: Calculator, manager: true, group: "accounts" },
-  { to: "/accounting/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, group: "accounts" },
-  { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen, manager: true, group: "accounts" },
-  { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale, manager: true, group: "accounts" },
-  { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "accounts" },
-  { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, group: "accounts" },
-  { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, group: "accounts" },
-  { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "accounts" },
-
-  { to: "/reports", label: "التقارير", icon: BarChart3, manager: true, group: "admin" },
-  { to: "/branches", label: "الفروع", icon: Building2, manager: true, group: "admin" },
-  { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "admin" },
-  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, group: "admin" },
-  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, group: "admin" },
+  // System & settings
+  { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings", group: "system" },
+  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, group: "system" },
+  { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "system" },
+  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, group: "system" },
 ];
+
 
 
 export function AppShell({
