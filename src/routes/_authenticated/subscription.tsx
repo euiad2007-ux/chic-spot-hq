@@ -9,6 +9,12 @@ import {
   MerchantSupport,
 } from "@/components/salon/merchant-subscription-panels";
 
+import { PlansShowcase } from "@/components/platform/plans-showcase";
+import {
+  PlatformContactCard,
+  usePlatformSettings,
+} from "@/components/platform/platform-contact-card";
+import { listPublicPlans } from "@/lib/db/platform-settings-repo";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { loadSubscription } from "@/lib/db/ops-repo";
@@ -48,6 +54,8 @@ function SubscriptionPage() {
     queryFn: () => loadSubscription(salonId!),
     enabled: !!salonId,
   });
+  const settings = usePlatformSettings();
+  const publicPlans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
   const d = sub.data;
   const plan = d?.plan;
 
