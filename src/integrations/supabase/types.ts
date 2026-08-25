@@ -332,42 +332,64 @@ export type Database = {
           active: boolean
           address: string | null
           created_at: string
+          email: string | null
           geofence_m: number
+          hours: string | null
           id: string
           lat: number | null
           lng: number | null
+          manager_staff_id: string | null
+          maps_url: string | null
           name: string
           phone: string | null
           salon_id: string
           updated_at: string
+          whatsapp: string | null
         }
         Insert: {
           active?: boolean
           address?: string | null
           created_at?: string
+          email?: string | null
           geofence_m?: number
+          hours?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
+          manager_staff_id?: string | null
+          maps_url?: string | null
           name: string
           phone?: string | null
           salon_id: string
           updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
           active?: boolean
           address?: string | null
           created_at?: string
+          email?: string | null
           geofence_m?: number
+          hours?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
+          manager_staff_id?: string | null
+          maps_url?: string | null
           name?: string
           phone?: string | null
           salon_id?: string
           updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "branches_manager_staff_id_fkey"
+            columns: ["manager_staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "branches_salon_id_fkey"
             columns: ["salon_id"]
@@ -2893,6 +2915,22 @@ export type Database = {
       post_depreciation: {
         Args: { _period: string; _salon: string }
         Returns: Json
+      }
+      public_salon_branches: {
+        Args: { _salon: string }
+        Returns: {
+          address: string
+          email: string
+          hours: string
+          id: string
+          lat: number
+          lng: number
+          manager_name: string
+          maps_url: string
+          name: string
+          phone: string
+          whatsapp: string
+        }[]
       }
       public_salon_lookup: {
         Args: { _domains?: string[]; _slug?: string }
