@@ -12,6 +12,7 @@ import { hydrateCouponStore } from "@/lib/coupon-store";
 import { hydrateSiteSettings } from "@/lib/site-settings";
 import { hydrateBookingSettings } from "@/lib/booking-settings";
 import { hydrateRewardsSettings } from "@/lib/rewards-settings";
+import { hydrateInvoiceSettings } from "@/lib/invoice-settings";
 
 let started = false;
 let done: Promise<void> | null = null;
@@ -35,6 +36,7 @@ export function hydrateAll(force = false): Promise<void> {
       hydrateSiteSettings(null);
       hydrateBookingSettings(null);
       hydrateRewardsSettings(null);
+      hydrateInvoiceSettings(null);
       return;
     }
     const salonId = ctx.salonId;
@@ -49,6 +51,7 @@ export function hydrateAll(force = false): Promise<void> {
     hydrateSalonStore(state);
     hydrateSiteSettings(settings.site);
     hydrateRewardsSettings(settings.rewards);
+    hydrateInvoiceSettings(settings.invoice);
 
     const bookingDoc = (settings.booking ?? {}) as Record<string, unknown>;
     const attendanceSettings = bookingDoc["attendance"] as Record<string, unknown> | undefined;
