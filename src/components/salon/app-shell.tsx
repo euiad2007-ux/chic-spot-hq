@@ -76,6 +76,8 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/coupons", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/invoices", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/booking-settings", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/invoice-settings", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+
   { prefix: "/settings", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/bookings", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
   { prefix: "/calendar", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
