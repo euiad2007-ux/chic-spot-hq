@@ -7,7 +7,9 @@ import {
   type BookingStatus, type BookingPaymentMethod, type Customer, type Service,
 } from "@/lib/salon-store";
 import { findEarliestSlot, useBookingSettings, getBookingSettings, checkBookingConflict } from "@/lib/booking-settings";
-import { evalCoupon, couponActions } from "@/lib/coupon-store";
+import { evalCoupon } from "@/lib/coupon-store";
+import { checkoutBookingOnServer } from "@/lib/db/checkout-repo";
+
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
