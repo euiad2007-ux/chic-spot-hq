@@ -104,9 +104,14 @@ export async function loadAccount(): Promise<Account | null> {
     }
   }
 
-  const primary = [...memberships].sort((a, b) => ROLE_RANK[b.role] - ROLE_RANK[a.role])[0];
-  const role: AppRole = primary?.role ?? "client";
-  const salonId = primary?.salon_id ?? null;
+  const sortedMemberships = [...memberships].sort((a, b) => ROLE_RANK[b.role] - ROLE_RANK[a.role]);
+  const highestRoleMembership = sortedMemberships[0];
+  const salonMembership = sortedMemberships.find((m) => m.salon_id);
+  const role: AppRole = highestRoleMembership?.role ?? "client";
+  // Platform owners may also own/manage a salon. Keep their platform role for
+  // permissions, but keep the active salon attached so merchant settings save
+  // into that salon instead of falling back to the demo/default site.
+  const salonId = (salonMembership ?? highestRoleMembership)?.salon_id ?? null;
 
   let salonName: string | null = null;
   let enabledModules: string[] = [...ALL_MODULES];

@@ -39,13 +39,18 @@ import {
   Scale,
   Percent,
   FileCode2,
+  ExternalLink,
+  Share2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useLatenessWatcher } from "@/lib/lateness";
 import { useAccount } from "@/hooks/use-account";
 import { useSiteSettings } from "@/lib/site-settings";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
+import { loadSalonDomain } from "@/lib/db/domain-repo";
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
 const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
@@ -176,6 +181,7 @@ export function AppShell({
   // Alerts the reception/admin when a booking's service time passed without starting.
   useLatenessWatcher({ enabled: !!account });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sitePath, setSitePath] = useState("/site");
 
   const permitted = accountLoading || !account ? null : allowedForPath(pathname, account.role);
 
@@ -203,6 +209,43 @@ export function AppShell({
   }
 
   const initial = (account?.salonName ?? account?.fullName ?? "S").trim().charAt(0) || "S";
+
+  useEffect(() => {
+    let active = true;
+    if (!account?.salonId) {
+      setSitePath("/site");
+      return () => {
+        active = false;
+      };
+    }
+    void loadSalonDomain(account.salonId)
+      .then((info) => {
+        if (!active) return;
+        setSitePath(info?.slug ? `/salon/${encodeURIComponent(info.slug)}` : "/site");
+      })
+      .catch(() => {
+        if (active) setSitePath("/site");
+      });
+    return () => {
+      active = false;
+    };
+  }, [account?.salonId]);
+
+  const siteUrl = typeof window === "undefined" ? sitePath : new URL(sitePath, window.location.origin).toString();
+
+  async function handleShareSite() {
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator && typeof navigator.share === "function") {
+        await navigator.share({ title: account?.salonName ?? site.salonName, url: siteUrl });
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(siteUrl);
+        toast.success("تم نسخ رابط الموقع");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      toast.error("تعذّرت مشاركة الرابط");
+    }
+  }
 
   const navLinks = (onNavigate?: () => void) =>
     GROUPS.map((g) => {
@@ -328,6 +371,23 @@ export function AppShell({
               />
             </div>
             <div className="flex-1 sm:hidden" />
+            <Button asChild variant="outline" size="sm" className="h-10 gap-2 bg-muted/40">
+              <a href={sitePath} target="_blank" rel="noreferrer" aria-label="زيارة موقع المشغل">
+                <ExternalLink className="size-4" />
+                <span className="hidden lg:inline">زيارة الموقع</span>
+              </a>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-10 bg-muted/40"
+              onClick={() => void handleShareSite()}
+              aria-label="مشاركة رابط الموقع"
+              title={siteUrl}
+            >
+              <Share2 className="size-4" />
+            </Button>
             <button
               aria-label="التنبيهات"
               className="size-10 rounded-lg border border-border bg-muted/40 hover:bg-muted grid place-items-center relative"
@@ -390,6 +450,23 @@ export function AppShell({
             </div>
             <nav className="space-y-1">{navLinks(() => setMenuOpen(false))}</nav>
             <div className="mt-3 border-t border-border pt-3 space-y-1">
+              <a
+                href={sitePath}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground"
+              >
+                <ExternalLink className="size-4" />
+                <span>زيارة الموقع</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => void handleShareSite()}
+                className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground"
+              >
+                <Share2 className="size-4" />
+                <span>مشاركة الرابط</span>
+              </button>
               {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
                 <Link
                   to="/settings"
