@@ -67,6 +67,7 @@ function useSeo(s: SiteSettings) {
 /* ---------------- route ---------------- */
 
 export const Route = createFileRoute("/site")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "صالون لمسة — تجميل وعناية فاخرة" },
@@ -126,8 +127,21 @@ function SitePage() {
 export function SalonSiteView({ slug }: { slug?: string }) {
   const { services, staff } = useSalon((s) => s);
   const [meta, setMeta] = useState<PublicSalonMeta>({ salonId: null, avgRating: 0, reviewCount: 0, reviews: [] });
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug, true).then(setMeta));
+    let active = true;
+    setLoading(true);
+    void import("@/lib/db/public-hydrate")
+      .then((m) => m.hydratePublicSite(slug, true))
+      .then((next) => {
+        if (active) setMeta(next);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [slug]);
   const site = useSiteSettings();
 
@@ -147,6 +161,17 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   }, [site.bookingMode, site.bookingUrl, site.phone, waHref]);
 
   const external = site.bookingMode !== "internal";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground grid place-items-center px-5" dir="rtl">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="size-14 rounded-full border-4 border-primary/20 border-t-primary animate-spin" aria-hidden />
+          <p className="text-sm font-semibold text-muted-foreground">جاري تحميل موقع المشغل…</p>
+        </div>
+      </div>
+    );
+  }
 
   const render = (id: SectionId) => {
     switch (id) {
@@ -232,12 +257,12 @@ function SiteHeader({
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
         <SiteLink slug={slug} className="flex items-center gap-3 min-w-0">
           <div
-            className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-white/60 shadow-lg"
+            className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-background/60 shadow-lg"
             style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
           >
             {site.logoUrl
               ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-              : <Scissors className="size-6 text-white drop-shadow" aria-hidden />}
+              : <Scissors className="size-6 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
           </div>
           <div className="min-w-0">
             <div
@@ -306,7 +331,7 @@ function BookNow({
     background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`,
     boxShadow: `0 18px 40px -18px ${site.primary}99`,
   };
-  const cls = cn("btn inline-flex items-center justify-center gap-2 text-white font-semibold transition hover:brightness-110 hover:-translate-y-0.5", className);
+    "btn inline-flex items-center justify-center gap-2 text-[var(--brand-foreground)] font-semibold transition hover:brightness-110 hover:-translate-y-0.5", className);
   if (external) {
     return (
       <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
@@ -374,7 +399,7 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
         >
           {site.logoUrl
             ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-            : <Scissors className="size-10 md:size-14 text-white drop-shadow" aria-hidden />}
+            : <Scissors className="size-10 md:size-14 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
         </div>
 
         <h1
@@ -402,7 +427,7 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
             const primary = i === 0;
             const cls = cn(
               "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-9 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
-              primary ? "text-white shadow-2xl hover:brightness-110" : "text-white border border-white/45 bg-white/10 backdrop-blur-md hover:bg-white/20",
+              primary ? "text-[var(--brand-foreground)] shadow-2xl hover:brightness-110" : "text-white border border-white/45 bg-white/10 backdrop-blur-md hover:bg-white/20",
             );
             const style = primary
               ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: `0 26px 60px -22px ${site.primary}` }
@@ -543,7 +568,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
             const primary = i === 0;
             const cls = cn(
               "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-8 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
-              primary ? "text-white shadow-2xl hover:brightness-110" : "text-white border border-white/40 bg-white/10 backdrop-blur-md hover:bg-white/20",
+              primary ? "text-[var(--brand-foreground)] shadow-2xl hover:brightness-110" : "text-white border border-white/40 bg-white/10 backdrop-blur-md hover:bg-white/20",
             );
             const style = primary
               ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: `0 24px 60px -20px ${site.primary}` }
@@ -930,7 +955,7 @@ function ReviewsSection({ site, meta }: { site: SiteSettings; meta: PublicSalonM
             <Stars value={r.rating} />
             {r.comment && <p className="text-sm leading-relaxed mt-3 text-muted-foreground">{r.comment}</p>}
             <div className="mt-4 flex items-center gap-2">
-              <div className="size-8 rounded-full grid place-items-center text-white text-xs font-bold" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+              <div className="size-8 rounded-full grid place-items-center text-[var(--brand-foreground)] text-xs font-bold" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
                 {r.displayName.charAt(0)}
               </div>
               <div className="text-xs font-bold">{r.displayName}</div>
@@ -986,7 +1011,7 @@ function ContactCard({
 }: { site: SiteSettings; icon: any; title: string; body: string; href?: string; cta?: string }) {
   return (
     <div className="rounded-3xl border border-border/70 p-6 transition hover:-translate-y-1 hover:shadow-xl" style={{ background: site.surface }}>
-      <div className="size-11 rounded-2xl grid place-items-center text-white mb-4" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+      <div className="size-11 rounded-2xl grid place-items-center text-[var(--brand-foreground)] mb-4" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
         <Icon className="size-5" aria-hidden />
       </div>
       <h3 className="font-bold text-sm">{title}</h3>
