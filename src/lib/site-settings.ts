@@ -216,6 +216,14 @@ export const THEME_PRESETS: ThemePreset[] = [
     primary: "#EC4899", accent: "#FBCFE8", background: "#FFF1F7", surface: "#FFFFFF",
     textColor: "#4A1D3A", mutedTextColor: "#9D5A82",
     headingFont: "amiri", bodyFont: "readex",
+    hero: {
+      heroImage: makeup1,
+      heroSubtitle: "تجربة تجميل فاخرة بأيدي أخصائيات معتمدات — احجزي لمستك الخاصة الآن.",
+      heroCtaLabel: "احجزي لمستك",
+      heroAlign: "center",
+      heroOverlay: 52,
+      heroHeight: 92,
+    },
   },
   {
     id: "royal-purple",
@@ -225,6 +233,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     primary: "#A855F7", accent: "#F0ABFC", background: "#FAF5FF", surface: "#FFFFFF",
     textColor: "#1E1B4B", mutedTextColor: "#6B5B95",
     headingFont: "cairo", bodyFont: "cairo",
+    hero: { heroImage: heroImg, heroOverlay: 55, heroAlign: "center", heroHeight: 88 },
   },
   {
     id: "gold-luxury",
@@ -234,6 +243,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     primary: "#C9A24C", accent: "#F5DEB3", background: "#FFFBEB", surface: "#FFFFFF",
     textColor: "#3F2E00", mutedTextColor: "#8A7431",
     headingFont: "amiri", bodyFont: "tajawal",
+    hero: { heroImage: hair2, heroOverlay: 58, heroAlign: "right", heroHeight: 86 },
   },
   {
     id: "rose-soft",
