@@ -74,8 +74,8 @@ describe("route files", () => {
     const ids = new Set(routes.map((r) => r.id));
     const offenders: string[] = [];
     for (const route of routes) {
-      if (route.id.endsWith("/") && route.id !== "/") continue; // index leaves
-      const prefix = route.id === "/" ? "/" : route.id + "/";
+      if (route.id.endsWith("/")) continue; // index leaves and the home route
+      const prefix = route.id + "/";
       const hasChildren = [...ids].some((id) => id !== route.id && id.startsWith(prefix));
       if (!hasChildren) continue;
       if (!/<Outlet\b/.test(route.source)) {
