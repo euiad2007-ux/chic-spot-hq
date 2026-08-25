@@ -343,9 +343,14 @@ export function AppShell({
                   {account?.salonName ?? ""}
                 </div>
               </div>
-              <div className="size-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold">
-                {initial}
-              </div>
+              {site.logoUrl ? (
+                <img src={site.logoUrl} alt="" className="h-10 w-auto max-w-[110px] object-contain bg-transparent" />
+              ) : (
+                <div className="size-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold">
+                  {initial}
+                </div>
+              )}
+
             </div>
           </div>
         </header>
