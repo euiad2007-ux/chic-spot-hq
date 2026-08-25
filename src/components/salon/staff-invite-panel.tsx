@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Copy, Loader2, Mail, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,6 +10,7 @@ import {
   inviteLink,
   listStaffInvites,
 } from "@/lib/db/invites-repo";
+import { sendStaffInviteEmail } from "@/lib/staff-invite-email.functions";
 import { cn } from "@/lib/utils";
 
 export interface InviteBranchOption {
@@ -27,14 +29,17 @@ export function StaffInviteDialog({
   salonId,
   slug,
   branches,
+  salonName = "Chic Spot",
   onClose,
 }: {
   salonId: string;
   slug?: string | null;
   branches: InviteBranchOption[];
+  salonName?: string | null;
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const sendInviteEmail = useServerFn(sendStaffInviteEmail);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -73,11 +78,26 @@ export function StaffInviteDialog({
         jobTitle: jobTitle || null,
       });
       await qc.invalidateQueries({ queryKey: ["staff-invites", salonId] });
+      const link = inviteLink(inv.code, slug);
+      const sent = await sendInviteEmail({
+        data: {
+          inviteId: inv.id,
+          to: inv.email,
+          salonName: salonName ?? "Chic Spot",
+          branchName: branches.find((b) => b.id === inv.branch_id)?.name ?? "",
+          staffName: inv.name,
+          jobTitle: inv.job_title ?? "",
+          inviteUrl: link,
+          code: inv.code,
+          expiresAt: inv.expires_at,
+        },
+      });
       setName("");
       setEmail("");
       setJobTitle("");
-      await copy(inviteLink(inv.code, slug));
-      toast.success(`تم إنشاء الدعوة — الرمز ${inv.code}`);
+      await copy(link);
+      if (sent.ok) toast.success(`تم إرسال الدعوة ونسخ الرابط — الرمز ${inv.code}`);
+      else toast.warning(`تم إنشاء الدعوة ونسخ الرابط، لكن تعذر الإرسال: ${sent.reason}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "تعذّر إنشاء الدعوة");
     } finally {
@@ -108,7 +128,7 @@ export function StaffInviteDialog({
         </div>
 
         <p className="text-xs text-muted-foreground mb-4">
-          يُرسل رابط الدعوة لبريد الموظف. عند تسجيل الدخول بنفس البريد وقبول الدعوة يُربط حسابه بهذا
+          يُرسل رابط الدعوة إلى بريد الموظف. عند تسجيل الدخول بنفس البريد وقبول الدعوة يُربط حسابه بهذا
           المشغل فقط، ويمكنه أن يكون عميلاً أو موظفاً في مشاغل أخرى بنفس الحساب.
         </p>
 
