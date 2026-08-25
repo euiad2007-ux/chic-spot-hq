@@ -484,7 +484,10 @@ export function AppShell({
           {action}
         </div>
 
-        <main className="px-4 md:px-8 pb-24 md:pb-10 flex-1 min-w-0">{children}</main>
+        <main className="px-4 md:px-8 pb-24 md:pb-10 flex-1 min-w-0">
+          {lockedModule ? <PlanUpgradeNotice module={lockedModule} /> : children}
+        </main>
+
       </div>
 
       {/* Mobile drawer */}
