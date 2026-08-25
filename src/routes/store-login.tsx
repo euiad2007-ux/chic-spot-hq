@@ -34,6 +34,11 @@ export const Route = createFileRoute("/store-login")({
 type Audience = "client" | "staff";
 
 function StoreLoginPage() {
+  return <StoreLoginView />;
+}
+
+/** Salon-scoped login. With `slug` it brands and links to that salon only. */
+export function StoreLoginView({ slug }: { slug?: string }) {
   const navigate = useNavigate();
   const refreshAccount = useRefreshAccount();
   const site = useSiteSettings();
@@ -48,8 +53,9 @@ function StoreLoginPage() {
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite());
-  }, []);
+    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug));
+  }, [slug]);
+
 
   useEffect(() => {
     const href = googleFontsHref(site);
