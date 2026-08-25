@@ -44,6 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLatenessWatcher } from "@/lib/lateness";
 import { useAccount } from "@/hooks/use-account";
+import { useSiteSettings } from "@/lib/site-settings";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
@@ -172,6 +173,7 @@ export function AppShell({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: account, isLoading: accountLoading } = useAccount();
+  const site = useSiteSettings();
   // Alerts the reception/admin when a booking's service time passed without starting.
   useLatenessWatcher({ enabled: !!account });
   const [menuOpen, setMenuOpen] = useState(false);
@@ -258,9 +260,17 @@ export function AppShell({
       {/* Sidebar */}
       <aside className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
-            <Scissors className="size-5 text-primary-foreground" />
-          </div>
+          {site.logoUrl ? (
+            <img
+              src={site.logoUrl}
+              alt={`شعار ${account?.salonName ?? "Salon Flow"}`}
+              className="h-16 w-auto max-w-[120px] object-contain bg-transparent shrink-0"
+            />
+          ) : (
+            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
+              <Scissors className="size-5 text-primary-foreground" />
+            </div>
+          )}
           <div className="min-w-0">
             <div className="font-bold text-base leading-none truncate">
               {account?.salonName ?? "Salon Flow"}
@@ -270,6 +280,7 @@ export function AppShell({
             </div>
           </div>
         </div>
+
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">{navLinks()}</nav>
         <div className="p-3 border-t border-border space-y-1">
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
@@ -334,9 +345,14 @@ export function AppShell({
                   {account?.salonName ?? ""}
                 </div>
               </div>
-              <div className="size-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold">
-                {initial}
-              </div>
+              {site.logoUrl ? (
+                <img src={site.logoUrl} alt="" className="h-10 w-auto max-w-[110px] object-contain bg-transparent" />
+              ) : (
+                <div className="size-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground font-bold">
+                  {initial}
+                </div>
+              )}
+
             </div>
           </div>
         </header>
@@ -362,7 +378,13 @@ export function AppShell({
           />
           <div className="relative ml-auto h-full w-72 bg-card border-l border-border p-3 overflow-y-auto">
             <div className="flex items-center justify-between px-2 py-3">
-              <span className="font-bold">{account?.salonName ?? "Salon Flow"}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                {site.logoUrl && (
+                  <img src={site.logoUrl} alt="" className="h-10 w-auto max-w-[100px] object-contain bg-transparent" />
+                )}
+                <span className="font-bold truncate">{account?.salonName ?? "Salon Flow"}</span>
+              </span>
+
               <button onClick={() => setMenuOpen(false)} aria-label="إغلاق القائمة">
                 <X className="size-5" />
               </button>

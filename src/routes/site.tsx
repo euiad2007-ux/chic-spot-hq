@@ -257,14 +257,21 @@ function SiteHeader({
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
         <SiteLink slug={slug} className="flex items-center gap-3 min-w-0">
-          <div
-            className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-background/60 shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
-          >
-            {site.logoUrl
-              ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-              : <Scissors className="size-6 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
-          </div>
+          {site.logoUrl ? (
+            <img
+              src={site.logoUrl}
+              alt={`شعار ${site.salonName}`}
+              className="h-16 md:h-20 w-auto max-w-[220px] object-contain shrink-0 bg-transparent"
+            />
+          ) : (
+            <div
+              className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0"
+              style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
+            >
+              <Scissors className="size-6 text-[var(--brand-foreground)] drop-shadow" aria-hidden />
+            </div>
+          )}
+
           <div className="min-w-0">
             <div
               className="font-black text-lg md:text-2xl leading-tight truncate"
@@ -396,15 +403,22 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
         className="relative z-10 max-w-5xl mx-auto px-5 md:px-10 flex flex-col items-center text-center justify-center gap-5"
         style={{ minHeight: `${height}vh`, paddingTop: "7rem", paddingBottom: "6rem" }}
       >
-        {/* logo medallion — swaps instantly with the dashboard logo */}
-        <div
-          className="lamsa-rise size-24 md:size-32 rounded-full grid place-items-center overflow-hidden shadow-[0_30px_80px_-30px_rgba(0,0,0,.8)]"
-          style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})`, boxShadow: `0 0 0 2px rgba(255,255,255,.55), 0 0 0 10px ${site.primary}33` }}
-        >
-          {site.logoUrl
-            ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-            : <Scissors className="size-10 md:size-14 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
-        </div>
+        {/* logo — transparent, frameless */}
+        {site.logoUrl ? (
+          <img
+            src={site.logoUrl}
+            alt={`شعار ${site.salonName}`}
+            className="lamsa-rise h-24 md:h-32 w-auto max-w-[320px] object-contain bg-transparent drop-shadow-[0_18px_40px_rgba(0,0,0,.55)]"
+          />
+        ) : (
+          <div
+            className="lamsa-rise size-24 md:size-32 rounded-full grid place-items-center overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
+          >
+            <Scissors className="size-10 md:size-14 text-[var(--brand-foreground)] drop-shadow" aria-hidden />
+          </div>
+        )}
+
 
         <h1
           className="lamsa-rise text-white font-black leading-[1.05] text-4xl sm:text-5xl md:text-7xl drop-shadow-[0_8px_36px_rgba(0,0,0,.55)]"
@@ -1038,9 +1052,14 @@ function SiteFooter({ site, slug, waHref }: { site: SiteSettings; slug?: string;
       <div className="max-w-7xl mx-auto px-5 md:px-10 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-2xl grid place-items-center overflow-hidden ring-2 ring-background/50" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
-              {site.logoUrl ? <img src={site.logoUrl} alt="" className="w-full h-full object-cover" /> : <Scissors className="size-5 text-[var(--brand-foreground)]" aria-hidden />}
-            </div>
+            {site.logoUrl ? (
+              <img src={site.logoUrl} alt="" className="h-14 w-auto max-w-[180px] object-contain bg-transparent" />
+            ) : (
+              <div className="size-12 rounded-2xl grid place-items-center overflow-hidden" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+                <Scissors className="size-5 text-[var(--brand-foreground)]" aria-hidden />
+              </div>
+            )}
+
             <div>
               <div className="font-black text-lg">{site.salonName}</div>
               <div className="text-xs text-muted-foreground">{site.branchName}</div>
