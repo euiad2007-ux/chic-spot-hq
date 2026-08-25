@@ -1054,6 +1054,8 @@ function ContactSection({ site, waHref, salonId }: { site: SiteSettings; waHref:
             <ContactCard site={site} icon={Mail} title="البريد الإلكتروني" body={site.email} href={`mailto:${site.email}`} cta="راسلينا" />
           </div>
         )}
+        <BranchesBlock site={site} salonId={salonId} />
+
         {socials.length > 0 && (
           <div className="mt-10 flex justify-center gap-3 flex-wrap">
             {socials.map((s) => (
