@@ -673,6 +673,41 @@ function GallerySection({ site }: { site: SiteSettings }) {
   );
 }
 
+/** Draggable before/after comparison used in the gallery lightbox. */
+function BeforeAfter({ before, after, title }: { before: string; after: string; title?: string }) {
+  const [pos, setPos] = useState(50);
+  return (
+    <div className="relative w-full max-h-[80vh] overflow-hidden rounded-2xl select-none">
+      <img src={after} alt={title ? `${title} — بعد` : "بعد"} className="w-full max-h-[80vh] object-contain" />
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
+        <img src={before} alt={title ? `${title} — قبل` : "قبل"} className="absolute inset-0 w-full h-full object-contain" style={{ width: `${(100 / Math.max(pos, 1)) * 100}%` }} />
+      </div>
+      <div className="absolute top-0 bottom-0 w-0.5 bg-white/90" style={{ left: `${pos}%` }} />
+      <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">قبل</span>
+      <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">بعد</span>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={pos}
+        aria-label="مقارنة قبل وبعد"
+        onChange={(e) => setPos(Number(e.target.value))}
+        className="absolute inset-x-0 bottom-1/2 w-full opacity-0 cursor-ew-resize h-10"
+      />
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={pos}
+        aria-label="تحكم في المقارنة"
+        onChange={(e) => setPos(Number(e.target.value))}
+        className="mt-3 w-full accent-white"
+      />
+    </div>
+  );
+}
+
+
 /* ---------------- team ---------------- */
 
 function TeamSection({ site, staff }: { site: SiteSettings; staff: ReturnType<typeof useSalon<any>> }) {
