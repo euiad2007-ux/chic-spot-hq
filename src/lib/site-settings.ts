@@ -108,6 +108,11 @@ export interface SiteSettings {
   heroHeight: number; // vh
   heroOverlay: number; // 0 – 90
   heroButtons: HeroButton[];
+  /** Main hero call-to-action (rendered first when set). */
+  heroCtaLabel: string;
+  heroCtaUrl: string;
+  /** Hero customisation remembered per theme id. */
+  themeHero: Record<string, Partial<HeroTheme>>;
   // Section content
   showcaseTitle: string;
   showcaseDesc: string;
