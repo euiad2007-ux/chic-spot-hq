@@ -47,7 +47,14 @@ export const ALL_MODULES = [
   "invoices",
   "booking_settings",
   "site_settings",
+  "pos",
+  "cash",
+  "expenses",
+  "reports",
+  "accounting",
+  "users",
 ] as const;
+
 
 const ROLE_RANK: Record<AppRole, number> = {
   platform_owner: 5,
