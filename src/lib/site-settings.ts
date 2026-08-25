@@ -33,6 +33,8 @@ export interface GalleryItem {
   url: string;
   title: string;
   category: string;
+  /** Optional "before" photo — when set the card renders a before/after comparison. */
+  beforeUrl?: string;
 }
 
 export interface TeamMember {
