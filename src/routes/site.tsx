@@ -1076,6 +1076,99 @@ function ContactSection({ site, waHref, salonId }: { site: SiteSettings; waHref:
   );
 }
 
+/** All salon branches with their own contact details and map links. */
+function BranchesBlock({ site, salonId }: { site: SiteSettings; salonId: string | null }) {
+  const [branches, setBranches] = useState<PublicBranch[]>([]);
+  useEffect(() => {
+    if (!salonId) return;
+    let alive = true;
+    void fetchPublicBranches(salonId).then((rows) => {
+      if (alive) setBranches(rows);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [salonId]);
+
+  if (branches.length === 0) return null;
+  const mapHref = (b: PublicBranch) =>
+    b.maps_url ||
+    (b.lat != null && b.lng != null
+      ? `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}`
+      : b.address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}`
+        : "");
+
+  return (
+    <div className="mt-12">
+      <h3 className="text-xl font-black mb-5 flex items-center gap-2">
+        <MapPin className="size-5" style={{ color: site.primary }} aria-hidden /> فروعنا
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {branches.map((b) => {
+          const href = mapHref(b);
+          const wa = (b.whatsapp || "").replace(/[^\d]/g, "");
+          return (
+            <article
+              key={b.id}
+              className="rounded-3xl border border-border/70 p-6 transition hover:-translate-y-1 hover:shadow-xl"
+              style={{ background: site.surface }}
+            >
+              <h4 className="font-black">{b.name}</h4>
+              <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+                {b.address && (
+                  <p className="flex items-start gap-2">
+                    <MapPin className="size-4 mt-0.5 shrink-0" style={{ color: site.primary }} aria-hidden /> {b.address}
+                  </p>
+                )}
+                {b.hours && (
+                  <p className="flex items-center gap-2">
+                    <Clock className="size-4" style={{ color: site.primary }} aria-hidden /> {b.hours}
+                  </p>
+                )}
+                {b.phone && (
+                  <a href={`tel:${b.phone}`} className="flex items-center gap-2 hover:text-foreground">
+                    <Phone className="size-4" style={{ color: site.primary }} aria-hidden /> {b.phone}
+                  </a>
+                )}
+                {b.email && (
+                  <a href={`mailto:${b.email}`} className="flex items-center gap-2 hover:text-foreground">
+                    <Mail className="size-4" style={{ color: site.primary }} aria-hidden /> {b.email}
+                  </a>
+                )}
+                {b.manager_name && <p className="text-xs">مدير الفرع: {b.manager_name}</p>}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {href && (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn inline-flex items-center gap-1.5 h-10 px-4 border border-border text-xs font-bold hover:bg-muted"
+                  >
+                    <MapPin className="size-3.5" aria-hidden /> موقع الفرع على الخريطة
+                  </a>
+                )}
+                {wa && (
+                  <a
+                    href={`https://wa.me/${wa}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn inline-flex items-center gap-1.5 h-10 px-4 border border-border text-xs font-bold text-success hover:bg-muted"
+                  >
+                    <MessageCircle className="size-3.5" aria-hidden /> واتساب
+                  </a>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
 function ContactCard({
   site, icon: Icon, title, body, href, cta,
 }: { site: SiteSettings; icon: any; title: string; body: string; href?: string; cta?: string }) {
