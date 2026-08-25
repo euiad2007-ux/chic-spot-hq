@@ -206,7 +206,19 @@ export function AppShell({
     allowedForPath(n.to, account?.role) &&
     (!n.module || account?.role === "platform_owner" || account?.enabledModules.includes(n.module)),
   );
+  // Direct-URL protection: a page whose module is outside the plan shows an upgrade notice.
+  const currentNav = [...nav]
+    .sort((a, b) => b.to.length - a.to.length)
+    .find((n) => pathname === n.to || pathname.startsWith(n.to + "/"));
+  const lockedModule =
+    currentNav?.module &&
+    account &&
+    account.role !== "platform_owner" &&
+    !account.enabledModules.includes(currentNav.module)
+      ? currentNav.module
+      : null;
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
+
 
   // Branch scope: everything branch-aware (services, invoices, POS…) follows it.
   const activeBranch = useActiveBranch();
