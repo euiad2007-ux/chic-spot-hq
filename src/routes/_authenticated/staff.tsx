@@ -5,8 +5,9 @@ import { useAccount } from "@/hooks/use-account";
 import { listBranches } from "@/lib/db/ops-repo";
 import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
-import { Plus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, AlarmClock, CalendarDays as CalendarDaysIcon } from "lucide-react";
+import { Plus, UserPlus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, AlarmClock, CalendarDays as CalendarDaysIcon } from "lucide-react";
 import { DelayLog } from "@/components/salon/delay-log";
+import { StaffInviteDialog } from "@/components/salon/staff-invite-panel";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -61,6 +62,7 @@ function StaffPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [form, setForm] = useState<FormShape>(emptyForm);
   const [branchFilter, setBranchFilter] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
   const { data: account } = useAccount();
   const salonId = account?.salonId ?? null;
   const branchesQuery = useQuery({
@@ -162,9 +164,17 @@ function StaffPage() {
       title="الموظفون"
       subtitle={`${visibleStaff.length} موظف`}
       action={
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => salonId ? setInviteOpen(true) : toast.error("لا يوجد مشغل مرتبط بحسابك")}
+          className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/15"
+        >
+          <UserPlus className="size-4" /> دعوة موظف
+        </button>
         <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)]">
           <Plus className="size-4" /> موظف جديد
         </button>
+        </div>
       }
     >
       {branches.length > 0 && (
@@ -286,6 +296,13 @@ function StaffPage() {
           onClose={() => setDetailId(null)}
           bookingsCount={stats.get(detail.id)?.count ?? 0}
           revenue={stats.get(detail.id)?.revenue ?? 0}
+        />
+      )}
+      {inviteOpen && salonId && (
+        <StaffInviteDialog
+          salonId={salonId}
+          branches={branches}
+          onClose={() => setInviteOpen(false)}
         />
       )}
     </AppShell>

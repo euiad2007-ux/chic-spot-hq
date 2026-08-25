@@ -2401,6 +2401,85 @@ export type Database = {
           },
         ]
       }
+      staff_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          branch_id: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          job_title: string | null
+          name: string
+          role: Database["public"]["Enums"]["app_role"]
+          salon_id: string
+          staff_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          branch_id?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          job_title?: string | null
+          name: string
+          role?: Database["public"]["Enums"]["app_role"]
+          salon_id: string
+          staff_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          branch_id?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          job_title?: string | null
+          name?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          salon_id?: string
+          staff_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_invites_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_invites_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_invites_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           booking_id: string | null
@@ -2690,6 +2769,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_staff_invite: { Args: { _code: string }; Returns: Json }
       apply_stocktake: { Args: { p_stocktake_id: string }; Returns: undefined }
       approve_wallet_topup: { Args: { _request: string }; Returns: Json }
       can_manage_salon: {
@@ -2725,8 +2805,44 @@ export type Database = {
         Args: { _name: string; _phone?: string; _slug: string }
         Returns: string
       }
+      create_staff_invite: {
+        Args: {
+          _branch?: string
+          _email: string
+          _job_title?: string
+          _name: string
+          _salon: string
+          _staff?: string
+        }
+        Returns: {
+          accepted_at: string | null
+          accepted_by: string | null
+          branch_id: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          job_title: string | null
+          name: string
+          role: Database["public"]["Enums"]["app_role"]
+          salon_id: string
+          staff_id: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_invites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_journal_entry: { Args: { _entry: string }; Returns: boolean }
-      ensure_client_profile: { Args: never; Returns: string }
+      ensure_client_profile:
+        | { Args: never; Returns: string }
+        | { Args: { _salon?: string }; Returns: string }
       grant_platform_owner: { Args: { _email: string }; Returns: boolean }
       is_platform_owner: { Args: { _uid: string }; Returns: boolean }
       is_salon_customer: {

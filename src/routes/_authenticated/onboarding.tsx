@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Loader2, Store, User, Scissors } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, Store, User, Scissors, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -11,6 +12,17 @@ import {
 import { useRefreshAccount } from "@/hooks/use-account";
 import { clearDataContext } from "@/lib/db/context";
 import { resetHydration, hydrateAll } from "@/lib/db/hydrate";
+import { acceptStaffInvite } from "@/lib/db/invites-repo";
+import { supabase } from "@/integrations/supabase/client";
+
+/** True when the signed-in user already owns a salon (one store per account). */
+async function ownsSalon(): Promise<boolean> {
+  const { data: userRes } = await supabase.auth.getUser();
+  const uid = userRes.user?.id;
+  if (!uid) return false;
+  const { data } = await supabase.from("salons").select("id").eq("owner_id", uid).limit(1);
+  return (data?.length ?? 0) > 0;
+}
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -32,7 +44,23 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 function Onboarding() {
   const navigate = useNavigate();
   const refreshAccount = useRefreshAccount();
-  const [choice, setChoice] = useState<"owner" | "client">("owner");
+  const [choice, setChoice] = useState<"owner" | "client" | "invite">("owner");
+  const [inviteCode, setInviteCode] = useState("");
+  const ownerQuery = useQuery({ queryKey: ["owns-salon"], queryFn: ownsSalon });
+  const alreadyOwner = ownerQuery.data === true;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const code = new URLSearchParams(window.location.search).get("invite");
+    if (code) {
+      setInviteCode(code);
+      setChoice("invite");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (alreadyOwner && choice === "owner") setChoice("client");
+  }, [alreadyOwner, choice]);
   const [salonName, setSalonName] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -50,7 +78,13 @@ function Onboarding() {
     if (busy) return;
     setBusy(true);
     try {
-      if (choice === "owner") {
+      if (choice === "invite") {
+        if (!inviteCode.trim()) throw new Error("رمز الدعوة مطلوب");
+        await acceptStaffInvite(inviteCode);
+        toast.success("تم قبول الدعوة");
+        await finish("/specialist");
+      } else if (choice === "owner") {
+        if (alreadyOwner) throw new Error("لديك مشغل بالفعل — لا يمكن إنشاء مشغل جديد بنفس الحساب");
         if (!salonName.trim()) throw new Error("اسم المشغل مطلوب");
         await createSalonForCurrentUser(salonName, phone);
         toast.success("تم إنشاء المشغل");
@@ -91,9 +125,11 @@ function Onboarding() {
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
+                disabled={alreadyOwner}
+                title={alreadyOwner ? "لديك مشغل بالفعل" : undefined}
                 onClick={() => setChoice("owner")}
                 className={
                   "flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition " +
@@ -104,6 +140,19 @@ function Onboarding() {
               >
                 <Store className="size-4" />
                 صاحب مشغل
+              </button>
+              <button
+                type="button"
+                onClick={() => setChoice("invite")}
+                className={
+                  "flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-semibold transition " +
+                  (choice === "invite"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:bg-muted/50")
+                }
+              >
+                <UserPlus className="size-4" />
+                موظف مدعو
               </button>
               <button
                 type="button"
@@ -120,7 +169,28 @@ function Onboarding() {
               </button>
             </div>
 
-            {choice === "owner" ? (
+            {alreadyOwner && (
+              <p className="rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                لديك مشغل مسجّل بهذا الحساب — لا يمكن إنشاء مشغل جديد، ويمكنك الانضمام لمشاغل أخرى
+                كعميلة أو كموظفة عبر دعوة.
+              </p>
+            )}
+
+            {choice === "invite" ? (
+              <label className="block">
+                <span className="text-xs font-semibold text-muted-foreground">رمز الدعوة</span>
+                <input
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  required
+                  placeholder="مثال: 9F2A7C4B1D3E"
+                  className="mt-1 w-full h-11 rounded-xl border border-input bg-background px-3 text-sm font-mono outline-none focus:border-primary"
+                />
+                <span className="mt-1 block text-[11px] text-muted-foreground">
+                  استخدم نفس البريد الإلكتروني الذي وصلتك عليه الدعوة.
+                </span>
+              </label>
+            ) : choice === "owner" ? (
               <>
                 <label className="block">
                   <span className="text-xs font-semibold text-muted-foreground">

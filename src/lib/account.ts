@@ -127,16 +127,18 @@ export async function loadAccount(): Promise<Account | null> {
     }
   }
 
-  const { data: staffRow } = await supabase
-    .from("staff")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  let { data: customerRow } = await supabase
-    .from("customers")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Staff and customer records belong to a single salon; scope the lookup to the
+  // active tenant so a person may also be staff/client at other salons.
+  const staffQuery = supabase.from("staff").select("id").eq("user_id", user.id);
+  if (salonId) staffQuery.eq("salon_id", salonId);
+  const { data: staffRows } = await staffQuery.limit(1);
+  const staffRow = staffRows?.[0] ?? null;
+
+  const customerQuery = supabase.from("customers").select("id").eq("user_id", user.id);
+  if (salonId) customerQuery.eq("salon_id", salonId);
+  const { data: customerRows } = await customerQuery.limit(1);
+  let customerRow: { id: string } | null = customerRows?.[0] ?? null;
+
 
   // No membership and no client profile yet (e.g. first Google sign-in):
   // provision the client profile so their dashboard has real data to show.
@@ -219,9 +221,13 @@ export async function createSalonForCurrentUser(name: string, phone?: string): P
   return data as string;
 }
 
-/** Creates the client profile for the signed-in user. Returns null when no salon exists yet. */
-export async function ensureClientProfile(): Promise<string | null> {
-  const { data, error } = await supabase.rpc("ensure_client_profile");
+/**
+ * Creates the client profile for the signed-in user in one salon.
+ * A person may hold a separate client profile at every salon they visit.
+ */
+export async function ensureClientProfile(salonId?: string | null): Promise<string | null> {
+  const { data, error } = await supabase.rpc("ensure_client_profile", 
+    salonId ? { _salon: salonId } : {});
   if (error) throw new Error(error.message);
   return (data as string | null) ?? null;
 }
