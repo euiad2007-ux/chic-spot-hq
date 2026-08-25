@@ -257,14 +257,21 @@ function SiteHeader({
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
         <SiteLink slug={slug} className="flex items-center gap-3 min-w-0">
-          <div
-            className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-background/60 shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
-          >
-            {site.logoUrl
-              ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-              : <Scissors className="size-6 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
-          </div>
+          {site.logoUrl ? (
+            <img
+              src={site.logoUrl}
+              alt={`شعار ${site.salonName}`}
+              className="h-16 md:h-20 w-auto max-w-[220px] object-contain shrink-0 bg-transparent"
+            />
+          ) : (
+            <div
+              className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0"
+              style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
+            >
+              <Scissors className="size-6 text-[var(--brand-foreground)] drop-shadow" aria-hidden />
+            </div>
+          )}
+
           <div className="min-w-0">
             <div
               className="font-black text-lg md:text-2xl leading-tight truncate"
