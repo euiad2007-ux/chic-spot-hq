@@ -189,6 +189,7 @@ export function AppShell({
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
     (n.platform ? account?.role === "platform_owner" : n.manager ? manager : true) &&
+    allowedForPath(n.to, account?.role) &&
     (!n.module || account?.role === "platform_owner" || account?.enabledModules.includes(n.module)),
   );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
