@@ -53,6 +53,7 @@ import { Route as AuthenticatedAccountingRouteImport } from './routes/_authentic
 import { Route as SalonSlugIndexRouteImport } from './routes/salon.$slug.index'
 import { Route as AuthenticatedAccountingIndexRouteImport } from './routes/_authenticated/accounting.index'
 import { Route as SalonSlugLoginRouteImport } from './routes/salon.$slug.login'
+import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
 import { Route as AuthenticatedAccountingTrialBalanceRouteImport } from './routes/_authenticated/accounting.trial-balance'
 import { Route as AuthenticatedAccountingJournalRouteImport } from './routes/_authenticated/accounting.journal'
@@ -63,6 +64,7 @@ import { Route as AuthenticatedAccountingClosingRouteImport } from './routes/_au
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
 import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api/public/hooks/booking-reminders'
 
 const StoreLoginRoute = StoreLoginRouteImport.update({
   id: '/store-login',
@@ -289,6 +291,11 @@ const SalonSlugLoginRoute = SalonSlugLoginRouteImport.update({
   path: '/salon/$slug/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
+  id: '/lovable/email/events',
+  path: '/lovable/email/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAccountingVatRoute =
   AuthenticatedAccountingVatRouteImport.update({
     id: '/vat',
@@ -349,6 +356,12 @@ const LovableEmailTransactionalPreviewRoute =
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksBookingRemindersRoute =
+  ApiPublicHooksBookingRemindersRouteImport.update({
+    id: '/api/public/hooks/booking-reminders',
+    path: '/api/public/hooks/booking-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -400,9 +413,11 @@ export interface FileRoutesByFullPath {
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/accounting/': typeof AuthenticatedAccountingIndexRoute
   '/salon/$slug/': typeof SalonSlugIndexRoute
+  '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -454,9 +469,11 @@ export interface FileRoutesByTo {
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/accounting': typeof AuthenticatedAccountingIndexRoute
   '/salon/$slug': typeof SalonSlugIndexRoute
+  '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -511,9 +528,11 @@ export interface FileRoutesById {
   '/_authenticated/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/_authenticated/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/lovable/email/events': typeof LovableEmailEventsRoute
   '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/_authenticated/accounting/': typeof AuthenticatedAccountingIndexRoute
   '/salon/$slug/': typeof SalonSlugIndexRoute
+  '/api/public/hooks/booking-reminders': typeof ApiPublicHooksBookingRemindersRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -568,9 +587,11 @@ export interface FileRouteTypes {
     | '/accounting/journal'
     | '/accounting/trial-balance'
     | '/accounting/vat'
+    | '/lovable/email/events'
     | '/salon/$slug/login'
     | '/accounting/'
     | '/salon/$slug/'
+    | '/api/public/hooks/booking-reminders'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -622,9 +643,11 @@ export interface FileRouteTypes {
     | '/accounting/journal'
     | '/accounting/trial-balance'
     | '/accounting/vat'
+    | '/lovable/email/events'
     | '/salon/$slug/login'
     | '/accounting'
     | '/salon/$slug'
+    | '/api/public/hooks/booking-reminders'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -678,9 +701,11 @@ export interface FileRouteTypes {
     | '/_authenticated/accounting/journal'
     | '/_authenticated/accounting/trial-balance'
     | '/_authenticated/accounting/vat'
+    | '/lovable/email/events'
     | '/salon/$slug/login'
     | '/_authenticated/accounting/'
     | '/salon/$slug/'
+    | '/api/public/hooks/booking-reminders'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -692,8 +717,10 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SiteRoute: typeof SiteRoute
   StoreLoginRoute: typeof StoreLoginRoute
+  LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   SalonSlugLoginRoute: typeof SalonSlugLoginRoute
   SalonSlugIndexRoute: typeof SalonSlugIndexRoute
+  ApiPublicHooksBookingRemindersRoute: typeof ApiPublicHooksBookingRemindersRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -1007,6 +1034,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SalonSlugLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/events': {
+      id: '/lovable/email/events'
+      path: '/lovable/email/events'
+      fullPath: '/lovable/email/events'
+      preLoaderRoute: typeof LovableEmailEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/accounting/vat': {
       id: '/_authenticated/accounting/vat'
       path: '/vat'
@@ -1075,6 +1109,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/transactional/preview'
       fullPath: '/lovable/email/transactional/preview'
       preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/booking-reminders': {
+      id: '/api/public/hooks/booking-reminders'
+      path: '/api/public/hooks/booking-reminders'
+      fullPath: '/api/public/hooks/booking-reminders'
+      preLoaderRoute: typeof ApiPublicHooksBookingRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1200,8 +1241,10 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SiteRoute: SiteRoute,
   StoreLoginRoute: StoreLoginRoute,
+  LovableEmailEventsRoute: LovableEmailEventsRoute,
   SalonSlugLoginRoute: SalonSlugLoginRoute,
   SalonSlugIndexRoute: SalonSlugIndexRoute,
+  ApiPublicHooksBookingRemindersRoute: ApiPublicHooksBookingRemindersRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport

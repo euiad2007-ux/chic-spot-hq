@@ -12,13 +12,14 @@ import { checkoutBookingOnServer, cancelExpiredHoldsOnServer } from "@/lib/db/ch
 import { currentSalonId } from "@/lib/db/hydrate";
 import { useActiveBranch } from "@/lib/active-branch";
 import { scopeToBranch, branchForNewRecord } from "@/lib/branch-scope";
+import { exportCsv, printReport, stampName } from "@/lib/export";
 
 
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Plus, Search, Trash2, CheckCircle2, X, AlertTriangle, Ticket, Wallet,
-  UserPlus, Clock, Sparkles, CreditCard, Banknote, Smartphone, Hourglass,
+  UserPlus, Clock, Sparkles, CreditCard, Banknote, Smartphone, Hourglass, FileDown, Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,6 +58,8 @@ function BookingsPage() {
   const { bookings, customers, staff, services } = state;
   const [filter, setFilter] = useState<BookingStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [openNew, setOpenNew] = useState(false);
   const activeBranchId = useActiveBranch();
 
@@ -76,6 +79,8 @@ function BookingsPage() {
   const rows = useMemo(() => {
     return scopeToBranch(bookings, activeBranchId)
       .filter((b) => filter === "all" || b.status === filter)
+      .filter((b) => !fromDate || b.bookingDate >= fromDate)
+      .filter((b) => !toDate || b.bookingDate <= toDate)
       .filter((b) => {
         if (!search) return true;
         const c = customers.find((x) => x.id === b.customerId);
@@ -84,7 +89,21 @@ function BookingsPage() {
           c?.phone.includes(search);
       })
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  }, [bookings, customers, filter, search, activeBranchId]);
+  }, [bookings, customers, filter, fromDate, toDate, search, activeBranchId]);
+
+  const exportRows = () => {
+    exportCsv(
+      stampName("bookings-current-branch"),
+      ["رقم الحجز", "التاريخ", "الوقت", "العميل", "الجوال", "الموظف", "الخدمات", "الحالة", "الدفع", "الإجمالي"],
+      rows.map((b) => {
+        const c = customers.find((x) => x.id === b.customerId);
+        const st = staff.find((x) => x.id === b.staffId);
+        const names = b.serviceIds.map((id) => services.find((s) => s.id === id)?.name).filter(Boolean).join("، ");
+        return [b.code, b.bookingDate, formatTime(b.startsAt), c?.name, c?.phone, st?.name, names, STATUS_LABEL[b.status], PAY_LABEL[b.payStatus], b.price - b.discount];
+      }),
+    );
+    toast.success("تم تصدير حجوزات الفرع الحالي");
+  };
 
   return (
     <AppShell
@@ -124,6 +143,16 @@ function BookingsPage() {
               {f.label}
             </button>
           ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 ms-auto">
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-xs" aria-label="من تاريخ" />
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-xs" aria-label="إلى تاريخ" />
+          <button onClick={exportRows} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold hover:text-primary">
+            <FileDown className="size-4" /> CSV
+          </button>
+          <button onClick={printReport} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold hover:text-primary">
+            <Printer className="size-4" /> PDF
+          </button>
         </div>
       </div>
 

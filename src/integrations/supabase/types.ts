@@ -229,6 +229,8 @@ export type Database = {
           pay_status: Database["public"]["Enums"]["pay_status"]
           payment_method: string | null
           price: number
+          reminder_error: string | null
+          reminder_sent_at: string | null
           salon_id: string
           staff_id: string | null
           starts_at: string
@@ -258,6 +260,8 @@ export type Database = {
           pay_status?: Database["public"]["Enums"]["pay_status"]
           payment_method?: string | null
           price?: number
+          reminder_error?: string | null
+          reminder_sent_at?: string | null
           salon_id: string
           staff_id?: string | null
           starts_at: string
@@ -287,6 +291,8 @@ export type Database = {
           pay_status?: Database["public"]["Enums"]["pay_status"]
           payment_method?: string | null
           price?: number
+          reminder_error?: string | null
+          reminder_sent_at?: string | null
           salon_id?: string
           staff_id?: string | null
           starts_at?: string
@@ -1784,6 +1790,118 @@ export type Database = {
           },
         ]
       }
+      notification_events: {
+        Row: {
+          body: string | null
+          booking_id: string | null
+          branch_id: string | null
+          channel: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          error: string | null
+          id: string
+          invite_id: string | null
+          kind: string
+          meta: Json
+          recipient: string | null
+          salon_id: string
+          scheduled_for: string | null
+          sent_at: string | null
+          staff_id: string | null
+          status: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          booking_id?: string | null
+          branch_id?: string | null
+          channel: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          error?: string | null
+          id?: string
+          invite_id?: string | null
+          kind: string
+          meta?: Json
+          recipient?: string | null
+          salon_id: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          staff_id?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          booking_id?: string | null
+          branch_id?: string | null
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          error?: string | null
+          id?: string
+          invite_id?: string | null
+          kind?: string
+          meta?: Json
+          recipient?: string | null
+          salon_id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          staff_id?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "staff_invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payslips: {
         Row: {
           allowances_amount: number
@@ -2441,6 +2559,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           email: string
+          email_error: string | null
+          email_sent_at: string | null
           expires_at: string
           id: string
           job_title: string | null
@@ -2459,6 +2579,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email: string
+          email_error?: string | null
+          email_sent_at?: string | null
           expires_at?: string
           id?: string
           job_title?: string | null
@@ -2477,6 +2599,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string
+          email_error?: string | null
+          email_sent_at?: string | null
           expires_at?: string
           id?: string
           job_title?: string | null
@@ -3072,6 +3196,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           email: string
+          email_error: string | null
+          email_sent_at: string | null
           expires_at: string
           id: string
           job_title: string | null
