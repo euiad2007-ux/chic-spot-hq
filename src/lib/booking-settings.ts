@@ -31,6 +31,7 @@ export interface BookingSettings {
   restockOnCancel: boolean; // return service materials to stock when a deducted booking is cancelled
   maxAdvanceDays: number;   // 0 = unlimited; how far ahead a booking may be made
   allowSameStaffBackToBack: boolean; // when false, buffer is enforced strictly
+  reminderLeadMin: number; // minutes before appointment to send automatic reminder
 }
 
 
@@ -69,6 +70,7 @@ function defaults(): BookingSettings {
     restockOnCancel: true,
     maxAdvanceDays: 60,
     allowSameStaffBackToBack: false,
+    reminderLeadMin: 120,
   };
 }
 
@@ -144,6 +146,7 @@ export const bookingSettingsActions = {
   setRestockOnCancel(v: boolean) { state = { ...state, restockOnCancel: v }; persist(); },
   setMaxAdvanceDays(n: number) { state = { ...state, maxAdvanceDays: Math.max(0, Math.floor(n)) }; persist(); },
   setAllowBackToBack(v: boolean) { state = { ...state, allowSameStaffBackToBack: v }; persist(); },
+  setReminderLead(min: number) { state = { ...state, reminderLeadMin: Math.max(5, Math.floor(min)) }; persist(); },
   addBreak(b: Omit<BreakWindow, "id">) {
     const id = crypto.randomUUID();
     state = { ...state, breaks: [...state.breaks, { ...b, id }] };

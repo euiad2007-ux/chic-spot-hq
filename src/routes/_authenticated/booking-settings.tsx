@@ -11,7 +11,7 @@ import {
 import { useAttendance, attendanceActions, getCurrentPosition } from "@/lib/attendance-store";
 import { useSalon } from "@/lib/salon-store";
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Plus, Trash2, Clock, Coffee, Timer, CalendarClock, RotateCcw, MapPin, Crosshair } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Plus, Trash2, Clock, Coffee, Timer, CalendarClock, RotateCcw, MapPin, Crosshair, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -123,6 +123,14 @@ function BookingSettingsPage() {
             value={settings.holdGraceMin}
             onChange={(v) => bookingSettingsActions.setHoldGrace(v)}
             hint="يُلغى الحجز المحفوظ بدون دفع تلقائياً بعد هذه المهلة"
+          />
+          <Numeric
+            icon={<BellRing className="size-3.5" />}
+            label="إرسال تذكير قبل الموعد"
+            suffix="دقيقة"
+            value={settings.reminderLeadMin}
+            onChange={(v) => bookingSettingsActions.setReminderLead(v)}
+            hint="يستخدمها النظام لإرسال تذكير تلقائي للعميل حسب الفرع المختار"
           />
 
           <label className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
