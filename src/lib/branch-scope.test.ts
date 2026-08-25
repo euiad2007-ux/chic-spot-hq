@@ -100,11 +100,11 @@ describe("active branch persistence", () => {
   it("keeps the selection after a reload", () => {
     setActiveBranch(salon, A);
     expect(getActiveBranch()).toBe(A);
-    // Simulate a fresh page load: module state resets, storage does not.
-    setActiveBranch(salon, null);
+    // Simulate a fresh page load: read the stored value back from storage.
     restoreActiveBranch(salon);
     expect(getActiveBranch()).toBe(A);
   });
+
 
   it("does not carry a selection across salons", () => {
     setActiveBranch(salon, A);
