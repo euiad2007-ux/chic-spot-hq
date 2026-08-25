@@ -48,6 +48,7 @@ import { Route as AuthenticatedActivityLogRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
 import { Route as AuthenticatedAccountingRouteImport } from './routes/_authenticated/accounting'
 import { Route as AuthenticatedAccountingIndexRouteImport } from './routes/_authenticated/accounting.index'
+import { Route as SalonSlugLoginRouteImport } from './routes/salon.$slug.login'
 import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
 import { Route as AuthenticatedAccountingTrialBalanceRouteImport } from './routes/_authenticated/accounting.trial-balance'
 import { Route as AuthenticatedAccountingJournalRouteImport } from './routes/_authenticated/accounting.journal'
@@ -257,6 +258,11 @@ const AuthenticatedAccountingIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
+const SalonSlugLoginRoute = SalonSlugLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => SalonSlugRoute,
+} as any)
 const AuthenticatedAccountingVatRoute =
   AuthenticatedAccountingVatRouteImport.update({
     id: '/vat',
@@ -355,7 +361,7 @@ export interface FileRoutesByFullPath {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
-  '/salon/$slug': typeof SalonSlugRoute
+  '/salon/$slug': typeof SalonSlugRouteWithChildren
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/accounting/': typeof AuthenticatedAccountingIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -404,7 +411,7 @@ export interface FileRoutesByTo {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
-  '/salon/$slug': typeof SalonSlugRoute
+  '/salon/$slug': typeof SalonSlugRouteWithChildren
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -414,6 +421,7 @@ export interface FileRoutesByTo {
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/accounting': typeof AuthenticatedAccountingIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -456,7 +464,7 @@ export interface FileRoutesById {
   '/_authenticated/stocktake': typeof AuthenticatedStocktakeRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
-  '/salon/$slug': typeof SalonSlugRoute
+  '/salon/$slug': typeof SalonSlugRouteWithChildren
   '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/_authenticated/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -466,6 +474,7 @@ export interface FileRoutesById {
   '/_authenticated/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/_authenticated/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/_authenticated/accounting/': typeof AuthenticatedAccountingIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -518,6 +527,7 @@ export interface FileRouteTypes {
     | '/accounting/journal'
     | '/accounting/trial-balance'
     | '/accounting/vat'
+    | '/salon/$slug/login'
     | '/accounting/'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
@@ -567,6 +577,7 @@ export interface FileRouteTypes {
     | '/accounting/journal'
     | '/accounting/trial-balance'
     | '/accounting/vat'
+    | '/salon/$slug/login'
     | '/accounting'
     | '/lovable/email/transactional/preview'
   id:
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/_authenticated/accounting/journal'
     | '/_authenticated/accounting/trial-balance'
     | '/_authenticated/accounting/vat'
+    | '/salon/$slug/login'
     | '/_authenticated/accounting/'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
@@ -629,7 +641,7 @@ export interface RootRouteChildren {
   NoAccessRoute: typeof NoAccessRoute
   SiteRoute: typeof SiteRoute
   StoreLoginRoute: typeof StoreLoginRoute
-  SalonSlugRoute: typeof SalonSlugRoute
+  SalonSlugRoute: typeof SalonSlugRouteWithChildren
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -908,6 +920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingIndexRouteImport
       parentRoute: typeof AuthenticatedAccountingRoute
     }
+    '/salon/$slug/login': {
+      id: '/salon/$slug/login'
+      path: '/login'
+      fullPath: '/salon/$slug/login'
+      preLoaderRoute: typeof SalonSlugLoginRouteImport
+      parentRoute: typeof SalonSlugRoute
+    }
     '/_authenticated/accounting/vat': {
       id: '/_authenticated/accounting/vat'
       path: '/vat'
@@ -1087,6 +1106,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface SalonSlugRouteChildren {
+  SalonSlugLoginRoute: typeof SalonSlugLoginRoute
+}
+
+const SalonSlugRouteChildren: SalonSlugRouteChildren = {
+  SalonSlugLoginRoute: SalonSlugLoginRoute,
+}
+
+const SalonSlugRouteWithChildren = SalonSlugRoute._addFileChildren(
+  SalonSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1094,7 +1125,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoAccessRoute: NoAccessRoute,
   SiteRoute: SiteRoute,
   StoreLoginRoute: StoreLoginRoute,
-  SalonSlugRoute: SalonSlugRoute,
+  SalonSlugRoute: SalonSlugRouteWithChildren,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
