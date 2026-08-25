@@ -246,7 +246,7 @@ function SiteHeader({
             </div>
             <div className="text-[11px] md:text-xs text-muted-foreground truncate">{site.branchName}</div>
           </div>
-        </Link>
+        </SiteLink>
 
         <nav className="hidden lg:flex items-center gap-1" aria-label="أقسام الموقع">
           {sections.map((id) => (
