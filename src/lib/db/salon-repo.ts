@@ -89,7 +89,17 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
     sizePerUnit: num(r.size_per_unit, 1),
   }));
 
-  const staff: Staff[] = sel(staffRes.data).map((r) => {
+  // Customers have no access to employee records (salary/ID/contact are private),
+  // so fall back to the safe directory RPC that only exposes name/title/branch.
+  let staffRows: Record<string, unknown>[] = (staffRes.data ?? []) as unknown as Record<string, unknown>[];
+  if (staffRows.length === 0) {
+    const dir = await supabase.rpc("salon_staff_directory", { _salon: salonId });
+    staffRows = (dir.data ?? []) as unknown as Record<string, unknown>[];
+  }
+
+  const staff: Staff[] = staffRows.map((row) => {
+    const r = row as any;
+
     const meta = (r.meta ?? {}) as { notes?: Staff["notes"]; pointsLog?: Staff["pointsLog"] };
     return {
       id: r.id,
