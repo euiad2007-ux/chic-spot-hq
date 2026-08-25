@@ -1,7 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ArrowDownCircle, ArrowUpCircle, Download, RotateCcw, Wallet } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Loader2,
+  RotateCcw,
+  Wallet,
+} from "lucide-react";
+
 
 import { AppShell } from "@/components/salon/app-shell";
 import { useAccount } from "@/hooks/use-account";
