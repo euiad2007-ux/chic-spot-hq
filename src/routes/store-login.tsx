@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Scissors, Loader2, IdCard, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { SiteLink } from "@/components/salon/salon-nav-links";
 import { signIn, signUp, homeForRole, loadAccount } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 import {
@@ -34,6 +35,11 @@ export const Route = createFileRoute("/store-login")({
 type Audience = "client" | "staff";
 
 function StoreLoginPage() {
+  return <StoreLoginView />;
+}
+
+/** Salon-scoped login. With `slug` it brands and links to that salon only. */
+export function StoreLoginView({ slug }: { slug?: string }) {
   const navigate = useNavigate();
   const refreshAccount = useRefreshAccount();
   const site = useSiteSettings();
@@ -48,8 +54,9 @@ function StoreLoginPage() {
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite());
-  }, []);
+    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug));
+  }, [slug]);
+
 
   useEffect(() => {
     const href = googleFontsHref(site);
@@ -127,7 +134,7 @@ function StoreLoginPage() {
       <style>{`.store-login h1,.store-login h2{font-family:var(--font-display)}`}</style>
 
       <div className="w-full max-w-md">
-        <Link to="/site" className="flex items-center justify-center gap-3 mb-7">
+        <SiteLink slug={slug} className="flex items-center justify-center gap-3 mb-7">
           <span
             className="size-12 rounded-2xl grid place-items-center overflow-hidden"
             style={{ background: gradient }}
@@ -139,7 +146,8 @@ function StoreLoginPage() {
             )}
           </span>
           <span className="text-2xl font-extrabold">{site.salonName}</span>
-        </Link>
+        </SiteLink>
+
 
         <div className="rounded-2xl border border-border bg-card/85 backdrop-blur-xl p-6 shadow-lg">
           <h1 className="text-lg font-bold text-center">دخول {site.salonName}</h1>
@@ -229,12 +237,13 @@ function StoreLoginPage() {
           )}
         </div>
 
-        <Link
-          to="/site"
+        <SiteLink
+          slug={slug}
           className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" aria-hidden /> العودة إلى موقع {site.salonName}
-        </Link>
+        </SiteLink>
+
       </div>
     </main>
   );

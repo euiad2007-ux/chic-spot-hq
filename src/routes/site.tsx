@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import {
   useSiteSettings,
@@ -19,6 +19,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PaymentIcon } from "@/components/salon/payment-icons";
+import { SiteLink, LoginLink } from "@/components/salon/salon-nav-links";
 import type { PublicReview, PublicSalonMeta } from "@/lib/db/public-hydrate";
 
 /* ---------------- head assets ---------------- */
@@ -151,7 +152,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
       case "showcase":
         return <ShowcaseSection key={id} site={site} />;
       case "services":
-        return <ServicesSection key={id} site={site} services={services} bookingHref={bookingHref} external={external} />;
+        return <ServicesSection key={id} site={site} slug={slug} services={services} bookingHref={bookingHref} external={external} />;
       case "gallery":
         return <GallerySection key={id} site={site} />;
       case "team":
@@ -177,12 +178,12 @@ export function SalonSiteView({ slug }: { slug?: string }) {
         @media (prefers-reduced-motion: reduce){.lamsa-rise,.lamsa-reveal{animation:none;opacity:1;transform:none;transition:none}}
       `}</style>
 
-      <SiteHeader site={site} waHref={waHref} bookingHref={bookingHref} external={external} sections={sections} />
+      <SiteHeader site={site} slug={slug} waHref={waHref} bookingHref={bookingHref} external={external} sections={sections} />
       <main>
-        <Hero site={site} waHref={waHref} bookingHref={bookingHref} external={external} />
+        <Hero site={site} slug={slug} waHref={waHref} bookingHref={bookingHref} external={external} />
         {sections.map(render)}
       </main>
-      <SiteFooter site={site} waHref={waHref} />
+      <SiteFooter site={site} slug={slug} waHref={waHref} />
       <a
         href={waHref}
         target="_blank"
@@ -199,8 +200,8 @@ export function SalonSiteView({ slug }: { slug?: string }) {
 /* ---------------- header ---------------- */
 
 function SiteHeader({
-  site, waHref, bookingHref, external, sections,
-}: { site: SiteSettings; waHref: string; bookingHref: string; external: boolean; sections: SectionId[] }) {
+  site, slug, waHref, bookingHref, external, sections,
+}: { site: SiteSettings; slug?: string; waHref: string; bookingHref: string; external: boolean; sections: SectionId[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -227,7 +228,7 @@ function SiteHeader({
       )}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
-        <Link to="/site" className="flex items-center gap-3 min-w-0">
+        <SiteLink slug={slug} className="flex items-center gap-3 min-w-0">
           <div
             className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-white/60 shadow-lg"
             style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
@@ -245,7 +246,7 @@ function SiteHeader({
             </div>
             <div className="text-[11px] md:text-xs text-muted-foreground truncate">{site.branchName}</div>
           </div>
-        </Link>
+        </SiteLink>
 
         <nav className="hidden lg:flex items-center gap-1" aria-label="أقسام الموقع">
           {sections.map((id) => (
@@ -260,10 +261,10 @@ function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link to="/store-login" className="btn hidden sm:inline-flex items-center gap-2 h-10 px-4 border border-border text-sm hover:bg-muted transition">
+          <LoginLink slug={slug} className="btn hidden sm:inline-flex items-center gap-2 h-10 px-4 border border-border text-sm hover:bg-muted transition">
             <LogIn className="size-4" aria-hidden /> دخول
-          </Link>
-          <BookNow href={bookingHref} external={external} label={site.bookingLabel} site={site} className="h-10 px-5 text-sm" />
+          </LoginLink>
+          <BookNow href={bookingHref} external={external} label={site.bookingLabel} site={site} slug={slug} className="h-10 px-5 text-sm" />
           <button
             onClick={() => setOpen((v) => !v)}
             aria-label="القائمة"
@@ -286,7 +287,7 @@ function SiteHeader({
             <a href={waHref} target="_blank" rel="noreferrer" className="px-3 py-3 rounded-lg text-sm font-semibold text-success hover:bg-success/10">
               واتساب
             </a>
-            <Link to="/store-login" className="px-3 py-3 rounded-lg text-sm font-semibold hover:bg-muted">تسجيل الدخول</Link>
+            <LoginLink slug={slug} className="px-3 py-3 rounded-lg text-sm font-semibold hover:bg-muted">تسجيل الدخول</LoginLink>
           </nav>
         </div>
       )}
@@ -297,8 +298,8 @@ function SiteHeader({
 /* ---------------- hero ---------------- */
 
 function BookNow({
-  href, external, label, site, className,
-}: { href: string; external: boolean; label: string; site: SiteSettings; className?: string }) {
+  href, external, label, site, slug, className,
+}: { href: string; external: boolean; label: string; site: SiteSettings; slug?: string; className?: string }) {
   const style = {
     background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`,
     boxShadow: `0 18px 40px -18px ${site.primary}99`,
@@ -312,9 +313,9 @@ function BookNow({
     );
   }
   return (
-    <Link to="/store-login" className={cls} style={style}>
+    <LoginLink slug={slug} className={cls} style={style}>
       <CalendarDays className="size-4" aria-hidden /> {label}
-    </Link>
+    </LoginLink>
   );
 }
 
@@ -328,7 +329,7 @@ function heroButtonHref(b: HeroButton, ctx: { booking: string; wa: string; phone
   }
 }
 
-function Hero({ site, waHref, bookingHref, external }: { site: SiteSettings; waHref: string; bookingHref: string; external: boolean }) {
+function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSettings; slug?: string; waHref: string; bookingHref: string; external: boolean }) {
   const align = site.heroAlign;
   const alignCls = align === "center" ? "items-center text-center" : align === "left" ? "items-start text-left" : "items-end text-right";
   const height = Math.min(100, Math.max(45, site.heroHeight || 85));
@@ -403,9 +404,9 @@ function Hero({ site, waHref, bookingHref, external }: { site: SiteSettings; waH
               : undefined;
             if (b.kind === "booking" && !external) {
               return (
-                <Link key={i} to="/store-login" className={cls} style={style}>
+                <LoginLink key={i} slug={slug} className={cls} style={style}>
                   <CalendarDays className="size-4" aria-hidden /> {b.label}
-                </Link>
+                </LoginLink>
               );
             }
             return (
@@ -493,8 +494,8 @@ function ShowcaseSection({ site }: { site: SiteSettings }) {
 /* ---------------- services ---------------- */
 
 function ServicesSection({
-  site, services, bookingHref, external,
-}: { site: SiteSettings; services: ReturnType<typeof useSalon<any>>; bookingHref: string; external: boolean }) {
+  site, slug, services, bookingHref, external,
+}: { site: SiteSettings; slug?: string; services: ReturnType<typeof useSalon<any>>; bookingHref: string; external: boolean }) {
   const list = (services as any[]).filter((s) => s.active);
   const categories = useMemo(() => {
     const m = new Map<string, any[]>();
@@ -543,7 +544,7 @@ function ServicesSection({
                           </div>
                         )}
                       </div>
-                      <BookNow href={bookingHref} external={external} label={site.bookingLabel} site={site} className="mt-6 w-full h-11 text-sm" />
+                      <BookNow href={bookingHref} external={external} label={site.bookingLabel} site={site} slug={slug} className="mt-6 w-full h-11 text-sm" />
                     </article>
                   ))}
                 </div>
@@ -853,7 +854,7 @@ function ContactCard({
 
 /* ---------------- footer ---------------- */
 
-function SiteFooter({ site, waHref }: { site: SiteSettings; waHref: string }) {
+function SiteFooter({ site, slug, waHref }: { site: SiteSettings; slug?: string; waHref: string }) {
   const socials = socialLinks(site);
   return (
     <footer className="border-t border-border mt-8">
@@ -890,9 +891,9 @@ function SiteFooter({ site, waHref }: { site: SiteSettings; waHref: string }) {
               </a>
             ))}
           </div>
-          <Link to="/store-login" className="btn mt-5 inline-flex items-center gap-2 h-10 px-4 border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">
+          <LoginLink slug={slug} className="btn mt-5 inline-flex items-center gap-2 h-10 px-4 border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/10">
             <IdCard className="size-4" aria-hidden /> دخول الموظفين والعملاء
-          </Link>
+          </LoginLink>
         </div>
       </div>
 

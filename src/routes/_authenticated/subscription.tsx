@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Crown, CheckCircle2, AlertTriangle } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { SalonLinksPanel } from "@/components/salon/salon-links-panel";
+
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { loadSubscription } from "@/lib/db/ops-repo";
@@ -126,9 +128,14 @@ function SubscriptionPage() {
           </p>
         </section>
       </div>
+
+      <div className="mt-4">
+        <SalonLinksPanel salonId={salonId} />
+      </div>
     </AppShell>
   );
 }
+
 
 function Cell({ label, value }: { label: string; value: string }) {
   return (
