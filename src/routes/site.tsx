@@ -127,7 +127,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   const { services, staff } = useSalon((s) => s);
   const [meta, setMeta] = useState<PublicSalonMeta>({ salonId: null, avgRating: 0, reviewCount: 0, reviews: [] });
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug).then(setMeta));
+    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug, true).then(setMeta));
   }, [slug]);
   const site = useSiteSettings();
 

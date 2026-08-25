@@ -55,7 +55,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug));
+    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug, true));
   }, [slug]);
 
 
