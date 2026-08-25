@@ -611,8 +611,24 @@ function GallerySection({ site }: { site: SiteSettings }) {
             className="group relative overflow-hidden rounded-2xl aspect-square border border-border/60 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label={it.title || `صورة ${i + 1}`}
           >
-            <img src={it.url} alt={it.title || "من أعمال الصالون"} loading="lazy" className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
+            {it.beforeUrl && (
+              <img src={it.beforeUrl} alt={it.title ? `${it.title} — قبل` : "قبل"} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+            )}
+            <img
+              src={it.url}
+              alt={it.title || "من أعمال الصالون"}
+              loading="lazy"
+              className={cn(
+                "relative w-full h-full object-cover transition duration-700",
+                it.beforeUrl ? "group-hover:opacity-0" : "group-hover:scale-110",
+              )}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300" />
+            {it.beforeUrl && (
+              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">
+                قبل / بعد
+              </span>
+            )}
             {it.title && (
               <span className="absolute bottom-3 right-3 left-3 text-white text-sm font-bold text-right opacity-0 group-hover:opacity-100 transition">
                 {it.title}
@@ -639,7 +655,11 @@ function GallerySection({ site }: { site: SiteSettings }) {
             <ChevronLeft className="size-6" />
           </button>
           <figure className="max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
-            <img src={shown[open].url} alt={shown[open].title || ""} className="w-full max-h-[80vh] object-contain rounded-2xl" />
+            {shown[open].beforeUrl ? (
+              <BeforeAfter before={shown[open].beforeUrl!} after={shown[open].url} title={shown[open].title} />
+            ) : (
+              <img src={shown[open].url} alt={shown[open].title || ""} className="w-full max-h-[80vh] object-contain rounded-2xl" />
+            )}
             {(shown[open].title || shown[open].category) && (
               <figcaption className="text-center text-white/85 mt-4 text-sm">
                 {shown[open].title} {shown[open].category && <span className="opacity-60">— {shown[open].category}</span>}
@@ -648,6 +668,7 @@ function GallerySection({ site }: { site: SiteSettings }) {
           </figure>
         </div>
       )}
+
     </Reveal>
   );
 }
