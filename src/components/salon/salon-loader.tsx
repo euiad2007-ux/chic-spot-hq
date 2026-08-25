@@ -16,6 +16,7 @@ export function SalonBrandedLoader({
   const accent = branding?.accent || primary;
   const background = branding?.background || "#FFFFFF";
   const textColor = branding?.textColor || "#1A1A1A";
+  const hasBranding = Boolean(branding?.salonName || branding?.logoUrl);
 
   return (
     <div
@@ -41,14 +42,14 @@ export function SalonBrandedLoader({
             className="h-24 w-auto max-w-[240px] object-contain"
             style={{ animation: "salonLoaderPulse 1.8s ease-in-out infinite" }}
           />
-        ) : (
+        ) : hasBranding ? (
           <div
             className="grid size-20 place-items-center rounded-full text-2xl font-extrabold"
             style={{ background: primary, color: background, animation: "salonLoaderPulse 1.8s ease-in-out infinite" }}
           >
-            {(branding?.salonName || "•").trim().charAt(0)}
+            {branding?.salonName.trim().charAt(0)}
           </div>
-        )}
+        ) : null}
 
         {branding?.salonName ? (
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{branding.salonName}</h1>

@@ -318,8 +318,8 @@ export const THEME_PRESETS: ThemePreset[] = [
 const UNUSED_KEY = "lamsa_site_settings_v4";
 
 const defaults: SiteSettings = {
-  salonName: "صالون لمسة",
-  branchName: "فرع الروضة — الرياض",
+  salonName: "الصالون",
+  branchName: "",
   tagline: "جمالك يبدأ من هنا",
   logoUrl: "",
   primary: "#A855F7",
@@ -354,8 +354,8 @@ const defaults: SiteSettings = {
   faviconUrl: "",
   buttonShape: "rounded",
   fontScale: 1,
-  heroTitle: "لمستك",
-  heroHighlight: "الخاصة",
+  heroTitle: "جمالك",
+  heroHighlight: "بأسلوبك",
   heroSubtitle: "احجزي خدمات الشعر والمكياج والعناية بالبشرة والأظافر في دقائق — أخصائيات معتمدات وأجواء راقية بانتظارك.",
   heroAlign: "center",
   heroHeight: 88,

@@ -83,8 +83,10 @@ export async function fetchPublicBranding(slug?: string): Promise<PublicBranding
   const { data } = await supabase.rpc("public_salon_site", { _salon: salon.id });
   const stored = data && typeof data === "object" && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
   const pick = (k: string) => (typeof stored[k] === "string" ? (stored[k] as string) : "");
+  const salonName = pick("salonName") || salon.name;
+  hydrateSiteSettings({ ...stored, salonName });
   return {
-    salonName: pick("salonName") || salon.name,
+    salonName,
     logoUrl: pick("logoUrl"),
     primary: pick("primary"),
     accent: pick("accent"),
