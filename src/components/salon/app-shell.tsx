@@ -205,12 +205,33 @@ export function AppShell({
   );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
+  // Branch scope: everything branch-aware (services, invoices, POS…) follows it.
+  const activeBranch = useActiveBranch();
+  const branchesQuery = useQuery({
+    queryKey: ["branches", account?.salonId],
+    queryFn: () => listBranches(account!.salonId!),
+    enabled: !!account?.salonId && manager,
+  });
+  const branches = branchesQuery.data ?? [];
+  useEffect(() => {
+    restoreActiveBranch(account?.salonId ?? null);
+  }, [account?.salonId]);
+  useEffect(() => {
+    // Drop a stale selection (branch deleted or belongs to another salon).
+    if (activeBranch && branches.length && !branches.some((b) => b.id === activeBranch)) {
+      setActiveBranch(account?.salonId ?? null, null);
+    }
+  }, [activeBranch, branches, account?.salonId]);
+
   async function handleSignOut() {
     await qc.cancelQueries();
     qc.clear();
     await signOutAccount();
-    navigate({ to: "/auth", replace: true });
+    // Merchants land back on their own public salon page after signing out.
+    if (typeof window !== "undefined") window.location.assign(sitePath);
+    else navigate({ to: "/auth", replace: true });
   }
+
 
   const initial = (account?.salonName ?? account?.fullName ?? "S").trim().charAt(0) || "S";
 
