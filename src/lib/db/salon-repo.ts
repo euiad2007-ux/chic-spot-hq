@@ -208,7 +208,9 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
     paid: num(r.paid),
     method: (str(r.payment_method, "cash") as Invoice["method"]),
     createdAt: str(r.created_at),
+    branchId: (r.branch_id as string | null) ?? null,
   }));
+
 
   const counters: BookingCounters = { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
   for (const b of bookings) {
