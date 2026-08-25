@@ -191,8 +191,25 @@ export function SalonSiteView({ slug }: { slug?: string }) {
 
   return (
     <>
-      <SalonBrandedLoader branding={branding ?? { salonName: site.salonName, logoUrl: site.logoUrl, primary: site.primary, accent: site.accent, background: site.background, textColor: site.textColor }} hidden={!loading} />
-    <div className="lamsa-site min-h-screen" dir="rtl" style={settingsToCssVars(site)} aria-hidden={loading}>
+      <SalonBrandedLoader
+        branding={
+          branding ?? {
+            salonName: site.salonName,
+            logoUrl: site.logoUrl,
+            primary: site.primary,
+            accent: site.accent,
+            background: site.background,
+            textColor: site.textColor,
+          }
+        }
+        hidden={!loading}
+      />
+      <div
+        className={`lamsa-site min-h-screen transition-opacity duration-700 ${loading ? "opacity-0" : "opacity-100"}`}
+        dir="rtl"
+        style={settingsToCssVars(site)}
+      >
+
       <style>{`
         .lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:0;}
         .lamsa-site .btn{border-radius:var(--btn-radius);}
