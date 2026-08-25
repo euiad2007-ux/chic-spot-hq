@@ -195,7 +195,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   return (
     <div className="lamsa-site min-h-screen" dir="rtl" style={settingsToCssVars(site)}>
       <style>{`
-        .lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:-0.015em;}
+        .lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:0;}
         .lamsa-site .btn{border-radius:var(--btn-radius);}
         @keyframes lamsaRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
         .lamsa-rise{animation:lamsaRise .9s cubic-bezier(.22,1,.36,1) both}
@@ -215,7 +215,8 @@ export function SalonSiteView({ slug }: { slug?: string }) {
         target="_blank"
         rel="noreferrer"
         aria-label="تواصلي عبر واتساب"
-        className="fixed bottom-5 left-5 z-50 size-14 rounded-full grid place-items-center text-white shadow-2xl transition hover:scale-110 bg-[#25D366]"
+        className="fixed bottom-5 left-5 z-50 size-14 rounded-full grid place-items-center text-[var(--brand-foreground)] shadow-2xl transition hover:scale-110"
+        style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
       >
         <MessageCircle className="size-7" />
       </a>
@@ -404,14 +405,14 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
 
         <h1
           className="lamsa-rise text-white font-black leading-[1.05] text-4xl sm:text-5xl md:text-7xl drop-shadow-[0_8px_36px_rgba(0,0,0,.55)]"
-          style={{ animationDelay: "140ms", letterSpacing: "-0.01em" }}
+          style={{ animationDelay: "140ms" }}
         >
           {site.salonName}
         </h1>
 
         <div className="lamsa-rise flex items-center gap-3 text-white/85" style={{ animationDelay: "220ms" }}>
           <span className="h-px w-10 md:w-16" style={{ background: site.accent }} />
-          <span className="text-xs md:text-sm font-bold tracking-[0.28em]">{site.tagline}</span>
+          <span className="text-xs md:text-sm font-bold">{site.tagline}</span>
           <span className="h-px w-10 md:w-16" style={{ background: site.accent }} />
         </div>
 
@@ -544,7 +545,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
         >
           {site.heroTitle}{" "}
           {site.heroHighlight && (
-            <span style={{ background: `linear-gradient(90deg, ${site.accent}, #fff)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+            <span style={{ background: `linear-gradient(90deg, ${site.accent}, ${site.surface})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
               {site.heroHighlight}
             </span>
           )}
@@ -626,7 +627,7 @@ function SectionHead({ site, title, desc, eyebrow }: { site: SiteSettings; title
   return (
     <div className="text-center mb-12">
       {eyebrow && (
-        <span className="inline-block text-[11px] font-bold tracking-[0.35em] uppercase mb-3" style={{ color: site.primary }}>
+          <span className="inline-block text-[11px] font-bold uppercase mb-3" style={{ color: site.primary }}>
           {eyebrow}
         </span>
       )}
@@ -768,7 +769,7 @@ function GallerySection({ site }: { site: SiteSettings }) {
               onClick={() => setCat(c)}
               className={cn(
                 "btn h-9 px-4 text-xs font-bold border transition",
-                cat === c ? "text-white border-transparent" : "border-border text-muted-foreground hover:text-foreground",
+                cat === c ? "text-[var(--brand-foreground)] border-transparent" : "border-border text-muted-foreground hover:text-foreground",
               )}
               style={cat === c ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` } : undefined}
             >
@@ -904,7 +905,7 @@ function TeamSection({ site, staff }: { site: SiteSettings; staff: ReturnType<ty
               {m.photo ? (
                 <img src={m.photo} alt={m.name} loading="lazy" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
               ) : (
-                <div className="w-full h-full grid place-items-center text-white text-5xl font-black" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+                <div className="w-full h-full grid place-items-center text-[var(--brand-foreground)] text-5xl font-black" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
                   {m.name?.charAt(0)}
                 </div>
               )}
@@ -1034,8 +1035,8 @@ function SiteFooter({ site, slug, waHref }: { site: SiteSettings; slug?: string;
       <div className="max-w-7xl mx-auto px-5 md:px-10 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-2xl grid place-items-center overflow-hidden ring-2 ring-white/50" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
-              {site.logoUrl ? <img src={site.logoUrl} alt="" className="w-full h-full object-cover" /> : <Scissors className="size-5 text-white" aria-hidden />}
+            <div className="size-12 rounded-2xl grid place-items-center overflow-hidden ring-2 ring-background/50" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+              {site.logoUrl ? <img src={site.logoUrl} alt="" className="w-full h-full object-cover" /> : <Scissors className="size-5 text-[var(--brand-foreground)]" aria-hidden />}
             </div>
             <div>
               <div className="font-black text-lg">{site.salonName}</div>
