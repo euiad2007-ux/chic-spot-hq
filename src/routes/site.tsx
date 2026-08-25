@@ -1036,8 +1036,9 @@ function ReviewsSection({ site, meta }: { site: SiteSettings; meta: PublicSalonM
 
 /* ---------------- contact ---------------- */
 
-function ContactSection({ site, waHref }: { site: SiteSettings; waHref: string }) {
+function ContactSection({ site, waHref, salonId }: { site: SiteSettings; waHref: string; salonId: string | null }) {
   const socials = socialLinks(site);
+
   return (
     <Reveal id="contact" className="py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-5 md:px-10">
