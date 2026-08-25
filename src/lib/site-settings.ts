@@ -500,6 +500,61 @@ export function useSiteSettings(): SiteSettings {
   );
 }
 
+function readHexChannel(hex: string, start: number): number | null {
+  const part = hex.slice(start, start + 2);
+  if (part.length !== 2) return null;
+  const parsed = Number.parseInt(part, 16);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeHex(input: string): string | null {
+  const raw = input.trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(raw)) {
+    return `#${raw.split("").map((c) => c + c).join("")}`;
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(raw)) return `#${raw}`;
+  return null;
+}
+
+function hexToRgb(input: string): { r: number; g: number; b: number } | null {
+  const hex = normalizeHex(input);
+  if (!hex) return null;
+  const r = readHexChannel(hex, 1);
+  const g = readHexChannel(hex, 3);
+  const b = readHexChannel(hex, 5);
+  if (r === null || g === null || b === null) return null;
+  return { r, g, b };
+}
+
+function channelToLinear(value: number): number {
+  const s = value / 255;
+  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+}
+
+function luminance(input: string): number | null {
+  const rgb = hexToRgb(input);
+  if (!rgb) return null;
+  return 0.2126 * channelToLinear(rgb.r) + 0.7152 * channelToLinear(rgb.g) + 0.0722 * channelToLinear(rgb.b);
+}
+
+function mixHex(a: string, b: string, ratio = 0.5): string | null {
+  const left = hexToRgb(a);
+  const right = hexToRgb(b);
+  if (!left || !right) return null;
+  const amount = Math.min(1, Math.max(0, ratio));
+  const toHex = (v: number) => Math.round(v).toString(16).padStart(2, "0");
+  const r = left.r * (1 - amount) + right.r * amount;
+  const g = left.g * (1 - amount) + right.g * amount;
+  const bl = left.b * (1 - amount) + right.b * amount;
+  return `#${toHex(r)}${toHex(g)}${toHex(bl)}`;
+}
+
+function readableTextOn(background: string, fallback = "#FFFFFF"): string {
+  const l = luminance(background);
+  if (l === null) return fallback;
+  return l > 0.58 ? "#231724" : "#FFFFFF";
+}
+
 
 export const siteActions = {
   update(patch: Partial<SiteSettings>) { state = { ...state, ...patch, themePreset: patch.themePreset ?? "custom" }; persist(); },
@@ -619,6 +674,7 @@ export function fillTemplate(tpl: string, vars: Record<string, string>) {
 export function settingsToCssVars(s: SiteSettings): React.CSSProperties {
   const heading = fontById(s.headingFont).family;
   const body = fontById(s.bodyFont).family;
+  const brandBlend = mixHex(s.primary, s.accent, 0.45) ?? s.primary;
   return {
     ["--primary" as any]: s.primary,
     ["--primary-glow" as any]: s.accent,
@@ -631,6 +687,9 @@ export function settingsToCssVars(s: SiteSettings): React.CSSProperties {
     ["--muted-foreground" as any]: s.mutedTextColor,
     ["--font-sans" as any]: body,
     ["--font-display" as any]: heading,
+    ["--brand-foreground" as any]: readableTextOn(brandBlend),
+    ["--primary-contrast" as any]: readableTextOn(s.primary),
+    ["--accent-contrast" as any]: readableTextOn(s.accent, s.textColor),
     ["--btn-radius" as any]: buttonRadius(s.buttonShape),
     fontSize: `${Math.min(1.3, Math.max(0.85, s.fontScale || 1))}rem`,
     backgroundColor: s.background,
