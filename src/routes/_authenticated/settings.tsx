@@ -27,6 +27,7 @@ const LAYOUTS: { id: LayoutStyle; name: string; desc: string }[] = [
   { id: "elegant", name: "فاخر", desc: "تدرّجات ناعمة وتوهّجات — الأنسب للصالونات الراقية" },
   { id: "minimal", name: "بسيط", desc: "مسطّح ونظيف مع تركيز على المحتوى" },
   { id: "bold", name: "جريء", desc: "ألوان قوية وعناوين ضخمة وحضور لافت" },
+  { id: "luxe", name: "لمسة فاخرة", desc: "صورة كاملة بالشعار والاسم فوقها + بطاقات خدمات عصرية" },
 ];
 
 type TabId = "design" | "hero" | "sections" | "contact" | "seo" | "images" | "payments" | "wa";

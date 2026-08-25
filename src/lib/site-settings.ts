@@ -7,7 +7,7 @@ import makeup2 from "@/assets/showcase/makeup-2.jpg";
 import nails1 from "@/assets/showcase/nails-1.jpg";
 import spa1 from "@/assets/showcase/spa-1.jpg";
 
-export type LayoutStyle = "elegant" | "minimal" | "bold";
+export type LayoutStyle = "elegant" | "minimal" | "bold" | "luxe";
 export type HeroAlign = "right" | "center" | "left";
 export type ButtonShape = "rounded" | "pill" | "square";
 export type BookingMode = "internal" | "whatsapp" | "call" | "link";
@@ -195,6 +195,15 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
+  {
+    id: "rose-luxe",
+    name: "لمسة فاخرة (جديد)",
+    desc: "صورة كبيرة بالشعار والاسم + بطاقات خدمات أنيقة",
+    layout: "luxe",
+    primary: "#EC4899", accent: "#FBCFE8", background: "#FFF1F7", surface: "#FFFFFF",
+    textColor: "#4A1D3A", mutedTextColor: "#9D5A82",
+    headingFont: "amiri", bodyFont: "readex",
+  },
   {
     id: "royal-purple",
     name: "بنفسجي ملكي",
