@@ -209,6 +209,9 @@ export interface Booking {
   customerId: string;
   staffId: string;
   serviceIds: string[];
+  /** Branch the booking belongs to. `null` = not linked to a specific branch. */
+  branchId?: string | null;
+
   startsAt: string;
   durationMin: number;
   price: number;
