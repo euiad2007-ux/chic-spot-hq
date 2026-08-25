@@ -61,6 +61,8 @@ import { PlanUpgradeNotice } from "@/components/platform/plan-gate";
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
 const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/platform", roles: ["platform_owner"] },
+  { prefix: "/platform-settings", roles: ["platform_owner"] },
+
   { prefix: "/dashboard", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/services", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/pos", roles: ["platform_owner", "salon_owner", "branch_manager"] },
