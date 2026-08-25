@@ -140,23 +140,26 @@ export function HeroTab({ s }: { s: SiteSettings }) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
         <section className="glass-card rounded-2xl p-5">
-          <Head icon={Sparkles} title="واجهة الموقع (Hero)" desc="العنوان الرئيسي والنص التعريفي وصورة الغلاف بعرض الشاشة الكامل." />
+          <Head icon={Sparkles} title="واجهة الموقع (Hero)" desc="العنوان والنص التعريفي وزر الدعوة وصورة الغلاف — تُحفظ داخل الاستايل الحالي وتعود عند التبديل إليه." />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Txt label="العنوان الرئيسي" value={s.heroTitle} onChange={(v) => siteActions.update({ heroTitle: v })} />
             <Txt label="الكلمة المميزة (بتدرّج لوني)" value={s.heroHighlight} onChange={(v) => siteActions.update({ heroHighlight: v })} />
-            <Area label="النص التعريفي" value={s.heroSubtitle} onChange={(v) => siteActions.update({ heroSubtitle: v })} className="md:col-span-2" />
+            <Area label="النص التعريفي" value={s.heroSubtitle} onChange={(v) => siteActions.updateHero({ heroSubtitle: v })} className="md:col-span-2" />
+            <Txt label="زر الدعوة الرئيسي (CTA)" value={s.heroCtaLabel} placeholder="مثال: احجزي موعدك" onChange={(v) => siteActions.updateHero({ heroCtaLabel: v })} />
+            <Txt label="رابط زر الدعوة (اتركيه فارغاً للحجز)" value={s.heroCtaUrl} placeholder="https://" onChange={(v) => siteActions.updateHero({ heroCtaUrl: v })} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <Pills
               label="محاذاة النص"
               value={s.heroAlign}
               options={[{ id: "right", label: "يمين" }, { id: "center", label: "وسط" }, { id: "left", label: "يسار" }]}
-              onChange={(v) => siteActions.update({ heroAlign: v })}
+              onChange={(v) => siteActions.updateHero({ heroAlign: v })}
             />
-            <Slider label="ارتفاع الواجهة" value={s.heroHeight} min={50} max={100} suffix="vh" onChange={(v) => siteActions.update({ heroHeight: v })} />
-            <Slider label="تعتيم الصورة" value={s.heroOverlay} min={0} max={90} suffix="%" onChange={(v) => siteActions.update({ heroOverlay: v })} />
+            <Slider label="ارتفاع الواجهة" value={s.heroHeight} min={50} max={100} suffix="vh" onChange={(v) => siteActions.updateHero({ heroHeight: v })} />
+            <Slider label="تعتيم الصورة" value={s.heroOverlay} min={0} max={90} suffix="%" onChange={(v) => siteActions.updateHero({ heroOverlay: v })} />
           </div>
         </section>
+
 
         <section className="glass-card rounded-2xl p-5">
           <Head
