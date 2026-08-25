@@ -53,7 +53,13 @@ function ServicesPage() {
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [staffIds, setStaffIds] = useState<string[]>([]);
-  const [branchFilter, setBranchFilter] = useState("");
+  const headerBranch = useActiveBranch();
+  const [branchFilter, setBranchFilter] = useState(headerBranch ?? "");
+  // Follow the branch chosen in the dashboard header.
+  useEffect(() => {
+    setBranchFilter(headerBranch ?? "");
+  }, [headerBranch]);
+
 
   const branchesQuery = useQuery({
     queryKey: ["branches", salonId],
