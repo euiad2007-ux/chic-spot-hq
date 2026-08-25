@@ -19,3 +19,15 @@ is `src/routes/__root.tsx`.
 | `__root.tsx` | app shell — wraps every page; preserve `<Outlet />` |
 
 `routeTree.gen.ts` is auto-generated. Don't edit it by hand.
+
+## Salon sub-routes (`/salon/$slug/...`)
+
+The salon storefront is a **leaf** at `salon.$slug.index.tsx`; sub-pages such as
+`salon.$slug.login.tsx` are siblings. Never add a `salon.$slug.tsx` page that
+renders content — a parent route without `<Outlet />` shadows every child, so
+`/salon/$slug/login` would change the URL without rendering. If a shared salon
+layout is ever needed, create `salon.$slug.tsx` returning only `<Outlet />`.
+
+`src/lib/route-files.test.ts` enforces both invariants (route id matches
+filename, parents render `<Outlet />`); run `bunx vitest run` before shipping
+route changes.
