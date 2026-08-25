@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { BookingCalendar } from "@/components/salon/booking-calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { hydrateAll, currentSalonId } from "@/lib/db/hydrate";
+import { checkoutBookingOnServer, redeemLoyaltyOnServer } from "@/lib/db/checkout-repo";
+
 
 export const Route = createFileRoute("/_authenticated/client")({
   head: () => ({
