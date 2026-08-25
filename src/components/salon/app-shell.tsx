@@ -398,6 +398,34 @@ export function AppShell({
               />
             </div>
             <div className="flex-1 sm:hidden" />
+            {manager && branches.length > 0 && (
+              <label className="relative">
+                <span className="sr-only">الفرع الحالي</span>
+                <Building2 className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
+                <select
+                  value={activeBranch ?? ""}
+                  onChange={(e) => {
+                    setActiveBranch(account?.salonId ?? null, e.target.value || null);
+                    toast.success(
+                      e.target.value
+                        ? `تم التبديل إلى ${branches.find((b) => b.id === e.target.value)?.name ?? "الفرع"}`
+                        : "تم عرض كل الفروع",
+                    );
+                  }}
+                  className="h-10 rounded-lg border border-border bg-muted/40 pr-9 pl-3 text-sm font-semibold outline-none focus:border-primary/50 max-w-[190px]"
+                  title="اختيار الفرع"
+                >
+                  <option value="">كل الفروع</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                      {b.active ? "" : " (موقوف)"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
             <Button asChild variant="outline" size="sm" className="h-10 gap-2 bg-muted/40">
               <a href={sitePath} target="_blank" rel="noreferrer" aria-label="زيارة موقع المشغل">
                 <ExternalLink className="size-4" />
