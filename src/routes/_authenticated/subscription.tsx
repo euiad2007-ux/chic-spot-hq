@@ -126,9 +126,14 @@ function SubscriptionPage() {
           </p>
         </section>
       </div>
+
+      <div className="mt-4">
+        <SalonLinksPanel salonId={salonId} />
+      </div>
     </AppShell>
   );
 }
+
 
 function Cell({ label, value }: { label: string; value: string }) {
   return (
