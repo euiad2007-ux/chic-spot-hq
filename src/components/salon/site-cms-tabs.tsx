@@ -278,6 +278,8 @@ export function SectionsTab({ s }: { s: SiteSettings }) {
           <Txt label="وصف المعرض" value={s.galleryDesc} onChange={(v) => siteActions.update({ galleryDesc: v })} />
           <Txt label="عنوان الفريق" value={s.teamTitle} onChange={(v) => siteActions.update({ teamTitle: v })} />
           <Txt label="وصف الفريق" value={s.teamDesc} onChange={(v) => siteActions.update({ teamDesc: v })} />
+          <Txt label="عنوان التقييمات" value={s.reviewsTitle} onChange={(v) => siteActions.update({ reviewsTitle: v })} />
+          <Txt label="وصف التقييمات" value={s.reviewsDesc} onChange={(v) => siteActions.update({ reviewsDesc: v })} />
           <Txt label="عنوان التواصل" value={s.contactTitle} onChange={(v) => siteActions.update({ contactTitle: v })} />
           <Txt label="وصف التواصل" value={s.contactDesc} onChange={(v) => siteActions.update({ contactDesc: v })} />
           <Txt label="نص التذييل" value={s.footerText} onChange={(v) => siteActions.update({ footerText: v })} className="md:col-span-2" />

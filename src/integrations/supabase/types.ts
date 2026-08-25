@@ -1963,6 +1963,77 @@ export type Database = {
           },
         ]
       }
+      salon_reviews: {
+        Row: {
+          booking_id: string | null
+          branch_id: string | null
+          comment: string | null
+          created_at: string
+          customer_id: string | null
+          display_name: string | null
+          id: string
+          published: boolean
+          rating: number
+          salon_id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          branch_id?: string | null
+          comment?: string | null
+          created_at?: string
+          customer_id?: string | null
+          display_name?: string | null
+          id?: string
+          published?: boolean
+          rating: number
+          salon_id: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          branch_id?: string | null
+          comment?: string | null
+          created_at?: string
+          customer_id?: string | null
+          display_name?: string | null
+          id?: string
+          published?: boolean
+          rating?: number
+          salon_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_reviews_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_reviews_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salon_settings: {
         Row: {
           booking: Json
@@ -2713,6 +2784,23 @@ export type Database = {
           slug: string
         }[]
       }
+      public_salon_rating: {
+        Args: { _salon: string }
+        Returns: {
+          avg_rating: number
+          review_count: number
+        }[]
+      }
+      public_salon_reviews: {
+        Args: { _limit?: number; _salon: string }
+        Returns: {
+          comment: string
+          created_at: string
+          display_name: string
+          id: string
+          rating: number
+        }[]
+      }
       public_salon_services: {
         Args: { _salon: string }
         Returns: {
@@ -2760,6 +2848,15 @@ export type Database = {
         Returns: undefined
       }
       seed_chart_accounts: { Args: { _salon: string }; Returns: number }
+      submit_salon_review: {
+        Args: {
+          _booking: string
+          _comment?: string
+          _display_name?: string
+          _rating: number
+        }
+        Returns: string
+      }
       unpost_accounting_period: {
         Args: { _period: string; _salon: string }
         Returns: number

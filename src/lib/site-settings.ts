@@ -11,7 +11,7 @@ export type LayoutStyle = "elegant" | "minimal" | "bold";
 export type HeroAlign = "right" | "center" | "left";
 export type ButtonShape = "rounded" | "pill" | "square";
 export type BookingMode = "internal" | "whatsapp" | "call" | "link";
-export type SectionId = "showcase" | "services" | "gallery" | "team" | "contact";
+export type SectionId = "showcase" | "services" | "gallery" | "team" | "reviews" | "contact";
 export type HeroButtonKind = "booking" | "whatsapp" | "services" | "call" | "link";
 
 export const SECTION_LABELS: Record<SectionId, string> = {
@@ -19,6 +19,7 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   services: "الخدمات",
   gallery: "معرض الأعمال",
   team: "فريق العمل",
+  reviews: "التقييمات",
   contact: "التواصل",
 };
 
@@ -117,6 +118,8 @@ export interface SiteSettings {
   teamTitle: string;
   teamDesc: string;
   team: TeamMember[];
+  reviewsTitle: string;
+  reviewsDesc: string;
   contactTitle: string;
   contactDesc: string;
   footerText: string;
@@ -334,10 +337,12 @@ const defaults: SiteSettings = {
   teamTitle: "فريقنا",
   teamDesc: "أخصائيات خبيرات لخدمتك",
   team: [],
+  reviewsTitle: "تقييمات عميلاتنا",
+  reviewsDesc: "آراء حقيقية من عميلات أكملن مواعيدهن معنا",
   contactTitle: "تواصلي معنا",
   contactDesc: "نحن هنا للإجابة على استفساراتك وحجز موعدك",
   footerText: "جميع الحقوق محفوظة",
-  sectionOrder: ["showcase", "services", "gallery", "team", "contact"],
+  sectionOrder: ["showcase", "services", "gallery", "team", "reviews", "contact"],
   hiddenSections: [],
   email: "",
   mapsUrl: "",
@@ -559,10 +564,13 @@ export function galleryOf(s: SiteSettings): GalleryItem[] {
   return s.gallery.map((url) => ({ url, title: "", category: "" }));
 }
 
-/** Visible sections in the configured order. */
+const ALL_SECTIONS: SectionId[] = ["showcase", "services", "gallery", "team", "reviews", "contact"];
+
+/** Visible sections in the configured order (newer sections are appended). */
 export function visibleSections(s: SiteSettings): SectionId[] {
-  const order = s.sectionOrder.length ? s.sectionOrder : (["showcase", "services", "gallery", "team", "contact"] as SectionId[]);
-  return order.filter((id) => !s.hiddenSections.includes(id));
+  const order = s.sectionOrder.length ? s.sectionOrder : ALL_SECTIONS;
+  const merged = [...order, ...ALL_SECTIONS.filter((id) => !order.includes(id))];
+  return merged.filter((id) => !s.hiddenSections.includes(id));
 }
 
 /** Social links present in settings, ready to render. */

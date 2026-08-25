@@ -20,6 +20,7 @@ import { BookingCalendar } from "@/components/salon/booking-calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { hydrateAll, currentSalonId } from "@/lib/db/hydrate";
 import { checkoutBookingOnServer, redeemLoyaltyOnServer } from "@/lib/db/checkout-repo";
+import { submitReview } from "@/lib/db/reviews-repo";
 
 
 export const Route = createFileRoute("/_authenticated/client")({
@@ -659,6 +660,7 @@ function BookingsTab({ upcoming, past, services, staff, invoices }: any) {
                   <th className="text-right py-3 px-4">الخدمة</th>
                   <th className="text-right py-3 px-4">الأخصائية</th>
                   <th className="text-right py-3 px-4">المبلغ</th>
+                  <th className="text-right py-3 px-4">التقييم</th>
                 </tr>
               </thead>
               <tbody>
@@ -671,6 +673,9 @@ function BookingsTab({ upcoming, past, services, staff, invoices }: any) {
                       <td className="py-3 px-4">{svcs}</td>
                       <td className="py-3 px-4 text-muted-foreground">{st?.name}</td>
                       <td className="py-3 px-4 font-semibold">{formatSAR(b.price - b.discount)}</td>
+                      <td className="py-3 px-4">
+                        {b.status === "completed" ? <ReviewCell bookingId={b.id} /> : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
                     </tr>
                   );
                 })}
@@ -693,6 +698,67 @@ function BookingsTab({ upcoming, past, services, staff, invoices }: any) {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+/* ==================== REVIEW ==================== */
+
+/** Star rating + optional comment for a completed booking. */
+function ReviewCell({ bookingId }: { bookingId: string }) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  if (saved) return <span className="text-xs text-success font-semibold">شكرًا لتقييمك</span>;
+
+  const send = async () => {
+    if (rating < 1) return toast.error("اختاري عدد النجوم");
+    setBusy(true);
+    try {
+      await submitReview(bookingId, rating, comment);
+      setSaved(true);
+      toast.success("تم إرسال التقييم");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر إرسال التقييم");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
+        <Star className="size-3.5" /> قيّمي الزيارة
+      </button>
+    );
+  }
+
+  return (
+    <div className="space-y-2 min-w-[190px]">
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button key={n} onClick={() => setRating(n)} aria-label={`${n} نجوم`}>
+            <Star className={cn("size-4", n <= rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40")} />
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        rows={2}
+        maxLength={400}
+        placeholder="تعليقك (اختياري)"
+        className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+      />
+      <div className="flex items-center gap-2">
+        <button onClick={send} disabled={busy} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60">
+          إرسال
+        </button>
+        <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:underline">إلغاء</button>
+      </div>
     </div>
   );
 }
