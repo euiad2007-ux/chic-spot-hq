@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { BookingCalendar } from "@/components/salon/booking-calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { hydrateAll, currentSalonId } from "@/lib/db/hydrate";
+import { checkoutBookingOnServer, redeemLoyaltyOnServer } from "@/lib/db/checkout-repo";
+
 
 export const Route = createFileRoute("/_authenticated/client")({
   head: () => ({
@@ -220,11 +222,17 @@ function OverviewTab({ me, upcoming, services, staff, bookings, onNew }: any) {
   const approve = (b: any) => {
     const res = actions.approveWalletPayment(b.id);
     if (!res.ok) return toast.error(res.error ?? "تعذّر الاعتماد");
-    // After approval, issue invoice from wallet immediately
-    const inv = actions.createInvoice(b.id, "cash");
-    if (inv) toast.success(`تم اعتماد الدفع وإصدار الفاتورة ${inv.number}`);
-    else toast.success("تمت الموافقة على الخصم");
+    // After approval, the server issues the invoice and debits the wallet.
+    void checkoutBookingOnServer({
+      bookingId: b.id,
+      method: "wallet",
+      walletUsed: b.price ?? 0,
+      couponCode: b.couponCode,
+    })
+      .then((r) => toast.success(`تم اعتماد الدفع وإصدار الفاتورة ${r.number}`))
+      .catch((e: Error) => toast.error(e.message));
   };
+
   const reject = (b: any) => {
     actions.rejectWalletPayment(b.id);
     toast.info("تم رفض الخصم من المحفظة");
@@ -470,10 +478,14 @@ function LoyaltyTab({ me }: any) {
     const n = Math.floor(Number(pts));
     if (!n || n <= 0) return toast.error("أدخلي عدد النقاط");
     if (n > points) return toast.error("النقاط المتاحة أقل");
-    const val = actions.redeemLoyalty(me.id, n);
-    setPts("");
-    toast.success(`تم استبدال ${n} نقطة (${formatSAR(val)})`);
+    void redeemLoyaltyOnServer(me.id, n)
+      .then((val) => {
+        setPts("");
+        toast.success(`تم استبدال ${n} نقطة (${formatSAR(val)})`);
+      })
+      .catch((e: Error) => toast.error(e.message));
   };
+
   const logs = me.loyaltyLog ?? [];
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -815,9 +827,15 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
     });
 
     if (pay !== "hold") {
-      const inv = actions.createInvoice(nb.id, (pay === "wallet" ? "cash" : pay) as any);
-      if (inv) toast.success(`تم الحجز وإصدار الفاتورة ${nb.code}`);
+      void checkoutBookingOnServer({
+        bookingId: nb.id,
+        method: pay,
+        walletUsed: pay === "wallet" ? combined.price : 0,
+      })
+        .then((r) => toast.success(`تم الحجز ${nb.code} وإصدار الفاتورة ${r.number}`))
+        .catch((e: Error) => toast.error(e.message));
     } else {
+
       toast.success(`تم حفظ الحجز ${nb.code} — سيُلغى تلقائياً بعد ${settings.holdGraceMin} دقيقة من موعده إن لم يُدفع`);
     }
     onClose();

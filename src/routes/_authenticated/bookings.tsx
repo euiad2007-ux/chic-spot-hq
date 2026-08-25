@@ -7,7 +7,11 @@ import {
   type BookingStatus, type BookingPaymentMethod, type Customer, type Service,
 } from "@/lib/salon-store";
 import { findEarliestSlot, useBookingSettings, getBookingSettings, checkBookingConflict } from "@/lib/booking-settings";
-import { evalCoupon, couponActions } from "@/lib/coupon-store";
+import { evalCoupon } from "@/lib/coupon-store";
+import { checkoutBookingOnServer, cancelExpiredHoldsOnServer } from "@/lib/db/checkout-repo";
+import { currentSalonId } from "@/lib/db/hydrate";
+
+
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -53,12 +57,18 @@ function BookingsPage() {
   const [search, setSearch] = useState("");
   const [openNew, setOpenNew] = useState(false);
 
-  // Auto-cancel expired hold bookings on mount + every minute
+  // Auto-cancel expired hold bookings on the server, on mount + every minute
   useEffect(() => {
-    actions.cancelExpiredHolds();
-    const t = setInterval(() => actions.cancelExpiredHolds(), 60_000);
+    const sweep = () => {
+      const salonId = currentSalonId();
+      if (!salonId) return;
+      void cancelExpiredHoldsOnServer(salonId).catch(() => undefined);
+    };
+    sweep();
+    const t = setInterval(sweep, 60_000);
     return () => clearInterval(t);
   }, []);
+
 
   const rows = useMemo(() => {
     return bookings
@@ -212,23 +222,29 @@ function BookingsPage() {
                           title="إتمام وإصدار فاتورة"
                           onClick={() => {
                             const method = (b.paymentMethod === "wallet" && b.walletApproved)
-                              ? "cash"
+                              ? "wallet"
                               : (b.paymentMethod && b.paymentMethod !== "hold" && b.paymentMethod !== "wallet")
-                                ? b.paymentMethod as any
+                                ? b.paymentMethod as string
                                 : "cash";
                             if (b.paymentMethod === "wallet" && !b.walletApproved) {
                               toast.error("لم يوافق العميل على الخصم من المحفظة بعد");
                               return;
                             }
-                            const inv = actions.createInvoice(b.id, method);
-                            if (inv && b.couponCode) couponActions.markUsed(b.couponCode);
-                            toast.success("تم إصدار الفاتورة");
+                            void checkoutBookingOnServer({
+                              bookingId: b.id,
+                              method: method === "wallet" ? "wallet" : method,
+                              walletUsed: method === "wallet" ? total : 0,
+                              couponCode: b.couponCode,
+                            })
+                              .then((r) => toast.success(`تم إصدار الفاتورة ${r.number}`))
+                              .catch((e: Error) => toast.error(e.message));
                           }}
                           className="size-9 rounded-lg border border-border hover:border-success/50 hover:text-success grid place-items-center transition"
                         >
                           <CheckCircle2 className="size-4" />
                         </button>
                       )}
+
                       {canComplete && (
                         <button
                           title="إلغاء"
@@ -440,14 +456,19 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       walletApprovalRequestedAt: needsApproval ? new Date().toISOString() : undefined,
     });
 
-    // If cash/electronic → issue invoice immediately (one invoice for all services)
+    // If cash/electronic → issue the invoice on the server (one invoice for all services)
     if (payMethod !== "wallet" && payMethod !== "hold") {
-      const inv = actions.createInvoice(nb.id, payMethod as any);
-      if (inv && finalCouponCode) couponActions.markUsed(finalCouponCode);
-      toast.success(`تم إنشاء الحجز ${nb.code} وإصدار الفاتورة`);
+      void checkoutBookingOnServer({
+        bookingId: nb.id,
+        method: payMethod,
+        couponCode: finalCouponCode,
+      })
+        .then((r) => toast.success(`تم إنشاء الحجز ${nb.code} وإصدار الفاتورة ${r.number}`))
+        .catch((e: Error) => toast.error(e.message));
     } else if (payMethod === "wallet") {
       toast.success(`تم إنشاء الحجز ${nb.code} — بانتظار موافقة العميل على الخصم من المحفظة`);
     }
+
     onClose();
   };
 

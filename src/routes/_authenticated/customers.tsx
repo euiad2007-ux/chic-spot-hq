@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 import { TopupRequestsPanel } from "@/components/salon/topup-requests";
+import { redeemLoyaltyOnServer } from "@/lib/db/checkout-repo";
+
 
 
 export const Route = createFileRoute("/_authenticated/customers")({
@@ -255,10 +257,14 @@ function DetailDialog({ customer, onClose, onEdit }: { customer: Customer; onClo
   const doRedeem = () => {
     if (!redeemPts || redeemPts <= 0) return toast.error("أدخل النقاط");
     if (redeemPts > Math.floor(customer.loyaltyPoints ?? 0)) return toast.error("النقاط غير كافية");
-    const v = actions.redeemLoyalty(customer.id, redeemPts);
-    setRedeemPts(0);
-    toast.success(`تم استبدال النقاط بـ ${formatSAR(v)} في المحفظة`);
+    void redeemLoyaltyOnServer(customer.id, redeemPts)
+      .then((v) => {
+        setRedeemPts(0);
+        toast.success(`تم استبدال النقاط بـ ${formatSAR(v)} في المحفظة`);
+      })
+      .catch((e: Error) => toast.error(e.message));
   };
+
   const copyCode = () => {
     if (!customer.referralCode) return;
     navigator.clipboard.writeText(customer.referralCode);

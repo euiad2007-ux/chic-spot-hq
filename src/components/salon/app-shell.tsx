@@ -69,13 +69,13 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/activity-log", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/staff", roles: ["platform_owner", "salon_owner", "branch_manager"] },
-  { prefix: "/payroll", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/payroll", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/attendance", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/customers", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/coupons", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/invoices", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/booking-settings", roles: ["platform_owner", "salon_owner", "branch_manager"] },
-  { prefix: "/settings", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/settings", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/bookings", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
   { prefix: "/calendar", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
   { prefix: "/specialist", roles: ["platform_owner", "salon_owner", "branch_manager", "staff"] },
@@ -189,6 +189,7 @@ export function AppShell({
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
     (n.platform ? account?.role === "platform_owner" : n.manager ? manager : true) &&
+    allowedForPath(n.to, account?.role) &&
     (!n.module || account?.role === "platform_owner" || account?.enabledModules.includes(n.module)),
   );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
