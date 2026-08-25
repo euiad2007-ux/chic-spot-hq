@@ -476,10 +476,14 @@ function LoyaltyTab({ me }: any) {
     const n = Math.floor(Number(pts));
     if (!n || n <= 0) return toast.error("أدخلي عدد النقاط");
     if (n > points) return toast.error("النقاط المتاحة أقل");
-    const val = actions.redeemLoyalty(me.id, n);
-    setPts("");
-    toast.success(`تم استبدال ${n} نقطة (${formatSAR(val)})`);
+    void redeemLoyaltyOnServer(me.id, n)
+      .then((val) => {
+        setPts("");
+        toast.success(`تم استبدال ${n} نقطة (${formatSAR(val)})`);
+      })
+      .catch((e: Error) => toast.error(e.message));
   };
+
   const logs = me.loyaltyLog ?? [];
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
