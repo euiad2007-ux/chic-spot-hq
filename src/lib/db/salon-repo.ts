@@ -312,14 +312,14 @@ const leaveRows = (s: Staff, salon_id: string): Row[] =>
 
 let pendingState: SalonState | null = null;
 
-const flush = debounce(() => {
+function syncNow(): Promise<void> {
   const state = pendingState;
   pendingState = null;
-  if (!state) return;
+  if (!state) return Promise.resolve();
   const ctx = getDataContext();
-  if (!ctx?.salonId || !ready) return;
+  if (!ctx?.salonId || !ready) return Promise.resolve();
   const salonId = ctx.salonId;
-  void enqueue(async () => {
+  return enqueue(async () => {
     const next = buildSnapshot(state, salonId);
     const prev = snap;
     snap = next;
@@ -368,6 +368,10 @@ const flush = debounce(() => {
       console.error("[db] salon sync failed", e);
     }
   });
+}
+
+const flush = debounce(() => {
+  void syncNow();
 }, 350);
 
 /** Called by the store after every mutation. */
@@ -375,6 +379,16 @@ export function scheduleSalonSave(state: SalonState) {
   pendingState = state;
   flush();
 }
+
+/**
+ * Pushes any pending local changes to the database immediately and waits for
+ * them to land. Server-side operations (checkout, loyalty) call this first so
+ * the rows they act on already exist.
+ */
+export function flushSalonSave(): Promise<void> {
+  return syncNow();
+}
+
 
 export function resetSalonSnapshot() {
   snap = emptySnapshot();
