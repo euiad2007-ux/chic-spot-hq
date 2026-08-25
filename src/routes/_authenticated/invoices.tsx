@@ -4,6 +4,8 @@ import { useSalon, formatSAR, formatDate, type Invoice } from "@/lib/salon-store
 import { Receipt, TrendingUp, CheckCircle2, Eye } from "lucide-react";
 import { useState } from "react";
 import { InvoiceReceipt } from "@/components/salon/invoice-receipt";
+import { useActiveBranch } from "@/lib/active-branch";
+
 
 export const Route = createFileRoute("/_authenticated/invoices")({
   head: () => ({
