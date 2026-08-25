@@ -3,7 +3,10 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
-const errorMiddleware = createMiddleware().server(async ({ next }) => {
+const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
+  if (new URL(request.url).pathname.startsWith("/lovable/")) {
+    return next();
+  }
   try {
     return await next();
   } catch (error) {
@@ -16,6 +19,10 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
       headers: { "content-type": "text/html; charset=utf-8" },
     });
   }
+});
+
+const lovableBypassMiddleware = createMiddleware().server(async ({ next, request }) => {
+  return next();
 });
 
 // Start installs this automatically when src/start.ts is absent; defining the
