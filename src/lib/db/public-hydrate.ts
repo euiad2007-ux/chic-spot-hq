@@ -50,9 +50,7 @@ async function resolveSalon(slug?: string): Promise<{ id: string; name: string }
   if (tenant) return null;
   const signed = await resolveSignedInSalon();
   if (signed) return signed;
-  const { data } = await supabase.rpc("public_salon_lookup", {});
-  const row = (data as { id: string; name: string }[] | null)?.[0];
-  return row ? { id: row.id, name: row.name } : null;
+  return null;
 }
 
 const salonCache = new Map<string, Promise<{ id: string; name: string } | null>>();
@@ -83,8 +81,10 @@ export async function fetchPublicBranding(slug?: string): Promise<PublicBranding
   const { data } = await supabase.rpc("public_salon_site", { _salon: salon.id });
   const stored = data && typeof data === "object" && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
   const pick = (k: string) => (typeof stored[k] === "string" ? (stored[k] as string) : "");
+  const salonName = pick("salonName") || salon.name;
+  hydrateSiteSettings({ ...stored, salonName });
   return {
-    salonName: pick("salonName") || salon.name,
+    salonName,
     logoUrl: pick("logoUrl"),
     primary: pick("primary"),
     accent: pick("accent"),

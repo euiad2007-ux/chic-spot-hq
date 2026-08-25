@@ -42,9 +42,9 @@ function useHeadLink(id: string, rel: string, href: string) {
 }
 
 /** Applies dashboard-managed SEO metadata to the live document. */
-function useSeo(s: SiteSettings) {
+function useSeo(s: SiteSettings, enabled: boolean) {
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined" || !enabled) return;
     const title = s.seoTitle || `${s.salonName} — ${s.tagline}`;
     document.title = title;
     const set = (sel: string, attr: "name" | "property", key: string, content: string) => {
@@ -63,7 +63,7 @@ function useSeo(s: SiteSettings) {
     set('meta[property="og:description"]', "property", "og:description", s.ogDescription || s.seoDescription || s.heroSubtitle);
     set('meta[property="og:image"]', "property", "og:image", s.ogImage || s.heroImage);
     set('meta[name="twitter:image"]', "name", "twitter:image", s.ogImage || s.heroImage);
-  }, [s]);
+  }, [s, enabled]);
 }
 
 /* ---------------- route ---------------- */
@@ -72,10 +72,10 @@ export const Route = createFileRoute("/site")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "صالون لمسة — تجميل وعناية فاخرة" },
-      { name: "description", content: "احجزي خدمات التجميل والعناية في صالون لمسة بسهولة عبر الإنترنت — شعر، مكياج، بشرة وأظافر." },
-      { property: "og:title", content: "صالون لمسة" },
-      { property: "og:description", content: "خدمات تجميل راقية، حجز إلكتروني، وأخصائيات محترفات." },
+      { title: "صفحة صالون — Chic Spot" },
+      { name: "description", content: "صفحة صالون احترافية للحجز الإلكتروني وعرض الخدمات والفريق والتقييمات عبر Chic Spot." },
+      { property: "og:title", content: "صفحة صالون على Chic Spot" },
+      { property: "og:description", content: "استعرضي خدمات الصالون واحجزي موعدك مباشرة من صفحة الصالون." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -86,9 +86,9 @@ export const Route = createFileRoute("/site")({
 /* ---------------- structured data ---------------- */
 
 /** BeautySalon JSON-LD so the salon page is search-friendly. */
-function useSalonJsonLd(site: SiteSettings, meta: PublicSalonMeta) {
+function useSalonJsonLd(site: SiteSettings, meta: PublicSalonMeta, enabled: boolean) {
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined" || !enabled) return;
     const id = "lamsa-jsonld";
     let el = document.getElementById(id) as HTMLScriptElement | null;
     if (!el) {
@@ -116,7 +116,7 @@ function useSalonJsonLd(site: SiteSettings, meta: PublicSalonMeta) {
       };
     }
     el.textContent = JSON.stringify(data);
-  }, [site, meta]);
+  }, [site, meta, enabled]);
 }
 
 /* ---------------- page ---------------- */
@@ -130,23 +130,40 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   const { services, staff } = useSalon((s) => s);
   const [meta, setMeta] = useState<PublicSalonMeta>({ salonId: null, avgRating: 0, reviewCount: 0, reviews: [] });
   const [loading, setLoading] = useState(true);
+  const [shellReady, setShellReady] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [branding, setBranding] = useState<PublicBranding | null>(null);
   useEffect(() => {
     let active = true;
+    let resolvedBranding = false;
     setLoading(true);
+    setShellReady(false);
+    setNotFound(false);
     setBranding(null);
     void import("@/lib/db/public-hydrate").then((m) => {
       // Fast branding-only fetch so the loading screen already looks like the salon.
       void m.fetchPublicBranding(slug).then((b) => {
-        if (active) setBranding(b);
+        resolvedBranding = Boolean(b);
+        if (!active) return;
+        setBranding(b);
+        if (b) {
+          setShellReady(true);
+          setLoading(false);
+        }
+      }).catch(() => {
+        resolvedBranding = false;
       });
-      return m
+      void m
         .hydratePublicSite(slug, true)
         .then((next) => {
-          if (active) setMeta(next);
+          if (!active) return;
+          setMeta(next);
+          if (!next.salonId && !resolvedBranding) setNotFound(true);
         })
         .finally(() => {
-          if (active) setLoading(false);
+          if (!active) return;
+          setShellReady(true);
+          setLoading(false);
         });
     });
     return () => {
@@ -157,8 +174,8 @@ export function SalonSiteView({ slug }: { slug?: string }) {
 
   useHeadLink("lamsa-google-fonts", "stylesheet", googleFontsHref(site));
   useHeadLink("lamsa-favicon", "icon", site.faviconUrl);
-  useSeo(site);
-  useSalonJsonLd(site, meta);
+  useSeo(site, shellReady && !notFound);
+  useSalonJsonLd(site, meta, shellReady && !notFound);
 
   const waHref = waLink(site.waNumber, `مرحبًا، أرغب في الاستفسار عن خدمات ${site.salonName}`, site.waCountryCode);
   const sections = visibleSections(site);
@@ -194,18 +211,17 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   return (
     <>
       <SalonBrandedLoader
-        branding={
-          branding ?? {
-            salonName: site.salonName,
-            logoUrl: site.logoUrl,
-            primary: site.primary,
-            accent: site.accent,
-            background: site.background,
-            textColor: site.textColor,
-          }
-        }
+        branding={branding}
         hidden={!loading}
       />
+      {!shellReady ? null : notFound ? (
+        <main className="grid min-h-screen place-items-center bg-background px-6 text-center" dir="rtl">
+          <div className="max-w-md">
+            <h1 className="text-2xl font-black text-foreground">صفحة الصالون غير متاحة</h1>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">تحققي من رابط الصالون أو تواصلي مع إدارة الصالون.</p>
+          </div>
+        </main>
+      ) : (
       <div
         className={`lamsa-site min-h-screen transition-opacity duration-700 ${loading ? "opacity-0" : "opacity-100"}`}
         dir="rtl"
@@ -240,6 +256,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
       </a>
         <SiteAssistant site={site} services={services} staff={staff} />
       </div>
+      )}
     </>
   );
 
