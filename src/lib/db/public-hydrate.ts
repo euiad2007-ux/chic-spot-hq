@@ -50,9 +50,7 @@ async function resolveSalon(slug?: string): Promise<{ id: string; name: string }
   if (tenant) return null;
   const signed = await resolveSignedInSalon();
   if (signed) return signed;
-  const { data } = await supabase.rpc("public_salon_lookup", {});
-  const row = (data as { id: string; name: string }[] | null)?.[0];
-  return row ? { id: row.id, name: row.name } : null;
+  return null;
 }
 
 const salonCache = new Map<string, Promise<{ id: string; name: string } | null>>();
