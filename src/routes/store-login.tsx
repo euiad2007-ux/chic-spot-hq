@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Scissors, Loader2, IdCard, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { SiteLink } from "@/components/salon/salon-nav-links";
 import { signIn, signUp, homeForRole, loadAccount } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 import {
