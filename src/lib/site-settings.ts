@@ -537,6 +537,15 @@ function luminance(input: string): number | null {
   return 0.2126 * channelToLinear(rgb.r) + 0.7152 * channelToLinear(rgb.g) + 0.0722 * channelToLinear(rgb.b);
 }
 
+function contrastRatio(a: string, b: string): number | null {
+  const left = luminance(a);
+  const right = luminance(b);
+  if (left === null || right === null) return null;
+  const lighter = Math.max(left, right);
+  const darker = Math.min(left, right);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 function mixHex(a: string, b: string, ratio = 0.5): string | null {
   const left = hexToRgb(a);
   const right = hexToRgb(b);
@@ -553,6 +562,12 @@ function readableTextOn(background: string, fallback = "#FFFFFF"): string {
   const l = luminance(background);
   if (l === null) return fallback;
   return l > 0.58 ? "#231724" : "#FFFFFF";
+}
+
+function readableBrandText(brand: string, background: string, fallback: string): string {
+  const ratio = contrastRatio(brand, background);
+  if (ratio !== null && ratio >= 4.5) return brand;
+  return fallback || readableTextOn(background, "#231724");
 }
 
 
@@ -688,6 +703,8 @@ export function settingsToCssVars(s: SiteSettings): React.CSSProperties {
     ["--font-sans" as any]: body,
     ["--font-display" as any]: heading,
     ["--brand-foreground" as any]: readableTextOn(brandBlend),
+    ["--brand-text" as any]: readableBrandText(s.primary, s.background, s.textColor),
+    ["--brand-surface-text" as any]: readableBrandText(s.primary, s.surface, s.textColor),
     ["--primary-contrast" as any]: readableTextOn(s.primary),
     ["--accent-contrast" as any]: readableTextOn(s.accent, s.textColor),
     ["--btn-radius" as any]: buttonRadius(s.buttonShape),
