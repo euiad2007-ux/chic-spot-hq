@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSiteSettings, siteActions, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
+import { useSiteSettings, siteActions, useSiteDirty, saveSiteSettingsNow, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
 import { useEffect, useRef, useState } from "react";
 import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard, Search } from "lucide-react";
@@ -35,6 +35,21 @@ function SettingsPage() {
   const s = useSiteSettings();
   const customers = useSalon((x) => x.customers);
   const [tab, setTab] = useState<TabId>("design");
+  const dirty = useSiteDirty();
+  const [saving, setSaving] = useState(false);
+
+  async function saveNow() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await saveSiteSettingsNow();
+      toast.success("تم حفظ إعدادات الموقع");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر حفظ الإعدادات");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <AppShell
@@ -42,6 +57,14 @@ function SettingsPage() {
       subtitle="خصّص الهوية، الواجهة، الأقسام، الحجز، والـ SEO"
       action={
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => void saveNow()}
+            disabled={saving}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-primary/40 bg-primary/10 text-primary text-sm font-semibold disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            {saving ? "جاري الحفظ…" : dirty ? "حفظ التغييرات" : "محفوظ"}
+          </button>
           <button
             onClick={() => { if (confirm("استعادة الإعدادات الافتراضية؟")) { siteActions.reset(); toast.success("تمت الاستعادة"); } }}
             className="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-border text-sm hover:bg-muted"
