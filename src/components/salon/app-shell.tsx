@@ -223,6 +223,26 @@ export function AppShell({
     }
   }, [activeBranch, branches, account?.salonId]);
 
+  /** Switches the branch scope and records who did it in the audit trail. */
+  function switchBranch(id: string | null) {
+    const salonId = account?.salonId ?? null;
+    const nameOf = (b: string | null) => (b ? branches.find((x) => x.id === b)?.name ?? null : null);
+    const from = activeBranch;
+    if (from === id) return;
+    setActiveBranch(salonId, id);
+    toast.success(id ? `تم التبديل إلى ${nameOf(id) ?? "الفرع"}` : "تم عرض كل الفروع");
+    if (salonId && account?.userId) {
+      void logBranchSwitch({
+        salonId,
+        userId: account.userId,
+        fromBranchId: from,
+        fromBranchName: nameOf(from),
+        toBranchId: id,
+        toBranchName: nameOf(id),
+      });
+    }
+  }
+
   async function handleSignOut() {
     await qc.cancelQueries();
     qc.clear();
