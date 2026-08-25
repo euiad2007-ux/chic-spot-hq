@@ -8,7 +8,9 @@ import {
 } from "@/lib/salon-store";
 import { useAccount } from "@/hooks/use-account";
 import { listBranches } from "@/lib/db/ops-repo";
-import { useState, useMemo } from "react";
+import { useActiveBranch } from "@/lib/active-branch";
+import { useState, useMemo, useEffect } from "react";
+
 import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
