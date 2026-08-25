@@ -39,9 +39,9 @@ const EMPTY_META: PublicSalonMeta = { salonId: null, avgRating: 0, reviewCount: 
  * Public salon website: loads branding, active services and the team without
  * requiring a session (read-only, anon-safe columns only).
  */
-export function hydratePublicSite(slug?: string): Promise<PublicSalonMeta> {
-  const key = slug ?? "";
-  if (done && doneKey === key) return done;
+export function hydratePublicSite(slug?: string, force = false): Promise<PublicSalonMeta> {
+  const key = slug ?? "current";
+  if (done && doneKey === key && !force) return done;
   doneKey = key;
   done = (async () => {
     let salon: { id: string; name: string } | null = null;
@@ -55,13 +55,47 @@ export function hydratePublicSite(slug?: string): Promise<PublicSalonMeta> {
     if (tenant && !tenant.isSuspended) {
       salon = { id: tenant.id, name: tenant.name };
     } else if (!tenant) {
-      const { data } = await supabase.rpc("public_salon_lookup", {});
-      const row = (data as { id: string; name: string }[] | null)?.[0];
-      salon = row ? { id: row.id, name: row.name } : null;
+      salon = await resolveSignedInSalon();
+      if (!salon) {
+        const { data } = await supabase.rpc("public_salon_lookup", {});
+        const row = (data as { id: string; name: string }[] | null)?.[0];
+        salon = row ? { id: row.id, name: row.name } : null;
+      }
     }
     return finish(salon);
   })();
   return done;
+}
+
+export function resetPublicSiteHydration() {
+  done = null;
+  doneKey = "";
+}
+
+async function resolveSignedInSalon(): Promise<{ id: string; name: string } | null> {
+  const { data: sessionRes } = await supabase.auth.getSession();
+  if (!sessionRes.session) return null;
+
+  const { data: memberships } = await supabase
+    .from("salon_members")
+    .select("salon_id, role")
+    .in("role", ["salon_owner", "branch_manager", "staff"])
+    .limit(20);
+
+  const rows = (memberships ?? []) as { salon_id: string | null; role: string }[];
+  const picked =
+    rows.find((r) => r.role === "salon_owner" && r.salon_id) ??
+    rows.find((r) => r.role === "branch_manager" && r.salon_id) ??
+    rows.find((r) => r.role === "staff" && r.salon_id);
+  if (!picked?.salon_id) return null;
+
+  const { data: salon } = await supabase
+    .from("salons")
+    .select("id, name")
+    .eq("id", picked.salon_id)
+    .maybeSingle();
+
+  return salon ? { id: salon.id, name: salon.name } : null;
 }
 
 async function finish(salon: { id: string; name: string } | null): Promise<PublicSalonMeta> {

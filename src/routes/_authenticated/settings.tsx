@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSiteSettings, siteActions, useSiteDirty, saveSiteSettingsNow, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
+import { currentSalonId } from "@/lib/db/hydrate";
+import { loadSalonDomain } from "@/lib/db/domain-repo";
 import { useEffect, useRef, useState } from "react";
 import { Palette, Image as ImageIcon, MessageCircle, Upload, Trash2, Save, RotateCcw, Send, ExternalLink, Sparkles, Layout, Store, Type, Check, CreditCard, Search } from "lucide-react";
 import { HeroTab, SectionsTab, ContactTab, SeoTab } from "@/components/salon/site-cms-tabs";
@@ -17,6 +19,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { name: "description", content: "تخصيص ألوان وشكل موقع الصالون، إدارة الصور، وإرسال رسائل واتساب." },
       { property: "og:title", content: "إعدادات الموقع" },
       { property: "og:description", content: "تخصيص كامل لموقع الصالون ورسائل واتساب." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SettingsPage,
@@ -38,12 +42,31 @@ function SettingsPage() {
   const [tab, setTab] = useState<TabId>("design");
   const dirty = useSiteDirty();
   const [saving, setSaving] = useState(false);
+  const [previewHref, setPreviewHref] = useState("/site");
+
+  useEffect(() => {
+    let active = true;
+    const salonId = currentSalonId();
+    if (!salonId) return () => {
+      active = false;
+    };
+    void loadSalonDomain(salonId)
+      .then((info) => {
+        if (active && info?.slug) setPreviewHref(`/salon/${encodeURIComponent(info.slug)}`);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function saveNow() {
     if (saving) return;
     setSaving(true);
     try {
       await saveSiteSettingsNow();
+      const m = await import("@/lib/db/public-hydrate");
+      m.resetPublicSiteHydration();
       toast.success("تم حفظ إعدادات الموقع");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "تعذّر حفظ الإعدادات");
@@ -73,7 +96,7 @@ function SettingsPage() {
             <RotateCcw className="size-4" /> استعادة
           </button>
           <a
-            href="/site"
+            href={previewHref}
             target="_blank"
             className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)]"
           >

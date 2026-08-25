@@ -40,7 +40,7 @@ const flush = debounce(() => {
   void enqueue(async () => {
     const { error } = await supabase
       .from("salon_settings")
-      .upsert({ salon_id: salonId, ...patch } as never, { onConflict: "salon_id" });
+        .upsert({ salon_id: salonId, ...patch, updated_at: new Date().toISOString() } as never, { onConflict: "salon_id" });
     logDbError("save salon_settings", error);
   });
 }, 400);
@@ -61,7 +61,7 @@ export async function saveSettingsNow(column: SettingsColumn, value: unknown) {
   await enqueue(async () => {
     const { error } = await supabase
       .from("salon_settings")
-      .upsert({ salon_id: salonId, [column]: value } as never, { onConflict: "salon_id" });
+      .upsert({ salon_id: salonId, [column]: value, updated_at: new Date().toISOString() } as never, { onConflict: "salon_id" });
     if (error) throw new Error(error.message);
   });
 }
