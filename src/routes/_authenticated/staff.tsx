@@ -10,6 +10,7 @@ import { DelayLog } from "@/components/salon/delay-log";
 import { StaffInviteDialog } from "@/components/salon/staff-invite-panel";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { limitMessage, usePlanCaps, withinLimit } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({
@@ -57,6 +58,7 @@ const emptyForm: FormShape = {
 
 function StaffPage() {
   const { staff, bookings, services } = useSalon((s) => s);
+  const { plan } = usePlanCaps();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -123,6 +125,8 @@ function StaffPage() {
   const submit = () => {
     if (!form.name || !form.phone) return toast.error("أكمل البيانات");
     if (!form.hireDate) return toast.error("تاريخ التعيين مطلوب لاحتساب الراتب");
+    if (!editingId && !withinLimit(plan?.maxStaff, staff.length))
+      return toast.error(limitMessage(plan, "موظف/موظفين", plan!.maxStaff));
     const patch = {
       name: form.name,
       role: form.role,

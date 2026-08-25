@@ -2040,6 +2040,57 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          account_number: string | null
+          bank_account_name: string | null
+          bank_name: string | null
+          brand_name: string
+          created_at: string
+          email: string | null
+          home: Json
+          iban: string | null
+          id: string
+          phone: string | null
+          socials: Json
+          support_hours: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          account_number?: string | null
+          bank_account_name?: string | null
+          bank_name?: string | null
+          brand_name?: string
+          created_at?: string
+          email?: string | null
+          home?: Json
+          iban?: string | null
+          id?: string
+          phone?: string | null
+          socials?: Json
+          support_hours?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          account_number?: string | null
+          bank_account_name?: string | null
+          bank_name?: string | null
+          brand_name?: string
+          created_at?: string
+          email?: string | null
+          home?: Json
+          iban?: string | null
+          id?: string
+          phone?: string | null
+          socials?: Json
+          support_hours?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

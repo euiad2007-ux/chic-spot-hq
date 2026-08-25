@@ -55,11 +55,14 @@ import { loadSalonDomain } from "@/lib/db/domain-repo";
 import { listBranches, logBranchSwitch, type Branch } from "@/lib/db/ops-repo";
 import { restoreActiveBranch, setActiveBranch, useActiveBranch } from "@/lib/active-branch";
 import { searchBranches } from "@/lib/branch-scope";
+import { PlanUpgradeNotice } from "@/components/platform/plan-gate";
 
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
 const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/platform", roles: ["platform_owner"] },
+  { prefix: "/platform-settings", roles: ["platform_owner"] },
+
   { prefix: "/dashboard", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/services", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/pos", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -123,30 +126,31 @@ const nav: {
   module?: string;
 }[] = [
   { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true, group: "main" },
+  { to: "/platform-settings", label: "إعدادات المنصة", icon: Settings, manager: true, platform: true, group: "main" },
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true, group: "main" },
 
   // Daily operations
   { to: "/bookings", label: "الحجوزات", icon: CalendarDays, manager: false, module: "bookings", group: "daily" },
   { to: "/calendar", label: "التقويم", icon: CalendarDays, manager: false, module: "calendar", group: "daily" },
-  { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, group: "daily" },
-  { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, group: "daily" },
+  { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, module: "pos", group: "daily" },
+  { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, module: "cash", group: "daily" },
   { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers", group: "daily" },
   { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "daily" },
 
   // Financial management & accounting
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "finance" },
   { to: "/ledger", label: "السجل المالي", icon: NotebookPen, manager: true, group: "finance" },
-  { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true, group: "finance" },
-  { to: "/accounting", label: "مركز المحاسبة", icon: Calculator, manager: true, group: "finance" },
-  { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen, manager: true, group: "finance" },
-  { to: "/accounting/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, group: "finance" },
-  { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale, manager: true, group: "finance" },
-  { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart, manager: true, group: "finance" },
-  { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, group: "finance" },
-  { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, group: "finance" },
-  { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, group: "finance" },
+  { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true, module: "expenses", group: "finance" },
+  { to: "/accounting", label: "مركز المحاسبة", icon: Calculator, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/accounts", label: "دليل الحسابات", icon: BookOpen, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/trial-balance", label: "ميزان المراجعة", icon: Scale, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/financials", label: "القوائم المالية", icon: LineChart, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, module: "accounting", group: "finance" },
+  { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, module: "accounting", group: "finance" },
   { to: "/payroll", label: "الرواتب والعمولات", icon: Wallet, manager: true, module: "payroll", group: "finance" },
-  { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, group: "finance" },
+  { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, module: "reports", group: "finance" },
 
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
@@ -161,7 +165,7 @@ const nav: {
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings", group: "system" },
   { to: "/invoice-settings", label: "ضبط الفواتير", icon: Receipt, manager: true, group: "system" },
 
-  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, group: "system" },
+  { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, module: "users", group: "system" },
   { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "system" },
   { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, group: "system" },
   { to: "/branch-audit", label: "سجل تدقيق الفروع", icon: Building2, manager: true, group: "system" },
@@ -206,7 +210,19 @@ export function AppShell({
     allowedForPath(n.to, account?.role) &&
     (!n.module || account?.role === "platform_owner" || account?.enabledModules.includes(n.module)),
   );
+  // Direct-URL protection: a page whose module is outside the plan shows an upgrade notice.
+  const currentNav = [...nav]
+    .sort((a, b) => b.to.length - a.to.length)
+    .find((n) => pathname === n.to || pathname.startsWith(n.to + "/"));
+  const lockedModule =
+    currentNav?.module &&
+    account &&
+    account.role !== "platform_owner" &&
+    !account.enabledModules.includes(currentNav.module)
+      ? currentNav.module
+      : null;
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
+
 
   // Branch scope: everything branch-aware (services, invoices, POS…) follows it.
   const activeBranch = useActiveBranch();
@@ -484,7 +500,10 @@ export function AppShell({
           {action}
         </div>
 
-        <main className="px-4 md:px-8 pb-24 md:pb-10 flex-1 min-w-0">{children}</main>
+        <main className="px-4 md:px-8 pb-24 md:pb-10 flex-1 min-w-0">
+          {lockedModule ? <PlanUpgradeNotice module={lockedModule} /> : children}
+        </main>
+
       </div>
 
       {/* Mobile drawer */}

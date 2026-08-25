@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { limitMessage, usePlanCaps, withinLimit } from "@/lib/plan-limits";
 import { Building2, Plus, Pencil, X, MapPin, Phone, Mail, MessageCircle, Clock, UserCog, Crosshair, ExternalLink } from "lucide-react";
 
 import { AppShell } from "@/components/salon/app-shell";
@@ -68,6 +69,8 @@ function BranchesPage() {
   const qc = useQueryClient();
   const staff = useSalon((s) => s.staff);
 
+  const { plan } = usePlanCaps();
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Branch | null>(null);
   const [form, setForm] = useState<FormState>(empty);
@@ -99,6 +102,8 @@ function BranchesPage() {
   const save = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("اكتب اسم الفرع");
+      if (!editing && !withinLimit(plan?.maxBranches, (branches.data ?? []).length))
+        throw new Error(limitMessage(plan, "فرع/فروع", plan!.maxBranches));
       if (editing) await updateBranch(editing.id, payload());
       else await createBranch(salonId!, payload());
     },

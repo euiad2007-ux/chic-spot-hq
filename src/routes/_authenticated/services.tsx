@@ -15,6 +15,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { limitMessage, usePlanCaps, withinLimit } from "@/lib/plan-limits";
 
 export const Route = createFileRoute("/_authenticated/services")({
   head: () => ({
@@ -56,6 +57,7 @@ function ServicesPage() {
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [staffIds, setStaffIds] = useState<string[]>([]);
+  const { plan } = usePlanCaps();
   const headerBranch = useActiveBranch();
   const [branchFilter, setBranchFilter] = useState(headerBranch ?? "");
   // Follow the branch chosen in the dashboard header.
@@ -93,6 +95,8 @@ function ServicesPage() {
   const submit = () => {
     if (!form.name.trim()) return toast.error("اكتب اسم الخدمة");
     if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
+    if (!editing && !withinLimit(plan?.maxServices, services.length))
+      return toast.error(limitMessage(plan, "خدمة/خدمات", plan!.maxServices));
     const payload = { ...form, branchId: form.branchId || null };
     let serviceId = editing?.id;
     if (editing) {

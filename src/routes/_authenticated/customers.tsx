@@ -10,6 +10,7 @@ import {
   CreditCard, Send,
 } from "lucide-react";
 import { toast } from "sonner";
+import { limitMessage, usePlanCaps, withinLimit } from "@/lib/plan-limits";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 import { TopupRequestsPanel } from "@/components/salon/topup-requests";
@@ -46,6 +47,7 @@ const emptyForm: FormShape = {
 
 function CustomersPage() {
   const customers = useSalon((s) => s.customers);
+  const { plan } = usePlanCaps();
   const site = useSiteSettings();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -73,6 +75,8 @@ function CustomersPage() {
 
   const submit = () => {
     if (!form.name || !form.phone) return toast.error("أكمل البيانات");
+    if (!editingId && !withinLimit(plan?.maxCustomers, customers.length))
+      return toast.error(limitMessage(plan, "عميل/عملاء", plan!.maxCustomers));
     const patch = {
       name: form.name, phone: form.phone,
       email: form.email || undefined,

@@ -9,6 +9,12 @@ import {
   MerchantSupport,
 } from "@/components/salon/merchant-subscription-panels";
 
+import { PlansShowcase } from "@/components/platform/plans-showcase";
+import {
+  PlatformContactCard,
+  usePlatformSettings,
+} from "@/components/platform/platform-contact-card";
+import { listPublicPlans } from "@/lib/db/platform-settings-repo";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR } from "@/lib/salon-store";
 import { loadSubscription } from "@/lib/db/ops-repo";
@@ -48,6 +54,8 @@ function SubscriptionPage() {
     queryFn: () => loadSubscription(salonId!),
     enabled: !!salonId,
   });
+  const settings = usePlatformSettings();
+  const publicPlans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
   const d = sub.data;
   const plan = d?.plan;
 
@@ -94,44 +102,20 @@ function SubscriptionPage() {
           <Usage label="العملاء" used={d?.usage.customers ?? 0} max={plan?.max_customers} />
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 lg:col-span-2">
-          <h2 className="font-bold mb-3">الباقات المتاحة</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs text-muted-foreground">
-                <tr>
-                  <th className="p-2 text-right">الباقة</th>
-                  <th className="p-2 text-right">الشهري</th>
-                  <th className="p-2 text-right">فروع</th>
-                  <th className="p-2 text-right">موظفون</th>
-                  <th className="p-2 text-right">خدمات</th>
-                  <th className="p-2 text-right">عملاء</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(d?.plans ?? []).map((p) => (
-                  <tr
-                    key={p.code}
-                    className={
-                      "border-t border-border " + (p.code === d?.salon?.plan ? "bg-primary/5" : "")
-                    }
-                  >
-                    <td className="p-2 font-semibold">{p.name}</td>
-                    <td className="p-2">{formatSAR(Number(p.price_monthly))}</td>
-                    <td className="p-2">{p.max_branches}</td>
-                    <td className="p-2">{p.max_staff}</td>
-                    <td className="p-2">{p.max_services}</td>
-                    <td className="p-2">{p.max_customers}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            ترقية الباقة تُنفَّذ من إدارة المنصة. تواصل معنا لتغيير الباقة.
-          </p>
-        </section>
+        <div className="lg:col-span-2">
+          <PlansShowcase
+            plans={publicPlans.data ?? []}
+            currentCode={d?.salon?.plan ?? null}
+            title="الباقات المتاحة"
+            note="ترقية الباقة تُنفَّذ من إدارة المنصة — حوّل قيمة الباقة على الحساب البنكي أدناه ثم تواصل معنا."
+          />
+        </div>
+
+        <div className="lg:col-span-2">
+          {settings.data && <PlatformContactCard settings={settings.data} />}
+        </div>
       </div>
+
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2 items-start">
         <MerchantSubscriptionInvoices salonId={salonId} />
