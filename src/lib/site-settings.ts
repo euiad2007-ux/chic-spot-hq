@@ -108,6 +108,11 @@ export interface SiteSettings {
   heroHeight: number; // vh
   heroOverlay: number; // 0 – 90
   heroButtons: HeroButton[];
+  /** Main hero call-to-action (rendered first when set). */
+  heroCtaLabel: string;
+  heroCtaUrl: string;
+  /** Hero customisation remembered per theme id. */
+  themeHero: Record<string, Partial<HeroTheme>>;
   // Section content
   showcaseTitle: string;
   showcaseDesc: string;
@@ -179,6 +184,17 @@ export function fontById(id: string): FontOption {
 }
 
 /* ---------------- Theme presets ---------------- */
+/** Hero fields that are remembered per theme (style) instead of globally. */
+export interface HeroTheme {
+  heroImage: string;
+  heroSubtitle: string;
+  heroCtaLabel: string;
+  heroCtaUrl: string;
+  heroOverlay: number;
+  heroAlign: HeroAlign;
+  heroHeight: number;
+}
+
 export interface ThemePreset {
   id: string;
   name: string;
@@ -192,6 +208,8 @@ export interface ThemePreset {
   mutedTextColor: string;
   headingFont: string;
   bodyFont: string;
+  /** Default hero look shipped with the style (overridable, saved per theme). */
+  hero?: Partial<HeroTheme>;
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
@@ -203,6 +221,14 @@ export const THEME_PRESETS: ThemePreset[] = [
     primary: "#EC4899", accent: "#FBCFE8", background: "#FFF1F7", surface: "#FFFFFF",
     textColor: "#4A1D3A", mutedTextColor: "#9D5A82",
     headingFont: "amiri", bodyFont: "readex",
+    hero: {
+      heroImage: makeup1,
+      heroSubtitle: "تجربة تجميل فاخرة بأيدي أخصائيات معتمدات — احجزي لمستك الخاصة الآن.",
+      heroCtaLabel: "احجزي لمستك",
+      heroAlign: "center",
+      heroOverlay: 52,
+      heroHeight: 92,
+    },
   },
   {
     id: "royal-purple",
@@ -212,6 +238,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     primary: "#A855F7", accent: "#F0ABFC", background: "#FAF5FF", surface: "#FFFFFF",
     textColor: "#1E1B4B", mutedTextColor: "#6B5B95",
     headingFont: "cairo", bodyFont: "cairo",
+    hero: { heroImage: heroImg, heroOverlay: 55, heroAlign: "center", heroHeight: 88 },
   },
   {
     id: "gold-luxury",
@@ -221,6 +248,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     primary: "#C9A24C", accent: "#F5DEB3", background: "#FFFBEB", surface: "#FFFFFF",
     textColor: "#3F2E00", mutedTextColor: "#8A7431",
     headingFont: "amiri", bodyFont: "tajawal",
+    hero: { heroImage: hair2, heroOverlay: 58, heroAlign: "right", heroHeight: 86 },
   },
   {
     id: "rose-soft",
@@ -337,6 +365,9 @@ const defaults: SiteSettings = {
     { kind: "whatsapp", label: "تواصلي عبر واتساب" },
     { kind: "services", label: "تصفحي خدماتنا" },
   ],
+  heroCtaLabel: "",
+  heroCtaUrl: "",
+  themeHero: {},
   showcaseTitle: "لمسات من إبداعنا",
   showcaseDesc: "تصفيفات شعر، مكياج، وعناية شاملة بأيدي محترفات",
   servicesTitle: "خدماتنا",
@@ -472,9 +503,21 @@ export function useSiteSettings(): SiteSettings {
 
 export const siteActions = {
   update(patch: Partial<SiteSettings>) { state = { ...state, ...patch, themePreset: patch.themePreset ?? "custom" }; persist(); },
+  /** Hero edits stay attached to the active theme, so switching styles restores them. */
+  updateHero(patch: Partial<HeroTheme>) {
+    const key = state.themePreset || "custom";
+    const saved = state.themeHero?.[key] ?? {};
+    state = {
+      ...state,
+      ...patch,
+      themeHero: { ...(state.themeHero ?? {}), [key]: { ...saved, ...patch } },
+    };
+    persist();
+  },
   applyPreset(id: string) {
     const p = THEME_PRESETS.find((x) => x.id === id);
     if (!p) return;
+    const hero: Partial<HeroTheme> = { ...(p.hero ?? {}), ...(state.themeHero?.[p.id] ?? {}) };
     state = {
       ...state,
       themePreset: p.id,
@@ -487,6 +530,7 @@ export const siteActions = {
       mutedTextColor: p.mutedTextColor,
       headingFont: p.headingFont,
       bodyFont: p.bodyFont,
+      ...hero,
     };
     persist();
   },
