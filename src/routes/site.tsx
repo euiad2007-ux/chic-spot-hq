@@ -403,15 +403,22 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
         className="relative z-10 max-w-5xl mx-auto px-5 md:px-10 flex flex-col items-center text-center justify-center gap-5"
         style={{ minHeight: `${height}vh`, paddingTop: "7rem", paddingBottom: "6rem" }}
       >
-        {/* logo medallion — swaps instantly with the dashboard logo */}
-        <div
-          className="lamsa-rise size-24 md:size-32 rounded-full grid place-items-center overflow-hidden shadow-[0_30px_80px_-30px_rgba(0,0,0,.8)]"
-          style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})`, boxShadow: `0 0 0 2px rgba(255,255,255,.55), 0 0 0 10px ${site.primary}33` }}
-        >
-          {site.logoUrl
-            ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-            : <Scissors className="size-10 md:size-14 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
-        </div>
+        {/* logo — transparent, frameless */}
+        {site.logoUrl ? (
+          <img
+            src={site.logoUrl}
+            alt={`شعار ${site.salonName}`}
+            className="lamsa-rise h-24 md:h-32 w-auto max-w-[320px] object-contain bg-transparent drop-shadow-[0_18px_40px_rgba(0,0,0,.55)]"
+          />
+        ) : (
+          <div
+            className="lamsa-rise size-24 md:size-32 rounded-full grid place-items-center overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
+          >
+            <Scissors className="size-10 md:size-14 text-[var(--brand-foreground)] drop-shadow" aria-hidden />
+          </div>
+        )}
+
 
         <h1
           className="lamsa-rise text-white font-black leading-[1.05] text-4xl sm:text-5xl md:text-7xl drop-shadow-[0_8px_36px_rgba(0,0,0,.55)]"
