@@ -44,7 +44,9 @@ function PosPage() {
   const services = useSalon((s) => s.services);
   const customers = useSalon((s) => s.customers);
 
-  const [branchId, setBranchId] = useState<string | null>(null);
+  const headerBranch = useHeaderBranch();
+  const [branchId, setBranchId] = useState<string | null>(headerBranch);
+
   const [tab, setTab] = useState<"services" | "products">("services");
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
