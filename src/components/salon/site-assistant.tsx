@@ -48,11 +48,11 @@ export function SiteAssistant({
     try {
       const { reply } = await askSiteAssistant({
         data: {
-          messages: next.filter((m) => m.role === "user" || msgs.indexOf(m) > 0),
+          messages: next.slice(1),
           context: {
             salonName: site.salonName,
             tagline: site.tagline || undefined,
-            about: site.aboutText || site.heroSubtitle || undefined,
+            about: [site.heroSubtitle, site.contactDesc, site.footerText].filter(Boolean).join(" | ") || undefined,
             phone: site.phone || undefined,
             waNumber: site.waNumber || undefined,
             email: site.email || undefined,
@@ -69,6 +69,7 @@ export function SiteAssistant({
                 price: s.price,
                 durationMin: s.durationMin,
               })),
+            branches: site.branchName ? [{ name: site.branchName, address: site.address || undefined, phone: site.phone || undefined }] : undefined,
             team: staff
               .filter((s) => s.active !== false)
               .slice(0, 80)
