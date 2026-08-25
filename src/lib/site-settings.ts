@@ -503,9 +503,21 @@ export function useSiteSettings(): SiteSettings {
 
 export const siteActions = {
   update(patch: Partial<SiteSettings>) { state = { ...state, ...patch, themePreset: patch.themePreset ?? "custom" }; persist(); },
+  /** Hero edits stay attached to the active theme, so switching styles restores them. */
+  updateHero(patch: Partial<HeroTheme>) {
+    const key = state.themePreset || "custom";
+    const saved = state.themeHero?.[key] ?? {};
+    state = {
+      ...state,
+      ...patch,
+      themeHero: { ...(state.themeHero ?? {}), [key]: { ...saved, ...patch } },
+    };
+    persist();
+  },
   applyPreset(id: string) {
     const p = THEME_PRESETS.find((x) => x.id === id);
     if (!p) return;
+    const hero: Partial<HeroTheme> = { ...(p.hero ?? {}), ...(state.themeHero?.[p.id] ?? {}) };
     state = {
       ...state,
       themePreset: p.id,
@@ -518,6 +530,7 @@ export const siteActions = {
       mutedTextColor: p.mutedTextColor,
       headingFont: p.headingFont,
       bodyFont: p.bodyFont,
+      ...hero,
     };
     persist();
   },
