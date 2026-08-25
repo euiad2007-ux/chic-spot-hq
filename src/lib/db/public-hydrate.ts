@@ -100,6 +100,27 @@ export async function fetchPublicBranding(slug?: string): Promise<PublicBranding
   };
 }
 
+export interface PublicBranch {
+  id: string;
+  name: string;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  address: string | null;
+  hours: string | null;
+  maps_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  manager_name: string | null;
+}
+
+/** Public branch list for a salon page (anon-safe columns only). */
+export async function fetchPublicBranches(salonId: string): Promise<PublicBranch[]> {
+  const { data } = await supabase.rpc("public_salon_branches", { _salon: salonId });
+  return (data ?? []) as PublicBranch[];
+}
+
+
 /**
  * Public salon website: loads branding, active services and the team without
  * requiring a session (read-only, anon-safe columns only).
