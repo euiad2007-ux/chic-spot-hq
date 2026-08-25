@@ -60,8 +60,7 @@ export async function acceptStaffInvite(code: string): Promise<{ salon_id: strin
   return data as unknown as { salon_id: string; staff_id: string };
 }
 
-export function inviteLink(code: string, slug?: string | null): string {
+export function inviteLink(code: string, _slug?: string | null): string {
   const base = typeof window === "undefined" ? "" : window.location.origin;
-  const path = slug ? `/salon/${slug}/login` : "/auth";
-  return `${base}${path}?invite=${encodeURIComponent(code)}`;
+  return `${base}/onboarding?invite=${encodeURIComponent(code)}`;
 }
