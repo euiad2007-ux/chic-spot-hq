@@ -1,0 +1,251 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { ArrowDownCircle, ArrowUpCircle, Download, RotateCcw, Wallet } from "lucide-react";
+
+import { AppShell } from "@/components/salon/app-shell";
+import { useAccount } from "@/hooks/use-account";
+import { formatSAR } from "@/lib/salon-store";
+import { exportCsv, stampName } from "@/lib/export";
+import { loadMoneyLedger, methodLabel, type LedgerKindFilter } from "@/lib/db/ledger-repo";
+
+export const Route = createFileRoute("/_authenticated/ledger")({
+  head: () => ({
+    meta: [
+      { title: "السجل المالي — كل حركة نقدية في المشغل | Salon Flow" },
+      {
+        name: "description",
+        content:
+          "سجل مالي رقمي يعرض كل تحصيل فاتورة واسترجاع ومصروف مع فلاتر الفترة والنوع وطريقة الدفع وإجماليات صافي الفترة وتصدير Excel.",
+      },
+      { property: "og:title", content: "السجل المالي — Salon Flow" },
+      { property: "og:description", content: "كل الحركات النقدية للمشغل في مكان واحد مع فلاتر وتصدير." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: LedgerPage,
+});
+
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+const KINDS: { id: LedgerKindFilter; label: string }[] = [
+  { id: "all", label: "الكل" },
+  { id: "income", label: "تحصيل" },
+  { id: "refund", label: "استرجاع" },
+  { id: "expense", label: "مصروف" },
+];
+
+function LedgerPage() {
+  const { data: account } = useAccount();
+  const salonId = account?.salonId ?? null;
+
+  const today = new Date();
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const [from, setFrom] = useState(iso(monthStart));
+  const [to, setTo] = useState(iso(today));
+  const [kind, setKind] = useState<LedgerKindFilter>("all");
+  const [method, setMethod] = useState("all");
+  const [q, setQ] = useState("");
+
+  const ledger = useQuery({
+    queryKey: ["money-ledger", salonId, from, to],
+    queryFn: () => loadMoneyLedger(salonId!, from, to),
+    enabled: !!salonId,
+  });
+
+  const rows = useMemo(() => {
+    const all = ledger.data?.rows ?? [];
+    const term = q.trim();
+    return all.filter(
+      (r) =>
+        (kind === "all" || r.kind === kind) &&
+        (method === "all" || (r.method ?? "") === method) &&
+        (!term || r.label.includes(term) || (r.reference ?? "").includes(term)),
+    );
+  }, [ledger.data, kind, method, q]);
+
+  const filteredTotal = rows.reduce((s, r) => s + r.amount, 0);
+  const d = ledger.data;
+
+  return (
+    <AppShell
+      title="السجل المالي"
+      subtitle="كل حركة نقدية للمشغل: التحصيلات، الاسترجاعات، والمصروفات"
+      action={
+        <button
+          onClick={() =>
+            exportCsv(
+              stampName("money-ledger"),
+              ["التاريخ", "النوع", "البيان", "المرجع", "طريقة الدفع", "المبلغ"],
+              rows.map((r) => [
+                new Date(r.at).toLocaleString("ar-SA"),
+                r.kind === "income" ? "تحصيل" : r.kind === "refund" ? "استرجاع" : "مصروف",
+                r.label,
+                r.reference ?? "",
+                methodLabel(r.method),
+                r.amount,
+              ]),
+            )
+          }
+          disabled={rows.length === 0}
+          className="h-10 px-4 rounded-xl border border-border font-bold text-sm inline-flex items-center gap-2 disabled:opacity-50"
+        >
+          <Download className="size-4" /> تصدير Excel
+        </button>
+      }
+    >
+      <div className="space-y-4">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat label="إجمالي التحصيل" value={formatSAR(d?.income ?? 0)} icon={ArrowUpCircle} tone="good" />
+          <Stat label="الاسترجاعات" value={formatSAR(d?.refunds ?? 0)} icon={RotateCcw} tone="bad" />
+          <Stat label="المصروفات" value={formatSAR(d?.expenses ?? 0)} icon={ArrowDownCircle} tone="bad" />
+          <Stat
+            label="صافي الفترة"
+            value={formatSAR(d?.net ?? 0)}
+            icon={Wallet}
+            tone={(d?.net ?? 0) >= 0 ? "good" : "bad"}
+          />
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
+          <label className="space-y-1">
+            <span className="block text-xs text-muted-foreground">من</span>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="h-10 rounded-xl border border-border bg-muted/40 px-3 text-sm"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="block text-xs text-muted-foreground">إلى</span>
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="h-10 rounded-xl border border-border bg-muted/40 px-3 text-sm"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="block text-xs text-muted-foreground">طريقة الدفع</span>
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              className="h-10 rounded-xl border border-border bg-muted/40 px-3 text-sm"
+            >
+              <option value="all">الكل</option>
+              <option value="cash">نقدًا</option>
+              <option value="card">شبكة</option>
+              <option value="transfer">تحويل</option>
+              <option value="wallet">محفظة</option>
+            </select>
+          </label>
+          <label className="space-y-1 flex-1 min-w-40">
+            <span className="block text-xs text-muted-foreground">بحث</span>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="رقم فاتورة، عميل، أو بند مصروف"
+              className="w-full h-10 rounded-xl border border-border bg-muted/40 px-3 text-sm"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {KINDS.map((k) => (
+              <button
+                key={k.id}
+                onClick={() => setKind(k.id)}
+                className={
+                  kind === k.id
+                    ? "h-10 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm"
+                    : "h-10 px-4 rounded-xl border border-border font-bold text-sm text-muted-foreground"
+                }
+              >
+                {k.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold">الحركات ({rows.length})</h2>
+            <span className={filteredTotal >= 0 ? "font-bold text-success" : "font-bold text-destructive"}>
+              صافي المعروض: {formatSAR(filteredTotal)}
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr>
+                  <th className="p-2 text-right">التاريخ</th>
+                  <th className="p-2 text-right">النوع</th>
+                  <th className="p-2 text-right">البيان</th>
+                  <th className="p-2 text-right">طريقة الدفع</th>
+                  <th className="p-2 text-right">المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.kind + r.id} className="border-t border-border">
+                    <td className="p-2 whitespace-nowrap">{new Date(r.at).toLocaleString("ar-SA")}</td>
+                    <td className="p-2 whitespace-nowrap">
+                      <span
+                        className={
+                          "rounded-lg px-2 py-1 text-xs font-bold " +
+                          (r.kind === "income"
+                            ? "bg-success/10 text-success"
+                            : "bg-destructive/10 text-destructive")
+                        }
+                      >
+                        {r.kind === "income" ? "تحصيل" : r.kind === "refund" ? "استرجاع" : "مصروف"}
+                      </span>
+                    </td>
+                    <td className="p-2">{r.label}</td>
+                    <td className="p-2">{methodLabel(r.method)}</td>
+                    <td
+                      className={
+                        "p-2 font-bold " + (r.amount >= 0 ? "text-success" : "text-destructive")
+                      }
+                    >
+                      {formatSAR(r.amount)}
+                    </td>
+                  </tr>
+                ))}
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                      {ledger.isLoading ? "جارٍ التحميل…" : "لا توجد حركات في هذه الفترة."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </AppShell>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  icon: Icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  icon: typeof Wallet;
+  tone: "good" | "bad";
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="text-xs text-muted-foreground flex items-center gap-2">
+        <Icon className={tone === "good" ? "size-4 text-success" : "size-4 text-destructive"} />
+        {label}
+      </div>
+      <div className="font-bold text-lg mt-1">{value}</div>
+    </div>
+  );
+}

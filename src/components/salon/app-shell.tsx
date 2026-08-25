@@ -122,6 +122,7 @@ const nav: {
 
   // Financial management & accounting
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "finance" },
+  { to: "/ledger", label: "السجل المالي", icon: NotebookPen, manager: true, group: "finance" },
   { to: "/expenses", label: "المصروفات", icon: TrendingDown, manager: true, group: "finance" },
   { to: "/accounting", label: "مركز المحاسبة", icon: Calculator, manager: true, group: "finance" },
   { to: "/accounting/journal", label: "القيود اليومية", icon: NotebookPen, manager: true, group: "finance" },
