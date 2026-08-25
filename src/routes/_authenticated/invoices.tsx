@@ -22,10 +22,16 @@ const METHOD_LABEL = {
 } as const;
 
 function InvoicesPage() {
-  const { invoices, customers, bookings } = useSalon((s) => s);
+  const { invoices: allInvoices, customers, bookings } = useSalon((s) => s);
+  const activeBranch = useActiveBranch();
+  // Scope the register to the branch chosen in the header (unassigned stay visible).
+  const invoices = activeBranch
+    ? allInvoices.filter((i) => !i.branchId || i.branchId === activeBranch)
+    : allInvoices;
   const [selected, setSelected] = useState<Invoice | null>(null);
   const total = invoices.reduce((a, i) => a + i.total, 0);
   const vat = invoices.reduce((a, i) => a + i.vat, 0);
+
 
   return (
     <AppShell title="الفواتير" subtitle={`${invoices.length} فاتورة`}>
