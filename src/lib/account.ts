@@ -245,3 +245,17 @@ export function translateAuthError(message: string): string {
   if (m.includes("rate limit")) return "عدد المحاولات كبير، حاول بعد قليل";
   return message;
 }
+
+/** Sends the password-reset email; the link lands on /reset-password. */
+export async function sendPasswordReset(email: string, redirectPath = "/reset-password") {
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: window.location.origin + redirectPath,
+  });
+  if (error) throw new Error(translateAuthError(error.message));
+}
+
+/** Sets a new password for the signed-in (or recovery-link) session. */
+export async function updatePassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw new Error(translateAuthError(error.message));
+}

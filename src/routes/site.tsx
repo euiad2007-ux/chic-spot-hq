@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PaymentIcon } from "@/components/salon/payment-icons";
 import { SiteLink, LoginLink } from "@/components/salon/salon-nav-links";
+import { SiteAssistant } from "@/components/salon/site-assistant";
 import type { PublicReview, PublicSalonMeta } from "@/lib/db/public-hydrate";
 
 /* ---------------- head assets ---------------- */
@@ -193,6 +194,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
       >
         <MessageCircle className="size-7" />
       </a>
+      <SiteAssistant site={site} services={services} staff={staff} />
     </div>
   );
 }
