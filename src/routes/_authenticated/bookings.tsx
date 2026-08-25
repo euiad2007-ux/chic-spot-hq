@@ -212,23 +212,29 @@ function BookingsPage() {
                           title="إتمام وإصدار فاتورة"
                           onClick={() => {
                             const method = (b.paymentMethod === "wallet" && b.walletApproved)
-                              ? "cash"
+                              ? "wallet"
                               : (b.paymentMethod && b.paymentMethod !== "hold" && b.paymentMethod !== "wallet")
-                                ? b.paymentMethod as any
+                                ? b.paymentMethod as string
                                 : "cash";
                             if (b.paymentMethod === "wallet" && !b.walletApproved) {
                               toast.error("لم يوافق العميل على الخصم من المحفظة بعد");
                               return;
                             }
-                            const inv = actions.createInvoice(b.id, method);
-                            if (inv && b.couponCode) couponActions.markUsed(b.couponCode);
-                            toast.success("تم إصدار الفاتورة");
+                            void checkoutBookingOnServer({
+                              bookingId: b.id,
+                              method: method === "wallet" ? "wallet" : method,
+                              walletUsed: method === "wallet" ? total : 0,
+                              couponCode: b.couponCode,
+                            })
+                              .then((r) => toast.success(`تم إصدار الفاتورة ${r.number}`))
+                              .catch((e: Error) => toast.error(e.message));
                           }}
                           className="size-9 rounded-lg border border-border hover:border-success/50 hover:text-success grid place-items-center transition"
                         >
                           <CheckCircle2 className="size-4" />
                         </button>
                       )}
+
                       {canComplete && (
                         <button
                           title="إلغاء"
