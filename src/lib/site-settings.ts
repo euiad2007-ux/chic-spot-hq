@@ -377,9 +377,38 @@ function ensure() {
   initialized = true;
 }
 
+let dirty = false;
+const dirtyListeners = new Set<() => void>();
+
+function setDirty(v: boolean) {
+  if (dirty === v) return;
+  dirty = v;
+  dirtyListeners.forEach((l) => l());
+}
+
+/** True when local branding edits have not been written to the database yet. */
+export function useSiteDirty(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      dirtyListeners.add(l);
+      return () => dirtyListeners.delete(l);
+    },
+    () => dirty,
+    () => false,
+  );
+}
+
+/** Writes the branding document now and reports failures to the caller. */
+export async function saveSiteSettingsNow(): Promise<void> {
+  const m = await import("@/lib/db/settings-repo");
+  await m.saveSettingsNow("site", { ...state, measures });
+  setDirty(false);
+}
+
 function persist() {
   listeners.forEach((l) => l());
   if (typeof window === "undefined") return;
+  setDirty(true);
   const doc = { ...state, measures };
   void import("@/lib/db/settings-repo").then((m) => m.scheduleSettingsSave("site", doc));
 }
@@ -398,6 +427,7 @@ export function hydrateSiteSettings(doc: Record<string, unknown> | null) {
   }
   initialized = true;
   hydrated = true;
+  setDirty(false);
   listeners.forEach((l) => l());
 }
 

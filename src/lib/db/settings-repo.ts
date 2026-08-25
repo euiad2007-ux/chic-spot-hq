@@ -50,3 +50,18 @@ export function scheduleSettingsSave(column: SettingsColumn, value: unknown) {
   pending[column] = value;
   flush();
 }
+
+/** Persists one settings document immediately; throws when the write fails. */
+export async function saveSettingsNow(column: SettingsColumn, value: unknown) {
+  const ctx = getDataContext();
+  const salonId = ctx?.salonId;
+  if (!salonId) throw new Error("لا يوجد مشغل مرتبط بالحساب");
+  if (!ctx?.canWrite) throw new Error("لا تملك صلاحية تعديل إعدادات الموقع");
+  delete pending[column];
+  await enqueue(async () => {
+    const { error } = await supabase
+      .from("salon_settings")
+      .upsert({ salon_id: salonId, [column]: value } as never, { onConflict: "salon_id" });
+    if (error) throw new Error(error.message);
+  });
+}

@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Scissors, Loader2, IdCard, User, ArrowLeft } from "lucide-react";
+import { Scissors, Loader2, IdCard, User, ArrowLeft, Eye, EyeOff, KeyRound, Home } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { SiteLink } from "@/components/salon/salon-nav-links";
-import { signIn, signUp, homeForRole, loadAccount } from "@/lib/account";
+import { signIn, signUp, homeForRole, loadAccount, sendPasswordReset } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 import {
   useSiteSettings,
@@ -51,12 +51,25 @@ export function StoreLoginView({ slug }: { slug?: string }) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
     void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug));
   }, [slug]);
 
+
+  // The salon's own favicon completes the branded login identity.
+  useEffect(() => {
+    if (typeof document === "undefined" || !site.faviconUrl) return;
+    let icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!icon) {
+      icon = document.createElement("link");
+      icon.rel = "icon";
+      document.head.appendChild(icon);
+    }
+    icon.href = site.faviconUrl;
+  }, [site.faviconUrl]);
 
   useEffect(() => {
     const href = googleFontsHref(site);
@@ -91,6 +104,23 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     const account = await loadAccount();
     await refreshAccount();
     navigate({ to: account ? homeForRole(account.role) : "/", replace: true });
+  }
+
+  async function onForgot() {
+    if (busy) return;
+    if (!email.trim()) {
+      toast.error("أدخل بريدك الإلكتروني أولاً");
+      return;
+    }
+    setBusy(true);
+    try {
+      await sendPasswordReset(email);
+      toast.success("أرسلنا رابط استعادة كلمة المرور إلى بريدك");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر إرسال رابط الاستعادة");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -204,11 +234,25 @@ export function StoreLoginView({ slug }: { slug?: string }) {
               label="كلمة المرور"
               value={password}
               onChange={setPassword}
-              type="password"
+              type={showPwd ? "text" : "password"}
               autoComplete={creating ? "new-password" : "current-password"}
               required
               minLength={6}
+              reveal={showPwd}
+              onToggleReveal={() => setShowPwd((v) => !v)}
             />
+
+            {!creating && (
+              <button
+                type="button"
+                onClick={onForgot}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold hover:underline disabled:opacity-60"
+                style={{ color: site.primary }}
+              >
+                <KeyRound className="size-3.5" aria-hidden /> نسيت كلمة المرور؟
+              </button>
+            )}
 
             <button
               type="submit"
@@ -237,12 +281,20 @@ export function StoreLoginView({ slug }: { slug?: string }) {
           )}
         </div>
 
-        <SiteLink
-          slug={slug}
-          className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden /> العودة إلى موقع {site.salonName}
-        </SiteLink>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
+          <SiteLink
+            slug={slug}
+            className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden /> العودة إلى موقع {site.salonName}
+          </SiteLink>
+          <a
+            href="/"
+            className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <Home className="size-3.5" aria-hidden /> الصفحة الرئيسية
+          </a>
+        </div>
 
       </div>
     </main>
@@ -253,19 +305,37 @@ type FieldProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" |
   label: string;
   value: string;
   onChange: (v: string) => void;
+  /** Shows an eye toggle for password fields. */
+  reveal?: boolean;
+  onToggleReveal?: () => void;
 };
 
-function Field({ label, value, onChange, type = "text", ...rest }: FieldProps) {
+function Field({ label, value, onChange, type = "text", reveal, onToggleReveal, ...rest }: FieldProps) {
   return (
     <label className="block">
       <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-      <input
-        {...rest}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full h-11 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-      />
+      <div className="relative mt-1">
+        <input
+          {...rest}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={
+            "w-full h-11 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 " +
+            (onToggleReveal ? "pl-10" : "")
+          }
+        />
+        {onToggleReveal && (
+          <button
+            type="button"
+            onClick={onToggleReveal}
+            aria-label={reveal ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+            className="absolute inset-y-0 left-0 px-3 grid place-items-center text-muted-foreground hover:text-foreground"
+          >
+            {reveal ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        )}
+      </div>
     </label>
   );
 }
