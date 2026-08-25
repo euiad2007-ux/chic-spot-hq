@@ -47,11 +47,14 @@ function LedgerPage() {
   const [kind, setKind] = useState<LedgerKindFilter>("all");
   const [method, setMethod] = useState("all");
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const ledger = useQuery({
     queryKey: ["money-ledger", salonId, from, to],
     queryFn: () => loadMoneyLedger(salonId!, from, to),
     enabled: !!salonId,
+    placeholderData: (prev) => prev,
   });
 
   const rows = useMemo(() => {
@@ -65,8 +68,21 @@ function LedgerPage() {
     );
   }, [ledger.data, kind, method, q]);
 
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const current = Math.min(page, pageCount);
+  const pageRows = useMemo(
+    () => rows.slice((current - 1) * pageSize, current * pageSize),
+    [rows, current, pageSize],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [from, to, kind, method, q, pageSize, salonId]);
+
+  const busy = ledger.isLoading || ledger.isFetching;
   const filteredTotal = rows.reduce((s, r) => s + r.amount, 0);
   const d = ledger.data;
+
 
   return (
     <AppShell
