@@ -268,7 +268,7 @@ function SiteHeader({
           <div className="min-w-0">
             <div
               className="font-black text-lg md:text-2xl leading-tight truncate"
-              style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}
+              style={{ color: "var(--brand-text)" }}
             >
               {site.salonName}
             </div>
@@ -477,7 +477,7 @@ function LuxeServices({
         >
           <span className="absolute inset-x-0 top-0 h-1 opacity-70 transition group-hover:opacity-100" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }} />
           {s.category && (
-            <span className="self-start rounded-full px-3 py-1 text-[10px] font-bold tracking-wider" style={{ background: `${site.primary}14`, color: site.primary }}>
+            <span className="self-start rounded-full px-3 py-1 text-[10px] font-bold" style={{ background: `${site.primary}14`, color: "var(--brand-surface-text)" }}>
               {s.category}
             </span>
           )}
@@ -487,7 +487,7 @@ function LuxeServices({
           </p>
           <div className="mt-5 flex items-center justify-between gap-3">
             {site.servicesShowPrice ? (
-              <div className="text-2xl font-black" style={{ color: site.primary }}>{formatSAR(s.price)}</div>
+              <div className="text-2xl font-black" style={{ color: "var(--brand-surface-text)" }}>{formatSAR(s.price)}</div>
             ) : <span />}
             <Sparkles className="size-4 opacity-40 transition group-hover:opacity-90" style={{ color: site.accent }} aria-hidden />
           </div>
@@ -627,7 +627,7 @@ function SectionHead({ site, title, desc, eyebrow }: { site: SiteSettings; title
   return (
     <div className="text-center mb-12">
       {eyebrow && (
-          <span className="inline-block text-[11px] font-bold uppercase mb-3" style={{ color: site.primary }}>
+        <span className="inline-block text-[11px] font-bold uppercase mb-3" style={{ color: "var(--brand-text)" }}>
           {eyebrow}
         </span>
       )}
@@ -712,7 +712,7 @@ function ServicesSection({
                         {site.servicesShowPrice && (
                           <div
                             className="text-xl font-black whitespace-nowrap"
-                            style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}
+                            style={{ color: "var(--brand-surface-text)" }}
                           >
                             {formatSAR(s.price)}
                           </div>
@@ -912,7 +912,7 @@ function TeamSection({ site, staff }: { site: SiteSettings; staff: ReturnType<ty
             </div>
             <div className="p-5">
               <h3 className="font-black text-base">{m.name}</h3>
-              <div className="text-xs mt-1" style={{ color: site.primary }}>{m.role}</div>
+              <div className="text-xs mt-1" style={{ color: "var(--brand-surface-text)" }}>{m.role}</div>
               {m.bio && <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-3">{m.bio}</p>}
               {m.instagram && (
                 <a href={m.instagram} target="_blank" rel="noreferrer" aria-label={`إنستغرام ${m.name}`} className="mt-3 inline-flex size-9 rounded-full items-center justify-center border border-border hover:bg-muted">
@@ -946,7 +946,7 @@ function ReviewsSection({ site, meta }: { site: SiteSettings; meta: PublicSalonM
     <Reveal id="reviews" className="max-w-7xl mx-auto px-5 md:px-10 py-20 md:py-28">
       <SectionHead site={site} eyebrow="Reviews" title={site.reviewsTitle} desc={site.reviewsDesc} />
       <div className="flex flex-col items-center gap-2 mb-10">
-        <div className="text-4xl font-black" style={{ color: site.primary }}>{meta.avgRating.toFixed(1)}</div>
+        <div className="text-4xl font-black" style={{ color: "var(--brand-text)" }}>{meta.avgRating.toFixed(1)}</div>
         <Stars value={meta.avgRating} />
         <div className="text-xs text-muted-foreground">{meta.reviewCount} تقييم</div>
       </div>
@@ -1018,7 +1018,7 @@ function ContactCard({
       <h3 className="font-bold text-sm">{title}</h3>
       <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed break-words">{body || "—"}</p>
       {href && cta && (
-        <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: site.primary }}>
+        <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: "var(--brand-surface-text)" }}>
           {cta} <ArrowLeft className="size-3" aria-hidden />
         </a>
       )}
