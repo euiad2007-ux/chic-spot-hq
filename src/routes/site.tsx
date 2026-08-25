@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { PaymentIcon } from "@/components/salon/payment-icons";
 import { SiteLink, LoginLink } from "@/components/salon/salon-nav-links";
 import { SiteAssistant } from "@/components/salon/site-assistant";
-import type { PublicBranding, PublicReview, PublicSalonMeta } from "@/lib/db/public-hydrate";
+import { fetchPublicBranches, type PublicBranch, type PublicBranding, type PublicReview, type PublicSalonMeta } from "@/lib/db/public-hydrate";
 import { SalonBrandedLoader } from "@/components/salon/salon-loader";
 
 
@@ -202,7 +202,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
       case "reviews":
         return <ReviewsSection key={id} site={site} meta={meta} />;
       case "contact":
-        return <ContactSection key={id} site={site} waHref={waHref} />;
+        return <ContactSection key={id} site={site} waHref={waHref} salonId={meta.salonId} />;
       default:
         return null;
     }
