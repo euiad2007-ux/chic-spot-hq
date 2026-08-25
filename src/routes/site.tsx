@@ -677,14 +677,19 @@ function GallerySection({ site }: { site: SiteSettings }) {
 function BeforeAfter({ before, after, title }: { before: string; after: string; title?: string }) {
   const [pos, setPos] = useState(50);
   return (
-    <div className="relative w-full max-h-[80vh] overflow-hidden rounded-2xl select-none">
-      <img src={after} alt={title ? `${title} — بعد` : "بعد"} className="w-full max-h-[80vh] object-contain" />
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
-        <img src={before} alt={title ? `${title} — قبل` : "قبل"} className="absolute inset-0 w-full h-full object-contain" style={{ width: `${(100 / Math.max(pos, 1)) * 100}%` }} />
+    <div className="w-full">
+      <div className="relative w-full overflow-hidden rounded-2xl select-none">
+        <img src={after} alt={title ? `${title} — بعد` : "بعد"} className="w-full max-h-[70vh] object-contain" />
+        <img
+          src={before}
+          alt={title ? `${title} — قبل` : "قبل"}
+          className="absolute inset-0 w-full h-full object-contain"
+          style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
+        />
+        <div className="absolute top-0 bottom-0 w-0.5 bg-white/90" style={{ left: `${pos}%` }} />
+        <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">قبل</span>
+        <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">بعد</span>
       </div>
-      <div className="absolute top-0 bottom-0 w-0.5 bg-white/90" style={{ left: `${pos}%` }} />
-      <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">قبل</span>
-      <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white">بعد</span>
       <input
         type="range"
         min={0}
@@ -692,20 +697,13 @@ function BeforeAfter({ before, after, title }: { before: string; after: string; 
         value={pos}
         aria-label="مقارنة قبل وبعد"
         onChange={(e) => setPos(Number(e.target.value))}
-        className="absolute inset-x-0 bottom-1/2 w-full opacity-0 cursor-ew-resize h-10"
-      />
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={pos}
-        aria-label="تحكم في المقارنة"
-        onChange={(e) => setPos(Number(e.target.value))}
-        className="mt-3 w-full accent-white"
+        className="mt-3 w-full accent-white cursor-ew-resize"
+        dir="ltr"
       />
     </div>
   );
 }
+
 
 
 /* ---------------- team ---------------- */
