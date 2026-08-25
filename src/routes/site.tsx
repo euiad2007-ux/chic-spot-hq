@@ -331,7 +331,141 @@ function heroButtonHref(b: HeroButton, ctx: { booking: string; wa: string; phone
   }
 }
 
+/* ---------------- luxe hero (style: "لمسة فاخرة") ---------------- */
+
+/** Full-bleed cover photo with the salon logo + name centered on top of it. */
+function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSettings; slug?: string; waHref: string; bookingHref: string; external: boolean }) {
+  const height = Math.min(100, Math.max(55, site.heroHeight || 92));
+  const overlay = Math.min(90, Math.max(0, site.heroOverlay ?? 55)) / 100;
+
+  return (
+    <section id="hero" className="relative w-full overflow-hidden" style={{ minHeight: `${height}vh` }}>
+      {site.heroImage ? (
+        <img
+          src={site.heroImage}
+          alt={`${site.salonName} — ${site.tagline}`}
+          className="absolute inset-0 w-full h-full object-cover scale-105"
+          fetchPriority="high"
+        />
+      ) : (
+        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }} />
+      )}
+      <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(0,0,0,${Math.min(0.92, overlay + 0.3)}) 0%, rgba(0,0,0,${overlay}) 50%, rgba(0,0,0,${overlay * 0.5}) 100%)` }} />
+      <div className="absolute inset-0 opacity-70" style={{ background: `radial-gradient(60% 55% at 50% 78%, ${site.primary}55, transparent 72%)` }} />
+
+      <div
+        className="relative z-10 max-w-5xl mx-auto px-5 md:px-10 flex flex-col items-center text-center justify-center gap-5"
+        style={{ minHeight: `${height}vh`, paddingTop: "7rem", paddingBottom: "6rem" }}
+      >
+        {/* logo medallion — swaps instantly with the dashboard logo */}
+        <div
+          className="lamsa-rise size-24 md:size-32 rounded-full grid place-items-center overflow-hidden shadow-[0_30px_80px_-30px_rgba(0,0,0,.8)]"
+          style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})`, boxShadow: `0 0 0 2px rgba(255,255,255,.55), 0 0 0 10px ${site.primary}33` }}
+        >
+          {site.logoUrl
+            ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
+            : <Scissors className="size-10 md:size-14 text-white drop-shadow" aria-hidden />}
+        </div>
+
+        <h1
+          className="lamsa-rise text-white font-black leading-[1.05] text-4xl sm:text-5xl md:text-7xl drop-shadow-[0_8px_36px_rgba(0,0,0,.55)]"
+          style={{ animationDelay: "140ms", letterSpacing: "-0.01em" }}
+        >
+          {site.salonName}
+        </h1>
+
+        <div className="lamsa-rise flex items-center gap-3 text-white/85" style={{ animationDelay: "220ms" }}>
+          <span className="h-px w-10 md:w-16" style={{ background: site.accent }} />
+          <span className="text-xs md:text-sm font-bold tracking-[0.28em]">{site.tagline}</span>
+          <span className="h-px w-10 md:w-16" style={{ background: site.accent }} />
+        </div>
+
+        {site.heroSubtitle && (
+          <p className="lamsa-rise max-w-2xl text-white/80 text-sm md:text-lg leading-relaxed" style={{ animationDelay: "300ms" }}>
+            {site.heroSubtitle}
+          </p>
+        )}
+
+        <div className="lamsa-rise mt-2 flex flex-wrap justify-center gap-3" style={{ animationDelay: "400ms" }}>
+          {site.heroButtons.map((b, i) => {
+            const href = heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone });
+            const primary = i === 0;
+            const cls = cn(
+              "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-9 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
+              primary ? "text-white shadow-2xl hover:brightness-110" : "text-white border border-white/45 bg-white/10 backdrop-blur-md hover:bg-white/20",
+            );
+            const style = primary
+              ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: `0 26px 60px -22px ${site.primary}` }
+              : undefined;
+            if (b.kind === "booking" && !external) {
+              return (
+                <LoginLink key={i} slug={slug} className={cls} style={style}>
+                  <CalendarDays className="size-4" aria-hidden /> {b.label}
+                </LoginLink>
+              );
+            }
+            return (
+              <a key={i} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
+                {b.kind === "whatsapp" && <MessageCircle className="size-4" aria-hidden />}
+                {b.kind === "call" && <Phone className="size-4" aria-hidden />}
+                {b.label}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* glass info strip */}
+      <div className="absolute bottom-0 inset-x-0 z-10 border-t border-white/15 bg-black/25 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-5 md:px-10 py-3 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-[11px] md:text-sm text-white/85">
+          {site.hours && <span className="flex items-center gap-1.5"><Clock className="size-4" aria-hidden /> {site.hours}</span>}
+          {site.address && <span className="flex items-center gap-1.5 truncate max-w-full"><MapPin className="size-4" aria-hidden /> {site.address}</span>}
+          {site.phone && <a href={`tel:${site.phone}`} className="flex items-center gap-1.5 hover:text-white"><Phone className="size-4" aria-hidden /> {site.phone}</a>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Elegant flat card grid — used by the "luxe" style. */
+function LuxeServices({
+  site, slug, list, bookingHref, external,
+}: { site: SiteSettings; slug?: string; list: any[]; bookingHref: string; external: boolean }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+      {list.map((s) => (
+        <article
+          key={s.id}
+          className="group relative overflow-hidden rounded-[26px] border border-border/60 p-6 flex flex-col transition duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
+          style={{ background: site.surface, boxShadow: "0 18px 45px -32px rgba(0,0,0,.45)" }}
+        >
+          <span className="absolute inset-x-0 top-0 h-1 opacity-70 transition group-hover:opacity-100" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }} />
+          {s.category && (
+            <span className="self-start rounded-full px-3 py-1 text-[10px] font-bold tracking-wider" style={{ background: `${site.primary}14`, color: site.primary }}>
+              {s.category}
+            </span>
+          )}
+          <h3 className="mt-3 font-black text-lg md:text-xl leading-snug">{s.name}</h3>
+          <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1.5">
+            <Clock className="size-3.5" aria-hidden /> {s.durationMin} دقيقة
+          </p>
+          <div className="mt-5 flex items-center justify-between gap-3">
+            {site.servicesShowPrice ? (
+              <div className="text-2xl font-black" style={{ color: site.primary }}>{formatSAR(s.price)}</div>
+            ) : <span />}
+            <Sparkles className="size-4 opacity-40 transition group-hover:opacity-90" style={{ color: site.accent }} aria-hidden />
+          </div>
+          <BookNow href={bookingHref} external={external} label={site.bookingLabel} site={site} slug={slug} className="mt-5 w-full h-11 text-sm" />
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSettings; slug?: string; waHref: string; bookingHref: string; external: boolean }) {
+  if (site.layout === "luxe") {
+    return <LuxeHero site={site} slug={slug} waHref={waHref} bookingHref={bookingHref} external={external} />;
+  }
   const align = site.heroAlign;
   const alignCls = align === "center" ? "items-center text-center" : align === "left" ? "items-start text-left" : "items-end text-right";
   const height = Math.min(100, Math.max(45, site.heroHeight || 85));
@@ -513,8 +647,10 @@ function ServicesSection({
     <Reveal id="services" className="py-20 md:py-28" >
       <div className="max-w-7xl mx-auto px-5 md:px-10">
         <SectionHead site={site} eyebrow="Our Services" title={site.servicesTitle} desc={site.servicesDesc} />
-        {categories.length === 0 ? (
+        {list.length === 0 ? (
           <p className="text-center text-muted-foreground">سيتم إضافة الخدمات قريبًا.</p>
+        ) : site.layout === "luxe" ? (
+          <LuxeServices site={site} slug={slug} list={list} bookingHref={bookingHref} external={external} />
         ) : (
           <div className="space-y-14">
             {categories.map(([cat, items]) => (
