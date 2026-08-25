@@ -13,6 +13,14 @@ import {
   Check,
 } from "lucide-react";
 
+import { useQuery } from "@tanstack/react-query";
+
+import { PlansShowcase } from "@/components/platform/plans-showcase";
+import {
+  PlatformContactCard,
+  usePlatformSettings,
+} from "@/components/platform/platform-contact-card";
+import { listPublicPlans } from "@/lib/db/platform-settings-repo";
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
@@ -60,6 +68,9 @@ const included = [
 
 function Landing() {
   const navigate = useNavigate();
+  const settings = usePlatformSettings();
+  const plans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
+  const home = settings.data?.home ?? {};
 
   useEffect(() => {
     let cancelled = false;
@@ -124,7 +135,11 @@ function Landing() {
             منصة SaaS لملاك المشاغل والصالونات
           </span>
           <h1 className="mt-6 text-3xl sm:text-5xl font-extrabold leading-tight">
-            أدِر مشغلك وفروعك من <span className="gradient-text">لوحة واحدة</span>
+            {home.headline || (
+              <>
+                أدِر مشغلك وفروعك من <span className="gradient-text">لوحة واحدة</span>
+              </>
+            )}
           </h1>
           <p className="mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed">
             حجوزات، خدمات لكل فرع، موظفون، رواتب، مخزون، فواتير ضريبية، محافظ ونقاط ولاء — مع موقع
@@ -135,7 +150,7 @@ function Landing() {
               to="/auth"
               className="inline-flex h-12 items-center gap-2 px-7 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold"
             >
-              ابدأ تجربة 30 يومًا
+              {home.ctaLabel || "ابدأ تجربة 30 يومًا"}
               <ArrowLeft className="size-4" />
             </Link>
             <Link
@@ -215,6 +230,24 @@ function Landing() {
             className="w-full h-full object-cover"
           />
         </div>
+      </section>
+
+      <section id="plans" className="px-4 sm:px-8 pb-20 max-w-6xl mx-auto">
+        <PlansShowcase
+          plans={plans.data ?? []}
+          title={home.plansTitle || "باقات الاشتراك"}
+          note={
+            home.plansNote ||
+            "اختر الباقة المناسبة لحجم مشغلك — تُفعّل الأقسام والحدود تلقائيًا حسب الباقة."
+          }
+        />
+      </section>
+
+      <section className="px-4 sm:px-8 pb-20 max-w-3xl mx-auto space-y-4">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-center">
+          {home.contactTitle || "الاشتراك والتواصل"}
+        </h2>
+        {settings.data && <PlatformContactCard settings={settings.data} />}
       </section>
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
