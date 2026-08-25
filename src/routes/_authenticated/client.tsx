@@ -220,11 +220,17 @@ function OverviewTab({ me, upcoming, services, staff, bookings, onNew }: any) {
   const approve = (b: any) => {
     const res = actions.approveWalletPayment(b.id);
     if (!res.ok) return toast.error(res.error ?? "تعذّر الاعتماد");
-    // After approval, issue invoice from wallet immediately
-    const inv = actions.createInvoice(b.id, "cash");
-    if (inv) toast.success(`تم اعتماد الدفع وإصدار الفاتورة ${inv.number}`);
-    else toast.success("تمت الموافقة على الخصم");
+    // After approval, the server issues the invoice and debits the wallet.
+    void checkoutBookingOnServer({
+      bookingId: b.id,
+      method: "wallet",
+      walletUsed: b.price ?? 0,
+      couponCode: b.couponCode,
+    })
+      .then((r) => toast.success(`تم اعتماد الدفع وإصدار الفاتورة ${r.number}`))
+      .catch((e: Error) => toast.error(e.message));
   };
+
   const reject = (b: any) => {
     actions.rejectWalletPayment(b.id);
     toast.info("تم رفض الخصم من المحفظة");
