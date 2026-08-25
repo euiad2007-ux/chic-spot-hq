@@ -2966,6 +2966,18 @@ export type Database = {
         Args: { _salon: string; _year: number }
         Returns: undefined
       }
+      salon_staff_directory: {
+        Args: { _salon: string }
+        Returns: {
+          active: boolean
+          branch_id: string
+          id: string
+          job_title: string
+          name: string
+          role_label: string
+          salon_id: string
+        }[]
+      }
       seed_chart_accounts: { Args: { _salon: string }; Returns: number }
       submit_salon_review: {
         Args: {
