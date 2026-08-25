@@ -2625,6 +2625,18 @@ export type Database = {
         Args: { _salon: string; _uid: string }
         Returns: boolean
       }
+      cancel_expired_holds: { Args: { _salon: string }; Returns: number }
+      checkout_booking: {
+        Args: {
+          _booking: string
+          _coupon?: string
+          _loyalty_rate?: number
+          _method?: string
+          _referral_pct?: number
+          _wallet_used?: number
+        }
+        Returns: Json
+      }
       claim_platform_owner: { Args: never; Returns: boolean }
       close_fiscal_year: {
         Args: { _note?: string; _salon: string; _year: number }
@@ -2738,6 +2750,10 @@ export type Database = {
           _xml: string
         }
         Returns: string
+      }
+      redeem_loyalty: {
+        Args: { _customer: string; _points: number; _rate?: number }
+        Returns: number
       }
       reopen_fiscal_year: {
         Args: { _salon: string; _year: number }
