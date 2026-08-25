@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SalonSiteView } from "@/routes/site";
 
-export const Route = createFileRoute("/salon/$slug")({
+export const Route = createFileRoute("/salon/$slug/")({
   ssr: false,
   head: () => ({
     meta: [
