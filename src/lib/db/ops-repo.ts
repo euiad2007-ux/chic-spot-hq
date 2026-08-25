@@ -21,7 +21,54 @@ export interface Branch {
   active: boolean;
   geofence_m: number;
   created_at: string;
+  lat: number | null;
+  lng: number | null;
+  maps_url: string | null;
+  email: string | null;
+  whatsapp: string | null;
+  hours: string | null;
+  manager_staff_id: string | null;
 }
+
+export interface BranchInput {
+  name: string;
+  phone?: string | null;
+  address?: string | null;
+  geofence_m?: number;
+  lat?: number | null;
+  lng?: number | null;
+  maps_url?: string | null;
+  email?: string | null;
+  whatsapp?: string | null;
+  hours?: string | null;
+  manager_staff_id?: string | null;
+  active?: boolean;
+}
+
+/** Google Maps link for a branch: explicit link first, then coordinates, then address. */
+export function branchMapsUrl(b: {
+  maps_url?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  address?: string | null;
+  name?: string;
+}): string | null {
+  if (b.maps_url) return b.maps_url;
+  if (b.lat != null && b.lng != null)
+    return `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}`;
+  const q = b.address || b.name;
+  return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
+}
+
+/** Extracts coordinates from a pasted Google Maps link, when present. */
+export function parseMapsCoords(url: string): { lat: number; lng: number } | null {
+  const at = url.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  const q = url.match(/[?&](?:q|query|ll|destination)=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+  const m = at ?? q;
+  if (!m) return null;
+  return { lat: Number(m[1]), lng: Number(m[2]) };
+}
+
 
 export interface CashShift {
   id: string;
