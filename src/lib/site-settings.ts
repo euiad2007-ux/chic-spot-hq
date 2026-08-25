@@ -564,10 +564,13 @@ export function galleryOf(s: SiteSettings): GalleryItem[] {
   return s.gallery.map((url) => ({ url, title: "", category: "" }));
 }
 
-/** Visible sections in the configured order. */
+const ALL_SECTIONS: SectionId[] = ["showcase", "services", "gallery", "team", "reviews", "contact"];
+
+/** Visible sections in the configured order (newer sections are appended). */
 export function visibleSections(s: SiteSettings): SectionId[] {
-  const order = s.sectionOrder.length ? s.sectionOrder : (["showcase", "services", "gallery", "team", "reviews", "contact"] as SectionId[]);
-  return order.filter((id) => !s.hiddenSections.includes(id));
+  const order = s.sectionOrder.length ? s.sectionOrder : ALL_SECTIONS;
+  const merged = [...order, ...ALL_SECTIONS.filter((id) => !order.includes(id))];
+  return merged.filter((id) => !s.hiddenSections.includes(id));
 }
 
 /** Social links present in settings, ready to render. */
