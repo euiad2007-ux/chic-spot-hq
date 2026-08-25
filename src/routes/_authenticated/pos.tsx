@@ -6,6 +6,8 @@ import { Sparkles, Package, Trash2, Plus, Minus, ShoppingCart, Receipt, Lock } f
 
 import { AppShell } from "@/components/salon/app-shell";
 import { useAccount } from "@/hooks/use-account";
+import { useActiveBranch as useHeaderBranch } from "@/lib/active-branch";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useSalon, formatSAR } from "@/lib/salon-store";
 import {
