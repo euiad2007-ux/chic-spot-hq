@@ -178,6 +178,7 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
       customerId: str(r.customer_id),
       staffId: str(r.staff_id),
       serviceIds: links.map((l) => l.service_id as string),
+      branchId: (r.branch_id as string | null) ?? null,
       startsAt: str(r.starts_at),
       durationMin: num(r.duration_min),
       price: num(r.price),
@@ -293,6 +294,7 @@ const bookingRow = (b: Booking, salon_id: string): Row => ({
   wallet_approved: b.walletApproved ?? false, payment_method: b.paymentMethod ?? null,
   hold_expires_at: b.holdExpiresAt ?? null, status: b.status, pay_status: b.payStatus,
   stock_deducted: b.stockDeducted ?? false,
+  branch_id: b.branchId ?? null,
   notes: b.notes ?? null,
 });
 
