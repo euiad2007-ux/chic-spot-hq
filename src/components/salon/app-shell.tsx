@@ -258,9 +258,17 @@ export function AppShell({
       {/* Sidebar */}
       <aside className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
-            <Scissors className="size-5 text-primary-foreground" />
-          </div>
+          {site.logoUrl ? (
+            <img
+              src={site.logoUrl}
+              alt={`شعار ${account?.salonName ?? "Salon Flow"}`}
+              className="h-16 w-auto max-w-[120px] object-contain bg-transparent shrink-0"
+            />
+          ) : (
+            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
+              <Scissors className="size-5 text-primary-foreground" />
+            </div>
+          )}
           <div className="min-w-0">
             <div className="font-bold text-base leading-none truncate">
               {account?.salonName ?? "Salon Flow"}
@@ -270,6 +278,7 @@ export function AppShell({
             </div>
           </div>
         </div>
+
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">{navLinks()}</nav>
         <div className="p-3 border-t border-border space-y-1">
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
