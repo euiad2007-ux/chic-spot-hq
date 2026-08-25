@@ -446,14 +446,19 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       walletApprovalRequestedAt: needsApproval ? new Date().toISOString() : undefined,
     });
 
-    // If cash/electronic → issue invoice immediately (one invoice for all services)
+    // If cash/electronic → issue the invoice on the server (one invoice for all services)
     if (payMethod !== "wallet" && payMethod !== "hold") {
-      const inv = actions.createInvoice(nb.id, payMethod as any);
-      if (inv && finalCouponCode) couponActions.markUsed(finalCouponCode);
-      toast.success(`تم إنشاء الحجز ${nb.code} وإصدار الفاتورة`);
+      void checkoutBookingOnServer({
+        bookingId: nb.id,
+        method: payMethod,
+        couponCode: finalCouponCode,
+      })
+        .then((r) => toast.success(`تم إنشاء الحجز ${nb.code} وإصدار الفاتورة ${r.number}`))
+        .catch((e: Error) => toast.error(e.message));
     } else if (payMethod === "wallet") {
       toast.success(`تم إنشاء الحجز ${nb.code} — بانتظار موافقة العميل على الخصم من المحفظة`);
     }
+
     onClose();
   };
 
