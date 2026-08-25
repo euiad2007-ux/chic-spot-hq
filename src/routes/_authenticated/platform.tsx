@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAccount } from "@/hooks/use-account";
 import { AppShell } from "@/components/salon/app-shell";
 import { cn } from "@/lib/utils";
@@ -368,7 +369,7 @@ function SalonsTab() {
   const plans = usePlans();
 
   const update = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: TablesUpdate<"salons"> }) => {
       const { error } = await supabase.from("salons").update(patch).eq("id", id);
       if (error) throw error;
     },
@@ -456,7 +457,7 @@ function SalonCard({
 }: {
   salon: PlatformSalonOverview;
   plans: PlanRow[];
-  onPatch: (patch: Record<string, unknown>) => void;
+  onPatch: (patch: TablesUpdate<"salons">) => void;
 }) {
   const [open, setOpen] = useState(false);
   const plan = plans.find((p) => p.code === s.plan) ?? null;
