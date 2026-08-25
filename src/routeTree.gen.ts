@@ -15,6 +15,7 @@ import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SalonSlugRouteImport } from './routes/salon.$slug'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedStocktakeRouteImport } from './routes/_authenticated/stocktake'
@@ -85,6 +86,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalonSlugRoute = SalonSlugRouteImport.update({
+  id: '/salon/$slug',
+  path: '/salon/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/salon/$slug': typeof SalonSlugRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/stocktake': typeof AuthenticatedStocktakeRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/salon/$slug': typeof SalonSlugRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/_authenticated/stocktake': typeof AuthenticatedStocktakeRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/salon/$slug': typeof SalonSlugRoute
   '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/_authenticated/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -499,6 +508,7 @@ export interface FileRouteTypes {
     | '/stocktake'
     | '/subscription'
     | '/users'
+    | '/salon/$slug'
     | '/accounting/accounts'
     | '/accounting/assets'
     | '/accounting/closing'
@@ -547,6 +557,7 @@ export interface FileRouteTypes {
     | '/stocktake'
     | '/subscription'
     | '/users'
+    | '/salon/$slug'
     | '/accounting/accounts'
     | '/accounting/assets'
     | '/accounting/closing'
@@ -597,6 +608,7 @@ export interface FileRouteTypes {
     | '/_authenticated/stocktake'
     | '/_authenticated/subscription'
     | '/_authenticated/users'
+    | '/salon/$slug'
     | '/_authenticated/accounting/accounts'
     | '/_authenticated/accounting/assets'
     | '/_authenticated/accounting/closing'
@@ -617,6 +629,7 @@ export interface RootRouteChildren {
   NoAccessRoute: typeof NoAccessRoute
   SiteRoute: typeof SiteRoute
   StoreLoginRoute: typeof StoreLoginRoute
+  SalonSlugRoute: typeof SalonSlugRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salon/$slug': {
+      id: '/salon/$slug'
+      path: '/salon/$slug'
+      fullPath: '/salon/$slug'
+      preLoaderRoute: typeof SalonSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/users': {
@@ -1074,6 +1094,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoAccessRoute: NoAccessRoute,
   SiteRoute: SiteRoute,
   StoreLoginRoute: StoreLoginRoute,
+  SalonSlugRoute: SalonSlugRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
