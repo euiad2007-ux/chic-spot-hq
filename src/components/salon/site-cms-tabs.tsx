@@ -216,14 +216,15 @@ export function HeroTab({ s }: { s: SiteSettings }) {
 
       <div className="space-y-4">
         <section className="glass-card rounded-2xl p-5">
-          <Head icon={ImageIcon} title="صورة الغلاف" />
-          <ImagePick url={s.heroImage} onPick={(u) => siteActions.update({ heroImage: u })} className="w-full aspect-[16/10]" />
+          <Head icon={ImageIcon} title="صورة خلفية الواجهة" desc="تُحفظ مع الاستايل الحالي." />
+          <ImagePick url={s.heroImage} onPick={(u) => siteActions.updateHero({ heroImage: u })} className="w-full aspect-[16/10]" />
           {s.heroImage && (
-            <button onClick={() => siteActions.update({ heroImage: "" })} className="mt-3 inline-flex items-center gap-2 h-9 px-3 rounded-lg text-xs text-destructive hover:bg-destructive/10">
+            <button onClick={() => siteActions.updateHero({ heroImage: "" })} className="mt-3 inline-flex items-center gap-2 h-9 px-3 rounded-lg text-xs text-destructive hover:bg-destructive/10">
               <Trash2 className="size-4" /> حذف الصورة
             </button>
           )}
         </section>
+
         <section className="glass-card rounded-2xl p-5">
           <Head icon={ImageIcon} title="أيقونة الموقع (Favicon)" />
           <ImagePick url={s.faviconUrl} onPick={(u) => siteActions.update({ faviconUrl: u })} className="size-20" />
