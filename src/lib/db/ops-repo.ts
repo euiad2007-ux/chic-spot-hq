@@ -156,34 +156,38 @@ export async function updateProductSale(
 export async function listBranches(salonId: string): Promise<Branch[]> {
   const { data, error } = await supabase
     .from("branches")
-    .select("id, name, phone, address, active, geofence_m, created_at")
+    .select(
+      "id, name, phone, address, active, geofence_m, created_at, lat, lng, maps_url, email, whatsapp, hours, manager_staff_id",
+    )
     .eq("salon_id", salonId)
     .order("created_at");
   if (error) throw new Error(error.message);
   return (data ?? []) as Branch[];
 }
 
-export async function createBranch(
-  salonId: string,
-  input: { name: string; phone?: string; address?: string; geofence_m?: number },
-) {
+export async function createBranch(salonId: string, input: BranchInput) {
   const { error } = await supabase.from("branches").insert({
     salon_id: salonId,
     name: input.name,
     phone: input.phone || null,
     address: input.address || null,
     geofence_m: input.geofence_m ?? 150,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
+    maps_url: input.maps_url || null,
+    email: input.email || null,
+    whatsapp: input.whatsapp || null,
+    hours: input.hours || null,
+    manager_staff_id: input.manager_staff_id || null,
   });
   if (error) throw new Error(error.message);
 }
 
-export async function updateBranch(
-  id: string,
-  patch: { name?: string; phone?: string | null; address?: string | null; active?: boolean; geofence_m?: number },
-) {
+export async function updateBranch(id: string, patch: Partial<BranchInput>) {
   const { error } = await supabase.from("branches").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
 }
+
 
 /* ---------------------------------- shifts --------------------------------- */
 
