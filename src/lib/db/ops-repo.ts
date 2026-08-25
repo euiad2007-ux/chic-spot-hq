@@ -584,9 +584,21 @@ export async function listAudit(salonId: string, limit = 50): Promise<AuditEntry
  * Records who switched the dashboard branch scope and when. Written to the
  * shared audit log so owners can trace which branch a user was working in.
  */
+export interface BranchSwitchEntry {
+  id: string;
+  created_at: string;
+  userId: string | null;
+  userName: string;
+  fromBranchId: string | null;
+  fromBranchName: string;
+  toBranchId: string | null;
+  toBranchName: string;
+}
+
 export async function logBranchSwitch(input: {
   salonId: string;
   userId: string;
+  userName?: string | null;
   fromBranchId: string | null;
   fromBranchName: string | null;
   toBranchId: string | null;
@@ -598,9 +610,50 @@ export async function logBranchSwitch(input: {
     action: "branch_switch",
     entity: "branches",
     entity_id: input.toBranchId,
-    before: { branch_id: input.fromBranchId, branch_name: input.fromBranchName ?? "كل الفروع" },
-    after: { branch_id: input.toBranchId, branch_name: input.toBranchName ?? "كل الفروع" },
+    // The actor name is stored inline: profiles are readable only by their owner,
+    // so the trail must be self-describing for managers reading it later.
+    before: { branch_id: input.fromBranchId, branch_name: input.fromBranchName ?? ALL_BRANCHES },
+    after: {
+      branch_id: input.toBranchId,
+      branch_name: input.toBranchName ?? ALL_BRANCHES,
+      user_name: input.userName ?? null,
+    },
   });
   // A failed trail entry must never block the user from switching branches.
   if (error) console.warn("branch switch not logged:", error.message);
+}
+
+const ALL_BRANCHES = "كل الفروع";
+
+/** Branch scope switches (from/to, time, user) for the audit page. */
+export async function listBranchSwitches(
+  salonId: string,
+  f: { from?: string; to?: string; limit?: number } = {},
+): Promise<BranchSwitchEntry[]> {
+  let q = supabase
+    .from("audit_log")
+    .select("id, created_at, user_id, before, after")
+    .eq("salon_id", salonId)
+    .eq("action", "branch_switch");
+  if (f.from) q = q.gte("created_at", `${f.from}T00:00:00`);
+  if (f.to) q = q.lte("created_at", `${f.to}T23:59:59`);
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(f.limit ?? 500);
+  if (error) throw new Error(error.message);
+  const pick = (v: unknown, k: string): string | null => {
+    const o = (v ?? {}) as Record<string, unknown>;
+    const val = o[k];
+    return typeof val === "string" && val ? val : null;
+  };
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    created_at: r.created_at as string,
+    userId: (r.user_id as string | null) ?? null,
+    userName:
+      pick(r.after, "user_name") ??
+      (r.user_id ? `مستخدم ${(r.user_id as string).slice(0, 8)}` : "غير معروف"),
+    fromBranchId: pick(r.before, "branch_id"),
+    fromBranchName: pick(r.before, "branch_name") ?? ALL_BRANCHES,
+    toBranchId: pick(r.after, "branch_id"),
+    toBranchName: pick(r.after, "branch_name") ?? ALL_BRANCHES,
+  }));
 }
