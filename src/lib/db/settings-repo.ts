@@ -2,32 +2,36 @@ import { supabase } from "@/integrations/supabase/client";
 import { getDataContext } from "@/lib/db/context";
 import { enqueue, logDbError, debounce } from "@/lib/db/sync";
 
-export type SettingsColumn = "site" | "booking" | "rewards" | "payroll";
+export type SettingsColumn = "site" | "booking" | "rewards" | "payroll" | "invoice";
 
 export interface SettingsBundle {
   site: Record<string, unknown> | null;
   booking: Record<string, unknown> | null;
   rewards: Record<string, unknown> | null;
   payroll: Record<string, unknown> | null;
+  invoice: Record<string, unknown> | null;
 }
 
-/** Reads the four settings documents that belong to a salon. */
+/** Reads the settings documents that belong to a salon. */
 export async function loadSettingsBundle(salonId: string): Promise<SettingsBundle> {
   const { data, error } = await supabase
     .from("salon_settings")
-    .select("site, booking, rewards, payroll")
+    .select("site, booking, rewards, payroll, invoice")
     .eq("salon_id", salonId)
     .maybeSingle();
   logDbError("load salon_settings", error);
   const pick = (v: unknown) =>
     v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+  const row = (data ?? {}) as Record<string, unknown>;
   return {
-    site: pick(data?.site),
-    booking: pick(data?.booking),
-    rewards: pick(data?.rewards),
-    payroll: pick(data?.payroll),
+    site: pick(row["site"]),
+    booking: pick(row["booking"]),
+    rewards: pick(row["rewards"]),
+    payroll: pick(row["payroll"]),
+    invoice: pick(row["invoice"]),
   };
 }
+
 
 const pending: Partial<Record<SettingsColumn, unknown>> = {};
 
