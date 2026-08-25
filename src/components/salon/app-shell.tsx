@@ -371,7 +371,13 @@ export function AppShell({
           />
           <div className="relative ml-auto h-full w-72 bg-card border-l border-border p-3 overflow-y-auto">
             <div className="flex items-center justify-between px-2 py-3">
-              <span className="font-bold">{account?.salonName ?? "Salon Flow"}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                {site.logoUrl && (
+                  <img src={site.logoUrl} alt="" className="h-10 w-auto max-w-[100px] object-contain bg-transparent" />
+                )}
+                <span className="font-bold truncate">{account?.salonName ?? "Salon Flow"}</span>
+              </span>
+
               <button onClick={() => setMenuOpen(false)} aria-label="إغلاق القائمة">
                 <X className="size-5" />
               </button>
