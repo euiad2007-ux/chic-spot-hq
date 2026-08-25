@@ -372,6 +372,7 @@ function SiteHeader({
 function BookNow({
   href, external, label, site, slug, className,
 }: { href: string; external: boolean; label: string; site: SiteSettings; slug?: string; className?: string }) {
+  const safeHref = normalizeSiteHref(href);
   const style = {
     background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`,
     boxShadow: `0 18px 40px -18px ${site.primary}99`,
@@ -382,7 +383,7 @@ function BookNow({
   );
   if (external) {
     return (
-      <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
+      <a href={safeHref} target={isExternalSiteHref(safeHref) ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
         <CalendarDays className="size-4" aria-hidden /> {label}
       </a>
     );
@@ -392,6 +393,17 @@ function BookNow({
       <CalendarDays className="size-4" aria-hidden /> {label}
     </LoginLink>
   );
+}
+
+function normalizeSiteHref(href: string): string {
+  const value = href.trim();
+  if (!value) return "#";
+  if (/^(https?:|tel:|mailto:|#|\/)/i.test(value)) return value;
+  return `https://${value}`;
+}
+
+function isExternalSiteHref(href: string): boolean {
+  return /^https?:\/\//i.test(href);
 }
 
 function heroButtonHref(b: HeroButton, ctx: { booking: string; wa: string; phone: string }) {
@@ -478,7 +490,7 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
 
         <div className="lamsa-rise mt-2 flex flex-wrap justify-center gap-3" style={{ animationDelay: "400ms" }}>
           {heroButtonsOf(site).map((b, i) => {
-            const href = heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone });
+            const href = normalizeSiteHref(heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone }));
             const primary = i === 0;
             const cls = cn(
               "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-9 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
@@ -495,7 +507,7 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
               );
             }
             return (
-              <a key={i} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
+              <a key={i} href={href} target={isExternalSiteHref(href) ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
                 {b.kind === "whatsapp" && <MessageCircle className="size-4" aria-hidden />}
                 {b.kind === "call" && <Phone className="size-4" aria-hidden />}
                 {b.label}
@@ -619,7 +631,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
           style={{ animationDelay: "420ms" }}
         >
           {heroButtonsOf(site).map((b, i) => {
-            const href = heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone });
+            const href = normalizeSiteHref(heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone }));
             const primary = i === 0;
             const cls = cn(
               "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-8 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
@@ -636,7 +648,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
               );
             }
             return (
-              <a key={i} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
+              <a key={i} href={href} target={isExternalSiteHref(href) ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
                 {b.kind === "whatsapp" && <MessageCircle className="size-4" aria-hidden />}
                 {b.kind === "call" && <Phone className="size-4" aria-hidden />}
                 {b.label}
