@@ -10,6 +10,8 @@ import { findEarliestSlot, useBookingSettings, getBookingSettings, checkBookingC
 import { evalCoupon } from "@/lib/coupon-store";
 import { checkoutBookingOnServer, cancelExpiredHoldsOnServer } from "@/lib/db/checkout-repo";
 import { currentSalonId } from "@/lib/db/hydrate";
+import { useActiveBranch } from "@/lib/active-branch";
+import { scopeToBranch, branchForNewRecord } from "@/lib/branch-scope";
 
 
 import { useEffect, useMemo, useState } from "react";
@@ -56,6 +58,7 @@ function BookingsPage() {
   const [filter, setFilter] = useState<BookingStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [openNew, setOpenNew] = useState(false);
+  const activeBranchId = useActiveBranch();
 
   // Auto-cancel expired hold bookings on the server, on mount + every minute
   useEffect(() => {
@@ -71,7 +74,7 @@ function BookingsPage() {
 
 
   const rows = useMemo(() => {
-    return bookings
+    return scopeToBranch(bookings, activeBranchId)
       .filter((b) => filter === "all" || b.status === filter)
       .filter((b) => {
         if (!search) return true;
@@ -81,7 +84,7 @@ function BookingsPage() {
           c?.phone.includes(search);
       })
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  }, [bookings, customers, filter, search]);
+  }, [bookings, customers, filter, search, activeBranchId]);
 
   return (
     <AppShell
@@ -288,7 +291,12 @@ function BookingsPage() {
  *  - Payment: cash / electronic / wallet (approval) — single invoice
  * ============================================================ */
 function NewBookingDialog({ onClose }: { onClose: () => void }) {
-  const { customers, staff, services } = useSalon((s) => s);
+  const all = useSalon((s) => s);
+  const activeBranchId = useActiveBranch();
+  const customers = all.customers;
+  // Only the services and specialists of the branch selected in the header.
+  const services = useMemo(() => scopeToBranch(all.services, activeBranchId), [all.services, activeBranchId]);
+  const staff = useMemo(() => scopeToBranch(all.staff, activeBranchId), [all.staff, activeBranchId]);
   const settings = useBookingSettings((s) => s);
 
   // ==== Customer step ====
@@ -454,6 +462,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
       paymentMethod: payMethod,
       walletApproved: false,
       walletApprovalRequestedAt: needsApproval ? new Date().toISOString() : undefined,
+      branchId: branchForNewRecord(activeBranchId),
     });
 
     // If cash/electronic → issue the invoice on the server (one invoice for all services)

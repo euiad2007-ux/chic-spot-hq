@@ -12,6 +12,8 @@ import { SlotPicker } from "@/components/salon/slot-picker";
 import { useMemo, useState } from "react";
 import { ChevronRight, ChevronLeft, X, CalendarClock, Coffee, Timer, Users } from "lucide-react";
 import { cn, fmtLongDay } from "@/lib/utils";
+import { useActiveBranch } from "@/lib/active-branch";
+import { scopeToBranch } from "@/lib/branch-scope";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
@@ -41,6 +43,7 @@ function dateKey(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-
 function CalendarPage() {
   const { bookings, staff, customers, services } = useSalon((s) => s);
   const settings = useBookingSettings((s) => s);
+  const activeBranchId = useActiveBranch();
   const [date, setDate] = useState(() => new Date());
   const [editing, setEditing] = useState<Booking | null>(null);
 
@@ -51,12 +54,16 @@ function CalendarPage() {
   const totalMin = Math.max(60, closeMin - openMin);
   const railHeight = totalMin * PX_PER_MIN;
 
-  const dayBookings = useMemo(() => bookings.filter((b) => {
+  const dayBookings = useMemo(() => scopeToBranch(bookings, activeBranchId).filter((b) => {
     if (b.status === "cancelled") return false;
     return dateKey(new Date(b.startsAt)) === dateKey(date);
-  }), [bookings, date]);
+  }), [bookings, date, activeBranchId]);
 
-  const activeStaff = staff.filter((s) => s.active);
+  // Only the specialists of the branch selected in the header get a column.
+  const activeStaff = useMemo(
+    () => scopeToBranch(staff, activeBranchId).filter((s) => s.active),
+    [staff, activeBranchId],
+  );
   const hours = useMemo(() => {
     const out: number[] = [];
     for (let m = Math.floor(openMin / 60) * 60; m <= closeMin; m += 60) out.push(m);
@@ -226,6 +233,7 @@ function CalendarPage() {
 
 function RescheduleDialog({ booking, onClose }: { booking: Booking; onClose: () => void }) {
   const { staff, services, customers } = useSalon((s) => s);
+  const activeBranchId = useActiveBranch();
   const [staffId, setStaffId] = useState(booking.staffId);
   const [day, setDay] = useState(() => {
     const d = new Date(booking.startsAt);
@@ -236,7 +244,7 @@ function RescheduleDialog({ booking, onClose }: { booking: Booking; onClose: () 
   const svcs = booking.serviceIds.map((id) => services.find((x) => x.id === id)).filter(Boolean);
   const duration = booking.durationMin || svcs.reduce((a, x) => a + serviceTotalMin(x!), 0);
   const cust = customers.find((c) => c.id === booking.customerId);
-  const eligible = staff.filter((s) => s.active);
+  const eligible = scopeToBranch(staff, activeBranchId).filter((s) => s.active);
 
   const slots = useMemo(() => getDaySlots({
     date: day,
