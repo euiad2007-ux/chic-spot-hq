@@ -825,9 +825,15 @@ function NewBookingModal({ onClose, customerId }: { onClose: () => void; custome
     });
 
     if (pay !== "hold") {
-      const inv = actions.createInvoice(nb.id, (pay === "wallet" ? "cash" : pay) as any);
-      if (inv) toast.success(`تم الحجز وإصدار الفاتورة ${nb.code}`);
+      void checkoutBookingOnServer({
+        bookingId: nb.id,
+        method: pay,
+        walletUsed: pay === "wallet" ? combined.price : 0,
+      })
+        .then((r) => toast.success(`تم الحجز ${nb.code} وإصدار الفاتورة ${r.number}`))
+        .catch((e: Error) => toast.error(e.message));
     } else {
+
       toast.success(`تم حفظ الحجز ${nb.code} — سيُلغى تلقائياً بعد ${settings.holdGraceMin} دقيقة من موعده إن لم يُدفع`);
     }
     onClose();
