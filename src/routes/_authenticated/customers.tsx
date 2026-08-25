@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { useSiteSettings, waLink, fillTemplate } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 import { TopupRequestsPanel } from "@/components/salon/topup-requests";
+import { redeemLoyaltyOnServer } from "@/lib/db/checkout-repo";
+
 
 
 export const Route = createFileRoute("/_authenticated/customers")({
