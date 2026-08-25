@@ -2038,6 +2038,7 @@ export type Database = {
         Row: {
           booking: Json
           inventory: Json
+          invoice: Json | null
           payroll: Json
           rewards: Json
           salon_id: string
@@ -2047,6 +2048,7 @@ export type Database = {
         Insert: {
           booking?: Json
           inventory?: Json
+          invoice?: Json | null
           payroll?: Json
           rewards?: Json
           salon_id: string
@@ -2056,6 +2058,7 @@ export type Database = {
         Update: {
           booking?: Json
           inventory?: Json
+          invoice?: Json | null
           payroll?: Json
           rewards?: Json
           salon_id?: string
