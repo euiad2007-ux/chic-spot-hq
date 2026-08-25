@@ -2701,6 +2701,16 @@ export type Database = {
           slug: string
         }[]
       }
+      public_salon_services: {
+        Args: { _salon: string }
+        Returns: {
+          category: string
+          duration_min: number
+          id: string
+          name: string
+          price: number
+        }[]
+      }
       public_salon_site: { Args: { _salon: string }; Returns: Json }
       public_salon_team: {
         Args: { _salon: string }
