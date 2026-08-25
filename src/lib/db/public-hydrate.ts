@@ -39,37 +39,77 @@ const EMPTY_META: PublicSalonMeta = { salonId: null, avgRating: 0, reviewCount: 
  * Public salon website: loads branding, active services and the team without
  * requiring a session (read-only, anon-safe columns only).
  */
+async function resolveSalon(slug?: string): Promise<{ id: string; name: string } | null> {
+  if (slug) {
+    const { data } = await supabase.rpc("public_salon_lookup", { _slug: slug });
+    const row = (data as { id: string; name: string }[] | null)?.[0];
+    return row ? { id: row.id, name: row.name } : null;
+  }
+  const tenant = await resolveTenant();
+  if (tenant && !tenant.isSuspended) return { id: tenant.id, name: tenant.name };
+  if (tenant) return null;
+  const signed = await resolveSignedInSalon();
+  if (signed) return signed;
+  const { data } = await supabase.rpc("public_salon_lookup", {});
+  const row = (data as { id: string; name: string }[] | null)?.[0];
+  return row ? { id: row.id, name: row.name } : null;
+}
+
+const salonCache = new Map<string, Promise<{ id: string; name: string } | null>>();
+
+function cachedSalon(slug?: string) {
+  const key = slug ?? "current";
+  let p = salonCache.get(key);
+  if (!p) {
+    p = resolveSalon(slug);
+    salonCache.set(key, p);
+  }
+  return p;
+}
+
+export interface PublicBranding {
+  salonName: string;
+  logoUrl: string;
+  primary: string;
+  accent: string;
+  background: string;
+  textColor: string;
+}
+
+/** Minimal, fast branding fetch used to render the salon-branded loading screen. */
+export async function fetchPublicBranding(slug?: string): Promise<PublicBranding | null> {
+  const salon = await cachedSalon(slug);
+  if (!salon) return null;
+  const { data } = await supabase.rpc("public_salon_site", { _salon: salon.id });
+  const stored = data && typeof data === "object" && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
+  const pick = (k: string) => (typeof stored[k] === "string" ? (stored[k] as string) : "");
+  return {
+    salonName: pick("salonName") || salon.name,
+    logoUrl: pick("logoUrl"),
+    primary: pick("primary"),
+    accent: pick("accent"),
+    background: pick("background"),
+    textColor: pick("textColor"),
+  };
+}
+
+/**
+ * Public salon website: loads branding, active services and the team without
+ * requiring a session (read-only, anon-safe columns only).
+ */
 export function hydratePublicSite(slug?: string, force = false): Promise<PublicSalonMeta> {
   const key = slug ?? "current";
   if (done && doneKey === key && !force) return done;
   doneKey = key;
-  done = (async () => {
-    let salon: { id: string; name: string } | null = null;
-    if (slug) {
-      const { data } = await supabase.rpc("public_salon_lookup", { _slug: slug });
-      const row = (data as { id: string; name: string }[] | null)?.[0];
-      salon = row ? { id: row.id, name: row.name } : null;
-      return finish(salon);
-    }
-    const tenant = await resolveTenant();
-    if (tenant && !tenant.isSuspended) {
-      salon = { id: tenant.id, name: tenant.name };
-    } else if (!tenant) {
-      salon = await resolveSignedInSalon();
-      if (!salon) {
-        const { data } = await supabase.rpc("public_salon_lookup", {});
-        const row = (data as { id: string; name: string }[] | null)?.[0];
-        salon = row ? { id: row.id, name: row.name } : null;
-      }
-    }
-    return finish(salon);
-  })();
+  if (force) salonCache.delete(key);
+  done = cachedSalon(slug).then((salon) => finish(salon));
   return done;
 }
 
 export function resetPublicSiteHydration() {
   done = null;
   doneKey = "";
+  salonCache.clear();
 }
 
 async function resolveSignedInSalon(): Promise<{ id: string; name: string } | null> {
