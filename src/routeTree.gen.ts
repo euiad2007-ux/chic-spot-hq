@@ -56,6 +56,7 @@ import { Route as AuthenticatedAccountingCreditNotesRouteImport } from './routes
 import { Route as AuthenticatedAccountingClosingRouteImport } from './routes/_authenticated/accounting.closing'
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
 import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
 const StoreLoginRoute = StoreLoginRouteImport.update({
   id: '/store-login',
@@ -304,6 +305,12 @@ const AuthenticatedAccountingAccountsRoute =
     path: '/accounts',
     getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
   '/accounting/': typeof AuthenticatedAccountingIndexRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -399,6 +407,7 @@ export interface FileRoutesByTo {
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
   '/accounting': typeof AuthenticatedAccountingIndexRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -449,6 +458,7 @@ export interface FileRoutesById {
   '/_authenticated/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
   '/_authenticated/accounting/': typeof AuthenticatedAccountingIndexRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/accounting/trial-balance'
     | '/accounting/vat'
     | '/accounting/'
+    | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -546,6 +557,7 @@ export interface FileRouteTypes {
     | '/accounting/trial-balance'
     | '/accounting/vat'
     | '/accounting'
+    | '/lovable/email/transactional/preview'
   id:
     | '__root__'
     | '/'
@@ -595,6 +607,7 @@ export interface FileRouteTypes {
     | '/_authenticated/accounting/trial-balance'
     | '/_authenticated/accounting/vat'
     | '/_authenticated/accounting/'
+    | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -604,6 +617,7 @@ export interface RootRouteChildren {
   NoAccessRoute: typeof NoAccessRoute
   SiteRoute: typeof SiteRoute
   StoreLoginRoute: typeof StoreLoginRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -937,6 +951,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingAccountsRouteImport
       parentRoute: typeof AuthenticatedAccountingRoute
     }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1053,6 +1074,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoAccessRoute: NoAccessRoute,
   SiteRoute: SiteRoute,
   StoreLoginRoute: StoreLoginRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
