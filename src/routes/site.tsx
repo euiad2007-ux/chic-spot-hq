@@ -332,7 +332,10 @@ function BookNow({
     background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`,
     boxShadow: `0 18px 40px -18px ${site.primary}99`,
   };
-    "btn inline-flex items-center justify-center gap-2 text-[var(--brand-foreground)] font-semibold transition hover:brightness-110 hover:-translate-y-0.5", className);
+  const cls = cn(
+    "btn inline-flex items-center justify-center gap-2 text-[var(--brand-foreground)] font-semibold transition hover:brightness-110 hover:-translate-y-0.5",
+    className,
+  );
   if (external) {
     return (
       <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
