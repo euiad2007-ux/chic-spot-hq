@@ -334,13 +334,15 @@ export function AppShell({
               <span>إعدادات الموقع</span>
             </Link>
           )}
-          <Link
-            to="/site"
+          <a
+            href={sitePath}
+            target="_blank"
+            rel="noreferrer"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
           >
             <Sparkles className="size-4" />
             <span>الموقع العام</span>
-          </Link>
+          </a>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive hover:bg-sidebar-accent"

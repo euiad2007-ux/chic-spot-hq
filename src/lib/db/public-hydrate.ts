@@ -50,6 +50,13 @@ async function resolveSalon(slug?: string): Promise<{ id: string; name: string }
   if (tenant) return null;
   const signed = await resolveSignedInSalon();
   if (signed) return signed;
+  return resolvePublicFallbackSalon();
+}
+
+async function resolvePublicFallbackSalon(): Promise<{ id: string; name: string } | null> {
+  const { data } = await supabase.rpc("public_salon_lookup", { _domains: [] });
+  const row = (data as { id: string; name: string }[] | null)?.[0];
+  if (row) return { id: row.id, name: row.name };
   return null;
 }
 
