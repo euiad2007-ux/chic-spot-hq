@@ -55,12 +55,18 @@ function BookingsPage() {
   const [search, setSearch] = useState("");
   const [openNew, setOpenNew] = useState(false);
 
-  // Auto-cancel expired hold bookings on mount + every minute
+  // Auto-cancel expired hold bookings on the server, on mount + every minute
   useEffect(() => {
-    actions.cancelExpiredHolds();
-    const t = setInterval(() => actions.cancelExpiredHolds(), 60_000);
+    const sweep = () => {
+      const salonId = currentSalonId();
+      if (!salonId) return;
+      void cancelExpiredHoldsOnServer(salonId).catch(() => undefined);
+    };
+    sweep();
+    const t = setInterval(sweep, 60_000);
     return () => clearInterval(t);
   }, []);
+
 
   const rows = useMemo(() => {
     return bookings
