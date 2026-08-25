@@ -41,18 +41,26 @@ export function hydratePublicSite(): Promise<void> {
     }
     const [settingsRes, servicesRes, teamRes] = await Promise.all([
       supabase.rpc("public_salon_site", { _salon: salon.id }),
-      supabase.from("services").select("*").eq("salon_id", salon.id).eq("active", true),
+      supabase.rpc("public_salon_services", { _salon: salon.id }),
       supabase.rpc("public_salon_team", { _salon: salon.id }),
     ]);
 
-    const services: Service[] = (servicesRes.data ?? []).map((r) => ({
+    const services: Service[] = (
+      (servicesRes.data ?? []) as {
+        id: string;
+        name: string;
+        category: string | null;
+        price: number | null;
+        duration_min: number | null;
+      }[]
+    ).map((r) => ({
       id: r.id,
       name: str(r.name),
       category: str(r.category),
       price: num(r.price),
       durationMin: num(r.duration_min, 30),
-      prepMin: num(r.prep_min),
-      cleanupMin: num(r.cleanup_min),
+      prepMin: 0,
+      cleanupMin: 0,
       active: true,
       materials: [],
     }));
