@@ -133,7 +133,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
       <style>{`.store-login h1,.store-login h2{font-family:var(--font-display)}`}</style>
 
       <div className="w-full max-w-md">
-        <Link to="/site" className="flex items-center justify-center gap-3 mb-7">
+        <SiteLink slug={slug} className="flex items-center justify-center gap-3 mb-7">
           <span
             className="size-12 rounded-2xl grid place-items-center overflow-hidden"
             style={{ background: gradient }}
@@ -145,7 +145,8 @@ export function StoreLoginView({ slug }: { slug?: string }) {
             )}
           </span>
           <span className="text-2xl font-extrabold">{site.salonName}</span>
-        </Link>
+        </SiteLink>
+
 
         <div className="rounded-2xl border border-border bg-card/85 backdrop-blur-xl p-6 shadow-lg">
           <h1 className="text-lg font-bold text-center">دخول {site.salonName}</h1>
