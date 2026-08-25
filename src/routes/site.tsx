@@ -397,7 +397,7 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
         )}
 
         <div className="lamsa-rise mt-2 flex flex-wrap justify-center gap-3" style={{ animationDelay: "400ms" }}>
-          {site.heroButtons.map((b, i) => {
+          {heroButtonsOf(site).map((b, i) => {
             const href = heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone });
             const primary = i === 0;
             const cls = cn(
@@ -538,7 +538,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
           className={cn("lamsa-rise mt-2 flex flex-wrap gap-3", align === "center" && "justify-center", align === "left" && "justify-start", align === "right" && "justify-end")}
           style={{ animationDelay: "420ms" }}
         >
-          {site.heroButtons.map((b, i) => {
+          {heroButtonsOf(site).map((b, i) => {
             const href = heroButtonHref(b, { booking: bookingHref, wa: waHref, phone: site.phone });
             const primary = i === 0;
             const cls = cn(
