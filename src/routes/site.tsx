@@ -128,17 +128,25 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   const { services, staff } = useSalon((s) => s);
   const [meta, setMeta] = useState<PublicSalonMeta>({ salonId: null, avgRating: 0, reviewCount: 0, reviews: [] });
   const [loading, setLoading] = useState(true);
+  const [branding, setBranding] = useState<PublicBranding | null>(null);
   useEffect(() => {
     let active = true;
     setLoading(true);
-    void import("@/lib/db/public-hydrate")
-      .then((m) => m.hydratePublicSite(slug, true))
-      .then((next) => {
-        if (active) setMeta(next);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+    setBranding(null);
+    void import("@/lib/db/public-hydrate").then((m) => {
+      // Fast branding-only fetch so the loading screen already looks like the salon.
+      void m.fetchPublicBranding(slug).then((b) => {
+        if (active) setBranding(b);
       });
+      return m
+        .hydratePublicSite(slug, true)
+        .then((next) => {
+          if (active) setMeta(next);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    });
     return () => {
       active = false;
     };
@@ -162,17 +170,6 @@ export function SalonSiteView({ slug }: { slug?: string }) {
 
   const external = site.bookingMode !== "internal";
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-foreground grid place-items-center px-5" dir="rtl">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="size-14 rounded-full border-4 border-primary/20 border-t-primary animate-spin" aria-hidden />
-          <p className="text-sm font-semibold text-muted-foreground">جاري تحميل موقع المشغل…</p>
-        </div>
-      </div>
-    );
-  }
-
   const render = (id: SectionId) => {
     switch (id) {
       case "showcase":
@@ -193,7 +190,9 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   };
 
   return (
-    <div className="lamsa-site min-h-screen" dir="rtl" style={settingsToCssVars(site)}>
+    <>
+      <SalonBrandedLoader branding={branding ?? { salonName: site.salonName, logoUrl: site.logoUrl, primary: site.primary, accent: site.accent, background: site.background, textColor: site.textColor }} hidden={!loading} />
+    <div className="lamsa-site min-h-screen" dir="rtl" style={settingsToCssVars(site)} aria-hidden={loading}>
       <style>{`
         .lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:0;}
         .lamsa-site .btn{border-radius:var(--btn-radius);}
