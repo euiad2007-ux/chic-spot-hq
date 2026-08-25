@@ -70,7 +70,10 @@ function cachedSalon(slug?: string) {
 export interface PublicBranding {
   salonName: string;
   logoUrl: string;
-  brandColor: string;
+  primary: string;
+  accent: string;
+  background: string;
+  textColor: string;
 }
 
 /** Minimal, fast branding fetch used to render the salon-branded loading screen. */
@@ -83,7 +86,10 @@ export async function fetchPublicBranding(slug?: string): Promise<PublicBranding
   return {
     salonName: pick("salonName") || salon.name,
     logoUrl: pick("logoUrl"),
-    brandColor: pick("brandColor") || pick("primaryColor"),
+    primary: pick("primary"),
+    accent: pick("accent"),
+    background: pick("background"),
+    textColor: pick("textColor"),
   };
 }
 
