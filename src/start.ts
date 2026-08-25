@@ -21,9 +21,6 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   }
 });
 
-const lovableBypassMiddleware = createMiddleware().server(async ({ next, request }) => {
-  return next();
-});
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
