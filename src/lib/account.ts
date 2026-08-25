@@ -127,16 +127,18 @@ export async function loadAccount(): Promise<Account | null> {
     }
   }
 
-  const { data: staffRow } = await supabase
-    .from("staff")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  let { data: customerRow } = await supabase
-    .from("customers")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Staff and customer records belong to a single salon; scope the lookup to the
+  // active tenant so a person may also be staff/client at other salons.
+  const staffQuery = supabase.from("staff").select("id").eq("user_id", user.id);
+  if (salonId) staffQuery.eq("salon_id", salonId);
+  const { data: staffRows } = await staffQuery.limit(1);
+  const staffRow = staffRows?.[0] ?? null;
+
+  const customerQuery = supabase.from("customers").select("id").eq("user_id", user.id);
+  if (salonId) customerQuery.eq("salon_id", salonId);
+  const { data: customerRows } = await customerQuery.limit(1);
+  let customerRow: { id: string } | null = customerRows?.[0] ?? null;
+
 
   // No membership and no client profile yet (e.g. first Google sign-in):
   // provision the client profile so their dashboard has real data to show.
