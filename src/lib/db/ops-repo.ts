@@ -577,3 +577,30 @@ export async function listAudit(salonId: string, limit = 50): Promise<AuditEntry
   if (error) throw new Error(error.message);
   return (data ?? []) as AuditEntry[];
 }
+
+/* --------------------------- branch switch trail -------------------------- */
+
+/**
+ * Records who switched the dashboard branch scope and when. Written to the
+ * shared audit log so owners can trace which branch a user was working in.
+ */
+export async function logBranchSwitch(input: {
+  salonId: string;
+  userId: string;
+  fromBranchId: string | null;
+  fromBranchName: string | null;
+  toBranchId: string | null;
+  toBranchName: string | null;
+}): Promise<void> {
+  const { error } = await supabase.from("audit_log").insert({
+    salon_id: input.salonId,
+    user_id: input.userId,
+    action: "branch_switch",
+    entity: "branches",
+    entity_id: input.toBranchId,
+    before: { branch_id: input.fromBranchId, branch_name: input.fromBranchName ?? "كل الفروع" },
+    after: { branch_id: input.toBranchId, branch_name: input.toBranchName ?? "كل الفروع" },
+  });
+  // A failed trail entry must never block the user from switching branches.
+  if (error) console.warn("branch switch not logged:", error.message);
+}

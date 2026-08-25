@@ -5,6 +5,7 @@ import { Receipt, TrendingUp, CheckCircle2, Eye } from "lucide-react";
 import { useState } from "react";
 import { InvoiceReceipt } from "@/components/salon/invoice-receipt";
 import { useActiveBranch } from "@/lib/active-branch";
+import { scopeToBranch } from "@/lib/branch-scope";
 
 
 export const Route = createFileRoute("/_authenticated/invoices")({
@@ -27,9 +28,7 @@ function InvoicesPage() {
   const { invoices: allInvoices, customers, bookings } = useSalon((s) => s);
   const activeBranch = useActiveBranch();
   // Scope the register to the branch chosen in the header (unassigned stay visible).
-  const invoices = activeBranch
-    ? allInvoices.filter((i) => !i.branchId || i.branchId === activeBranch)
-    : allInvoices;
+  const invoices = scopeToBranch(allInvoices, activeBranch);
   const [selected, setSelected] = useState<Invoice | null>(null);
   const total = invoices.reduce((a, i) => a + i.total, 0);
   const vat = invoices.reduce((a, i) => a + i.vat, 0);

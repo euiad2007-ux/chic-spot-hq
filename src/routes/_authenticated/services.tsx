@@ -9,6 +9,7 @@ import {
 import { useAccount } from "@/hooks/use-account";
 import { listBranches } from "@/lib/db/ops-repo";
 import { useActiveBranch } from "@/lib/active-branch";
+import { scopeToBranch } from "@/lib/branch-scope";
 import { useState, useMemo, useEffect } from "react";
 
 import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
@@ -106,7 +107,7 @@ function ServicesPage() {
   };
 
   const visible = branchFilter
-    ? services.filter((s) => !s.branchId || s.branchId === branchFilter)
+    ? scopeToBranch(services, branchFilter)
     : services;
 
   const grouped = visible.reduce<Record<string, typeof services>>((acc, s) => {
