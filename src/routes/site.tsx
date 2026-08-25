@@ -331,6 +331,16 @@ function heroButtonHref(b: HeroButton, ctx: { booking: string; wa: string; phone
   }
 }
 
+/** Hero buttons with the theme's main CTA (label + link) placed first when set. */
+function heroButtonsOf(site: SiteSettings): HeroButton[] {
+  if (!site.heroCtaLabel?.trim()) return site.heroButtons;
+  const cta: HeroButton = site.heroCtaUrl?.trim()
+    ? { kind: "link", label: site.heroCtaLabel, url: site.heroCtaUrl }
+    : { kind: "booking", label: site.heroCtaLabel };
+  return [cta, ...site.heroButtons];
+}
+
+
 /* ---------------- luxe hero (style: "لمسة فاخرة") ---------------- */
 
 /** Full-bleed cover photo with the salon logo + name centered on top of it. */
