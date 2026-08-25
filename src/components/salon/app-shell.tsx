@@ -52,6 +52,9 @@ import { useAccount } from "@/hooks/use-account";
 import { useSiteSettings } from "@/lib/site-settings";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
 import { loadSalonDomain } from "@/lib/db/domain-repo";
+import { listBranches } from "@/lib/db/ops-repo";
+import { restoreActiveBranch, setActiveBranch, useActiveBranch } from "@/lib/active-branch";
+
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
 const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
