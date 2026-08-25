@@ -221,9 +221,13 @@ export async function createSalonForCurrentUser(name: string, phone?: string): P
   return data as string;
 }
 
-/** Creates the client profile for the signed-in user. Returns null when no salon exists yet. */
-export async function ensureClientProfile(): Promise<string | null> {
-  const { data, error } = await supabase.rpc("ensure_client_profile");
+/**
+ * Creates the client profile for the signed-in user in one salon.
+ * A person may hold a separate client profile at every salon they visit.
+ */
+export async function ensureClientProfile(salonId?: string | null): Promise<string | null> {
+  const { data, error } = await supabase.rpc("ensure_client_profile", 
+    salonId ? { _salon: salonId } : {});
   if (error) throw new Error(error.message);
   return (data as string | null) ?? null;
 }
