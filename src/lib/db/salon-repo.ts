@@ -208,7 +208,9 @@ export async function loadSalonState(salonId: string): Promise<SalonState> {
     paid: num(r.paid),
     method: (str(r.payment_method, "cash") as Invoice["method"]),
     createdAt: str(r.created_at),
+    branchId: (r.branch_id as string | null) ?? null,
   }));
+
 
   const counters: BookingCounters = { global: 0, branch: 0, byDay: {}, byServiceDay: {} };
   for (const b of bookings) {
@@ -298,8 +300,10 @@ const invoiceRow = (i: Invoice, salon_id: string): Row => ({
   id: i.id, salon_id, number: i.number, booking_id: i.bookingId || null,
   customer_id: i.customerId || null, subtotal: i.subtotal, discount: i.discount,
   vat: i.vat, total: i.total, paid: i.paid, payment_method: i.method,
+  branch_id: i.branchId ?? null,
   status: i.paid >= i.total ? "paid" : i.paid > 0 ? "partial" : "unpaid",
 });
+
 
 const walletRows = (c: Customer, salon_id: string): Row[] =>
   (c.walletLog ?? []).map((w) => ({

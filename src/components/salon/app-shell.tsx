@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -51,6 +52,9 @@ import { useAccount } from "@/hooks/use-account";
 import { useSiteSettings } from "@/lib/site-settings";
 import { canManage, signOutAccount, ROLE_LABEL, homeForRole, type AppRole } from "@/lib/account";
 import { loadSalonDomain } from "@/lib/db/domain-repo";
+import { listBranches } from "@/lib/db/ops-repo";
+import { restoreActiveBranch, setActiveBranch, useActiveBranch } from "@/lib/active-branch";
+
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
 const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
@@ -201,12 +205,33 @@ export function AppShell({
   );
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
+  // Branch scope: everything branch-aware (services, invoices, POS…) follows it.
+  const activeBranch = useActiveBranch();
+  const branchesQuery = useQuery({
+    queryKey: ["branches", account?.salonId],
+    queryFn: () => listBranches(account!.salonId!),
+    enabled: !!account?.salonId && manager,
+  });
+  const branches = branchesQuery.data ?? [];
+  useEffect(() => {
+    restoreActiveBranch(account?.salonId ?? null);
+  }, [account?.salonId]);
+  useEffect(() => {
+    // Drop a stale selection (branch deleted or belongs to another salon).
+    if (activeBranch && branches.length && !branches.some((b) => b.id === activeBranch)) {
+      setActiveBranch(account?.salonId ?? null, null);
+    }
+  }, [activeBranch, branches, account?.salonId]);
+
   async function handleSignOut() {
     await qc.cancelQueries();
     qc.clear();
     await signOutAccount();
-    navigate({ to: "/auth", replace: true });
+    // Merchants land back on their own public salon page after signing out.
+    if (typeof window !== "undefined") window.location.assign(sitePath);
+    else navigate({ to: "/auth", replace: true });
   }
+
 
   const initial = (account?.salonName ?? account?.fullName ?? "S").trim().charAt(0) || "S";
 
@@ -373,6 +398,34 @@ export function AppShell({
               />
             </div>
             <div className="flex-1 sm:hidden" />
+            {manager && branches.length > 0 && (
+              <label className="relative">
+                <span className="sr-only">الفرع الحالي</span>
+                <Building2 className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
+                <select
+                  value={activeBranch ?? ""}
+                  onChange={(e) => {
+                    setActiveBranch(account?.salonId ?? null, e.target.value || null);
+                    toast.success(
+                      e.target.value
+                        ? `تم التبديل إلى ${branches.find((b) => b.id === e.target.value)?.name ?? "الفرع"}`
+                        : "تم عرض كل الفروع",
+                    );
+                  }}
+                  className="h-10 rounded-lg border border-border bg-muted/40 pr-9 pl-3 text-sm font-semibold outline-none focus:border-primary/50 max-w-[190px]"
+                  title="اختيار الفرع"
+                >
+                  <option value="">كل الفروع</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                      {b.active ? "" : " (موقوف)"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
             <Button asChild variant="outline" size="sm" className="h-10 gap-2 bg-muted/40">
               <a href={sitePath} target="_blank" rel="noreferrer" aria-label="زيارة موقع المشغل">
                 <ExternalLink className="size-4" />

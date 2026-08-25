@@ -246,6 +246,9 @@ export interface Invoice {
   paid: number;
   method: "cash" | "mada" | "card" | "apple_pay" | "transfer";
   createdAt: string;
+  /** Branch the invoice belongs to. `null` = not linked to a specific branch. */
+  branchId?: string | null;
+
 }
 
 export interface BookingCounters {

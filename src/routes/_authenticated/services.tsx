@@ -8,7 +8,9 @@ import {
 } from "@/lib/salon-store";
 import { useAccount } from "@/hooks/use-account";
 import { listBranches } from "@/lib/db/ops-repo";
-import { useState, useMemo } from "react";
+import { useActiveBranch } from "@/lib/active-branch";
+import { useState, useMemo, useEffect } from "react";
+
 import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -53,7 +55,13 @@ function ServicesPage() {
   const [editing, setEditing] = useState<Service | null>(null);
   const [form, setForm] = useState<FormState>(empty);
   const [staffIds, setStaffIds] = useState<string[]>([]);
-  const [branchFilter, setBranchFilter] = useState("");
+  const headerBranch = useActiveBranch();
+  const [branchFilter, setBranchFilter] = useState(headerBranch ?? "");
+  // Follow the branch chosen in the dashboard header.
+  useEffect(() => {
+    setBranchFilter(headerBranch ?? "");
+  }, [headerBranch]);
+
 
   const branchesQuery = useQuery({
     queryKey: ["branches", salonId],
