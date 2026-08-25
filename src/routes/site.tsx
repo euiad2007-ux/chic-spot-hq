@@ -647,8 +647,10 @@ function ServicesSection({
     <Reveal id="services" className="py-20 md:py-28" >
       <div className="max-w-7xl mx-auto px-5 md:px-10">
         <SectionHead site={site} eyebrow="Our Services" title={site.servicesTitle} desc={site.servicesDesc} />
-        {categories.length === 0 ? (
+        {list.length === 0 ? (
           <p className="text-center text-muted-foreground">سيتم إضافة الخدمات قريبًا.</p>
+        ) : site.layout === "luxe" ? (
+          <LuxeServices site={site} slug={slug} list={list} bookingHref={bookingHref} external={external} />
         ) : (
           <div className="space-y-14">
             {categories.map(([cat, items]) => (
