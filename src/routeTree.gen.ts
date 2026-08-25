@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoreLoginRouteImport } from './routes/store-login'
 import { Route as SiteRouteImport } from './routes/site'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -68,6 +69,11 @@ const StoreLoginRoute = StoreLoginRouteImport.update({
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
   path: '/site',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoAccessRoute = NoAccessRouteImport.update({
@@ -328,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
   '/store-login': typeof StoreLoginRoute
   '/accounting': typeof AuthenticatedAccountingRouteWithChildren
@@ -379,6 +386,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
   '/store-login': typeof StoreLoginRoute
   '/accounts': typeof AuthenticatedAccountsRoute
@@ -431,6 +439,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/no-access': typeof NoAccessRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
   '/store-login': typeof StoreLoginRoute
   '/_authenticated/accounting': typeof AuthenticatedAccountingRouteWithChildren
@@ -484,6 +493,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/no-access'
+    | '/reset-password'
     | '/site'
     | '/store-login'
     | '/accounting'
@@ -535,6 +545,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/no-access'
+    | '/reset-password'
     | '/site'
     | '/store-login'
     | '/accounts'
@@ -586,6 +597,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/no-access'
+    | '/reset-password'
     | '/site'
     | '/store-login'
     | '/_authenticated/accounting'
@@ -639,6 +651,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   NoAccessRoute: typeof NoAccessRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SiteRoute: typeof SiteRoute
   StoreLoginRoute: typeof StoreLoginRoute
   SalonSlugRoute: typeof SalonSlugRouteWithChildren
@@ -659,6 +672,13 @@ declare module '@tanstack/react-router' {
       path: '/site'
       fullPath: '/site'
       preLoaderRoute: typeof SiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/no-access': {
@@ -1123,6 +1143,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   NoAccessRoute: NoAccessRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SiteRoute: SiteRoute,
   StoreLoginRoute: StoreLoginRoute,
   SalonSlugRoute: SalonSlugRouteWithChildren,

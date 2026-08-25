@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Scissors, Loader2, Store } from "lucide-react";
+import { Scissors, Loader2, Store, Eye, EyeOff, ArrowLeft, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
-import { signIn, signUp, homeForRole, loadAccount, resendConfirmation } from "@/lib/account";
+import { signIn, signUp, homeForRole, loadAccount, resendConfirmation, sendPasswordReset } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
 
 export const Route = createFileRoute("/auth")({
@@ -40,6 +40,7 @@ function AuthPage() {
   const [salonName, setSalonName] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   // Already signed in → go to the right home.
   useEffect(() => {
@@ -97,6 +98,23 @@ function AuthPage() {
     }
   }
 
+
+  async function onForgot() {
+    if (busy) return;
+    if (!email.trim()) {
+      toast.error("أدخل بريدك الإلكتروني أولاً");
+      return;
+    }
+    setBusy(true);
+    try {
+      await sendPasswordReset(email);
+      toast.success("أرسلنا رابط استعادة كلمة المرور إلى بريدك");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر إرسال رابط الاستعادة");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function onGoogle() {
     if (busy) return;
@@ -236,11 +254,24 @@ function AuthPage() {
                 label="كلمة المرور"
                 value={password}
                 onChange={setPassword}
-                type="password"
+                type={showPwd ? "text" : "password"}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
                 required
                 minLength={6}
+                reveal={showPwd}
+                onToggleReveal={() => setShowPwd((v) => !v)}
               />
+
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={onForgot}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline disabled:opacity-60"
+                >
+                  <KeyRound className="size-3.5" aria-hidden /> نسيت كلمة المرور؟
+                </button>
+              )}
 
               <button
                 type="submit"
@@ -271,7 +302,14 @@ function AuthPage() {
           )}
         </div>
 
-        <p className="mt-5 text-center text-xs text-muted-foreground">
+        <Link
+          to="/"
+          className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden /> العودة إلى الصفحة الرئيسية
+        </Link>
+
+        <p className="mt-3 text-center text-xs text-muted-foreground">
           بالدخول أنت توافق على شروط الاستخدام وسياسة الخصوصية.
         </p>
       </div>
@@ -283,19 +321,37 @@ type FieldProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" |
   label: string;
   value: string;
   onChange: (v: string) => void;
+  /** Shows an eye toggle for password fields. */
+  reveal?: boolean;
+  onToggleReveal?: () => void;
 };
 
-function Field({ label, value, onChange, type = "text", ...rest }: FieldProps) {
+function Field({ label, value, onChange, type = "text", reveal, onToggleReveal, ...rest }: FieldProps) {
   return (
     <label className="block">
       <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-      <input
-        {...rest}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full h-11 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-      />
+      <div className="relative mt-1">
+        <input
+          {...rest}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={
+            "w-full h-11 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 " +
+            (onToggleReveal ? "pl-10" : "")
+          }
+        />
+        {onToggleReveal && (
+          <button
+            type="button"
+            onClick={onToggleReveal}
+            aria-label={reveal ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+            className="absolute inset-y-0 left-0 px-3 grid place-items-center text-muted-foreground hover:text-foreground"
+          >
+            {reveal ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        )}
+      </div>
     </label>
   );
 }
