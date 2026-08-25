@@ -15,17 +15,43 @@ const emptyState = (services: Service[], staff: Staff[]): SalonState => ({
   counters: { global: 0, branch: 0, byDay: {}, byServiceDay: {} },
 });
 
-let done: Promise<void> | null = null;
+export interface PublicReview {
+  id: string;
+  rating: number;
+  comment: string;
+  displayName: string;
+  createdAt: string;
+}
+
+export interface PublicSalonMeta {
+  salonId: string | null;
+  avgRating: number;
+  reviewCount: number;
+  reviews: PublicReview[];
+}
+
+let done: Promise<PublicSalonMeta> | null = null;
+let doneKey = "";
+
+const EMPTY_META: PublicSalonMeta = { salonId: null, avgRating: 0, reviewCount: 0, reviews: [] };
 
 /**
  * Public salon website: loads branding, active services and the team without
  * requiring a session (read-only, anon-safe columns only).
  */
-export function hydratePublicSite(): Promise<void> {
-  if (done) return done;
+export function hydratePublicSite(slug?: string): Promise<PublicSalonMeta> {
+  const key = slug ?? "";
+  if (done && doneKey === key) return done;
+  doneKey = key;
   done = (async () => {
-    const tenant = await resolveTenant();
     let salon: { id: string; name: string } | null = null;
+    if (slug) {
+      const { data } = await supabase.rpc("public_salon_lookup", { _slug: slug });
+      const row = (data as { id: string; name: string }[] | null)?.[0];
+      salon = row ? { id: row.id, name: row.name } : null;
+      return finish(salon);
+    }
+    const tenant = await resolveTenant();
     if (tenant && !tenant.isSuspended) {
       salon = { id: tenant.id, name: tenant.name };
     } else if (!tenant) {
@@ -33,16 +59,24 @@ export function hydratePublicSite(): Promise<void> {
       const row = (data as { id: string; name: string }[] | null)?.[0];
       salon = row ? { id: row.id, name: row.name } : null;
     }
+    return finish(salon);
+  })();
+  return done;
+}
 
+async function finish(salon: { id: string; name: string } | null): Promise<PublicSalonMeta> {
+  {
     if (!salon) {
       hydrateSalonStore(emptyState([], []));
       hydrateSiteSettings(null);
-      return;
+      return EMPTY_META;
     }
-    const [settingsRes, servicesRes, teamRes] = await Promise.all([
+    const [settingsRes, servicesRes, teamRes, reviewsRes, ratingRes] = await Promise.all([
       supabase.rpc("public_salon_site", { _salon: salon.id }),
       supabase.rpc("public_salon_services", { _salon: salon.id }),
       supabase.rpc("public_salon_team", { _salon: salon.id }),
+      supabase.rpc("public_salon_reviews", { _salon: salon.id, _limit: 12 }),
+      supabase.rpc("public_salon_rating", { _salon: salon.id }),
     ]);
 
     const services: Service[] = (
@@ -85,6 +119,27 @@ export function hydratePublicSite(): Promise<void> {
     const salonName = typeof stored["salonName"] === "string" && stored["salonName"] ? stored["salonName"] : salon.name;
     hydrateSiteSettings({ ...stored, salonName });
 
-  })();
-  return done;
+    const reviews: PublicReview[] = (
+      (reviewsRes.data ?? []) as {
+        id: string;
+        rating: number | null;
+        comment: string | null;
+        display_name: string | null;
+        created_at: string;
+      }[]
+    ).map((r) => ({
+      id: r.id,
+      rating: num(r.rating, 5),
+      comment: str(r.comment),
+      displayName: str(r.display_name) || "عميلة",
+      createdAt: r.created_at,
+    }));
+    const ratingRow = (ratingRes.data as { avg_rating: number | null; review_count: number | null }[] | null)?.[0];
+    return {
+      salonId: salon.id,
+      avgRating: num(ratingRow?.avg_rating),
+      reviewCount: num(ratingRow?.review_count),
+      reviews,
+    };
+  }
 }
