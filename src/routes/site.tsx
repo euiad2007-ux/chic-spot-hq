@@ -67,6 +67,7 @@ function useSeo(s: SiteSettings) {
 /* ---------------- route ---------------- */
 
 export const Route = createFileRoute("/site")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "صالون لمسة — تجميل وعناية فاخرة" },
@@ -126,8 +127,21 @@ function SitePage() {
 export function SalonSiteView({ slug }: { slug?: string }) {
   const { services, staff } = useSalon((s) => s);
   const [meta, setMeta] = useState<PublicSalonMeta>({ salonId: null, avgRating: 0, reviewCount: 0, reviews: [] });
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug, true).then(setMeta));
+    let active = true;
+    setLoading(true);
+    void import("@/lib/db/public-hydrate")
+      .then((m) => m.hydratePublicSite(slug, true))
+      .then((next) => {
+        if (active) setMeta(next);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [slug]);
   const site = useSiteSettings();
 
@@ -147,6 +161,17 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   }, [site.bookingMode, site.bookingUrl, site.phone, waHref]);
 
   const external = site.bookingMode !== "internal";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground grid place-items-center px-5" dir="rtl">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="size-14 rounded-full border-4 border-primary/20 border-t-primary animate-spin" aria-hidden />
+          <p className="text-sm font-semibold text-muted-foreground">جاري تحميل موقع المشغل…</p>
+        </div>
+      </div>
+    );
+  }
 
   const render = (id: SectionId) => {
     switch (id) {
@@ -170,7 +195,7 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   return (
     <div className="lamsa-site min-h-screen" dir="rtl" style={settingsToCssVars(site)}>
       <style>{`
-        .lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:-0.015em;}
+        .lamsa-site h1,.lamsa-site h2,.lamsa-site h3,.lamsa-site h4{font-family:var(--font-display);letter-spacing:0;}
         .lamsa-site .btn{border-radius:var(--btn-radius);}
         @keyframes lamsaRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
         .lamsa-rise{animation:lamsaRise .9s cubic-bezier(.22,1,.36,1) both}
@@ -190,7 +215,8 @@ export function SalonSiteView({ slug }: { slug?: string }) {
         target="_blank"
         rel="noreferrer"
         aria-label="تواصلي عبر واتساب"
-        className="fixed bottom-5 left-5 z-50 size-14 rounded-full grid place-items-center text-white shadow-2xl transition hover:scale-110 bg-[#25D366]"
+        className="fixed bottom-5 left-5 z-50 size-14 rounded-full grid place-items-center text-[var(--brand-foreground)] shadow-2xl transition hover:scale-110"
+        style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
       >
         <MessageCircle className="size-7" />
       </a>
@@ -232,17 +258,17 @@ function SiteHeader({
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-3">
         <SiteLink slug={slug} className="flex items-center gap-3 min-w-0">
           <div
-            className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-white/60 shadow-lg"
+            className="size-12 md:size-14 rounded-2xl grid place-items-center overflow-hidden shrink-0 ring-2 ring-background/60 shadow-lg"
             style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}
           >
             {site.logoUrl
               ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-              : <Scissors className="size-6 text-white drop-shadow" aria-hidden />}
+              : <Scissors className="size-6 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
           </div>
           <div className="min-w-0">
             <div
               className="font-black text-lg md:text-2xl leading-tight truncate"
-              style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}
+              style={{ color: "var(--brand-text)" }}
             >
               {site.salonName}
             </div>
@@ -306,7 +332,10 @@ function BookNow({
     background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`,
     boxShadow: `0 18px 40px -18px ${site.primary}99`,
   };
-  const cls = cn("btn inline-flex items-center justify-center gap-2 text-white font-semibold transition hover:brightness-110 hover:-translate-y-0.5", className);
+  const cls = cn(
+    "btn inline-flex items-center justify-center gap-2 text-[var(--brand-foreground)] font-semibold transition hover:brightness-110 hover:-translate-y-0.5",
+    className,
+  );
   if (external) {
     return (
       <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={cls} style={style}>
@@ -374,19 +403,19 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
         >
           {site.logoUrl
             ? <img src={site.logoUrl} alt={`شعار ${site.salonName}`} className="w-full h-full object-cover" />
-            : <Scissors className="size-10 md:size-14 text-white drop-shadow" aria-hidden />}
+            : <Scissors className="size-10 md:size-14 text-[var(--brand-foreground)] drop-shadow" aria-hidden />}
         </div>
 
         <h1
           className="lamsa-rise text-white font-black leading-[1.05] text-4xl sm:text-5xl md:text-7xl drop-shadow-[0_8px_36px_rgba(0,0,0,.55)]"
-          style={{ animationDelay: "140ms", letterSpacing: "-0.01em" }}
+          style={{ animationDelay: "140ms" }}
         >
           {site.salonName}
         </h1>
 
         <div className="lamsa-rise flex items-center gap-3 text-white/85" style={{ animationDelay: "220ms" }}>
           <span className="h-px w-10 md:w-16" style={{ background: site.accent }} />
-          <span className="text-xs md:text-sm font-bold tracking-[0.28em]">{site.tagline}</span>
+          <span className="text-xs md:text-sm font-bold">{site.tagline}</span>
           <span className="h-px w-10 md:w-16" style={{ background: site.accent }} />
         </div>
 
@@ -402,7 +431,7 @@ function LuxeHero({ site, slug, waHref, bookingHref, external }: { site: SiteSet
             const primary = i === 0;
             const cls = cn(
               "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-9 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
-              primary ? "text-white shadow-2xl hover:brightness-110" : "text-white border border-white/45 bg-white/10 backdrop-blur-md hover:bg-white/20",
+              primary ? "text-[var(--brand-foreground)] shadow-2xl hover:brightness-110" : "text-white border border-white/45 bg-white/10 backdrop-blur-md hover:bg-white/20",
             );
             const style = primary
               ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: `0 26px 60px -22px ${site.primary}` }
@@ -451,7 +480,7 @@ function LuxeServices({
         >
           <span className="absolute inset-x-0 top-0 h-1 opacity-70 transition group-hover:opacity-100" style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` }} />
           {s.category && (
-            <span className="self-start rounded-full px-3 py-1 text-[10px] font-bold tracking-wider" style={{ background: `${site.primary}14`, color: site.primary }}>
+            <span className="self-start rounded-full px-3 py-1 text-[10px] font-bold" style={{ background: `${site.primary}14`, color: "var(--brand-surface-text)" }}>
               {s.category}
             </span>
           )}
@@ -461,7 +490,7 @@ function LuxeServices({
           </p>
           <div className="mt-5 flex items-center justify-between gap-3">
             {site.servicesShowPrice ? (
-              <div className="text-2xl font-black" style={{ color: site.primary }}>{formatSAR(s.price)}</div>
+              <div className="text-2xl font-black" style={{ color: "var(--brand-surface-text)" }}>{formatSAR(s.price)}</div>
             ) : <span />}
             <Sparkles className="size-4 opacity-40 transition group-hover:opacity-90" style={{ color: site.accent }} aria-hidden />
           </div>
@@ -519,7 +548,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
         >
           {site.heroTitle}{" "}
           {site.heroHighlight && (
-            <span style={{ background: `linear-gradient(90deg, ${site.accent}, #fff)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+            <span style={{ background: `linear-gradient(90deg, ${site.accent}, ${site.surface})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
               {site.heroHighlight}
             </span>
           )}
@@ -543,7 +572,7 @@ function Hero({ site, slug, waHref, bookingHref, external }: { site: SiteSetting
             const primary = i === 0;
             const cls = cn(
               "btn inline-flex items-center gap-2 h-12 md:h-14 px-6 md:px-8 font-bold text-sm md:text-base transition hover:-translate-y-0.5",
-              primary ? "text-white shadow-2xl hover:brightness-110" : "text-white border border-white/40 bg-white/10 backdrop-blur-md hover:bg-white/20",
+              primary ? "text-[var(--brand-foreground)] shadow-2xl hover:brightness-110" : "text-white border border-white/40 bg-white/10 backdrop-blur-md hover:bg-white/20",
             );
             const style = primary
               ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, boxShadow: `0 24px 60px -20px ${site.primary}` }
@@ -601,7 +630,7 @@ function SectionHead({ site, title, desc, eyebrow }: { site: SiteSettings; title
   return (
     <div className="text-center mb-12">
       {eyebrow && (
-        <span className="inline-block text-[11px] font-bold tracking-[0.35em] uppercase mb-3" style={{ color: site.primary }}>
+        <span className="inline-block text-[11px] font-bold uppercase mb-3" style={{ color: "var(--brand-text)" }}>
           {eyebrow}
         </span>
       )}
@@ -686,7 +715,7 @@ function ServicesSection({
                         {site.servicesShowPrice && (
                           <div
                             className="text-xl font-black whitespace-nowrap"
-                            style={{ background: `linear-gradient(90deg, ${site.primary}, ${site.accent})`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}
+                            style={{ color: "var(--brand-surface-text)" }}
                           >
                             {formatSAR(s.price)}
                           </div>
@@ -743,7 +772,7 @@ function GallerySection({ site }: { site: SiteSettings }) {
               onClick={() => setCat(c)}
               className={cn(
                 "btn h-9 px-4 text-xs font-bold border transition",
-                cat === c ? "text-white border-transparent" : "border-border text-muted-foreground hover:text-foreground",
+                cat === c ? "text-[var(--brand-foreground)] border-transparent" : "border-border text-muted-foreground hover:text-foreground",
               )}
               style={cat === c ? { background: `linear-gradient(90deg, ${site.primary}, ${site.accent})` } : undefined}
             >
@@ -879,14 +908,14 @@ function TeamSection({ site, staff }: { site: SiteSettings; staff: ReturnType<ty
               {m.photo ? (
                 <img src={m.photo} alt={m.name} loading="lazy" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
               ) : (
-                <div className="w-full h-full grid place-items-center text-white text-5xl font-black" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+                <div className="w-full h-full grid place-items-center text-[var(--brand-foreground)] text-5xl font-black" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
                   {m.name?.charAt(0)}
                 </div>
               )}
             </div>
             <div className="p-5">
               <h3 className="font-black text-base">{m.name}</h3>
-              <div className="text-xs mt-1" style={{ color: site.primary }}>{m.role}</div>
+              <div className="text-xs mt-1" style={{ color: "var(--brand-surface-text)" }}>{m.role}</div>
               {m.bio && <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-3">{m.bio}</p>}
               {m.instagram && (
                 <a href={m.instagram} target="_blank" rel="noreferrer" aria-label={`إنستغرام ${m.name}`} className="mt-3 inline-flex size-9 rounded-full items-center justify-center border border-border hover:bg-muted">
@@ -920,7 +949,7 @@ function ReviewsSection({ site, meta }: { site: SiteSettings; meta: PublicSalonM
     <Reveal id="reviews" className="max-w-7xl mx-auto px-5 md:px-10 py-20 md:py-28">
       <SectionHead site={site} eyebrow="Reviews" title={site.reviewsTitle} desc={site.reviewsDesc} />
       <div className="flex flex-col items-center gap-2 mb-10">
-        <div className="text-4xl font-black" style={{ color: site.primary }}>{meta.avgRating.toFixed(1)}</div>
+        <div className="text-4xl font-black" style={{ color: "var(--brand-text)" }}>{meta.avgRating.toFixed(1)}</div>
         <Stars value={meta.avgRating} />
         <div className="text-xs text-muted-foreground">{meta.reviewCount} تقييم</div>
       </div>
@@ -930,7 +959,7 @@ function ReviewsSection({ site, meta }: { site: SiteSettings; meta: PublicSalonM
             <Stars value={r.rating} />
             {r.comment && <p className="text-sm leading-relaxed mt-3 text-muted-foreground">{r.comment}</p>}
             <div className="mt-4 flex items-center gap-2">
-              <div className="size-8 rounded-full grid place-items-center text-white text-xs font-bold" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+              <div className="size-8 rounded-full grid place-items-center text-[var(--brand-foreground)] text-xs font-bold" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
                 {r.displayName.charAt(0)}
               </div>
               <div className="text-xs font-bold">{r.displayName}</div>
@@ -986,13 +1015,13 @@ function ContactCard({
 }: { site: SiteSettings; icon: any; title: string; body: string; href?: string; cta?: string }) {
   return (
     <div className="rounded-3xl border border-border/70 p-6 transition hover:-translate-y-1 hover:shadow-xl" style={{ background: site.surface }}>
-      <div className="size-11 rounded-2xl grid place-items-center text-white mb-4" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+      <div className="size-11 rounded-2xl grid place-items-center text-[var(--brand-foreground)] mb-4" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
         <Icon className="size-5" aria-hidden />
       </div>
       <h3 className="font-bold text-sm">{title}</h3>
       <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed break-words">{body || "—"}</p>
       {href && cta && (
-        <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: site.primary }}>
+        <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: "var(--brand-surface-text)" }}>
           {cta} <ArrowLeft className="size-3" aria-hidden />
         </a>
       )}
@@ -1009,8 +1038,8 @@ function SiteFooter({ site, slug, waHref }: { site: SiteSettings; slug?: string;
       <div className="max-w-7xl mx-auto px-5 md:px-10 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-2xl grid place-items-center overflow-hidden ring-2 ring-white/50" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
-              {site.logoUrl ? <img src={site.logoUrl} alt="" className="w-full h-full object-cover" /> : <Scissors className="size-5 text-white" aria-hidden />}
+            <div className="size-12 rounded-2xl grid place-items-center overflow-hidden ring-2 ring-background/50" style={{ background: `linear-gradient(135deg, ${site.primary}, ${site.accent})` }}>
+              {site.logoUrl ? <img src={site.logoUrl} alt="" className="w-full h-full object-cover" /> : <Scissors className="size-5 text-[var(--brand-foreground)]" aria-hidden />}
             </div>
             <div>
               <div className="font-black text-lg">{site.salonName}</div>
