@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
-import { supabase } from "@/integrations/supabase/client";
+import { resolveUserResilient } from "@/lib/auth-session";
 import { hydrateAll } from "@/lib/db/hydrate";
 import { getDataContext } from "@/lib/db/context";
 import { resolveTenant } from "@/lib/tenant-domain";
@@ -8,8 +8,10 @@ import { resolveTenant } from "@/lib/tenant-domain";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
+    const { user } = await resolveUserResilient();
+    if (!user) throw redirect({ to: "/auth" });
+    const data = { user };
+
     // Load the tenant workspace from the database before rendering any page.
     await hydrateAll();
     const ctx = getDataContext();
