@@ -225,6 +225,18 @@ export function AppShell({
       : null;
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
+  // New sign-ups (staff requests / client registrations) badge for the merchant.
+  const signupsQuery = useQuery({
+    queryKey: ["signup-notifications", account?.salonId],
+    queryFn: () => listSignupNotifications(account!.salonId!),
+    enabled: !!account?.salonId && manager,
+    refetchInterval: 60_000,
+  });
+  const seenAt = lastSeenSignups();
+  const unseenSignups = (signupsQuery.data ?? []).filter(
+    (n) => !seenAt || n.created_at > seenAt,
+  ).length;
+
 
   // Branch scope: everything branch-aware (services, invoices, POS…) follows it.
   const activeBranch = useActiveBranch();
