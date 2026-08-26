@@ -191,7 +191,7 @@ function Landing() {
   }, [navigate]);
 
   return (
-    <main dir={dir} className="min-h-screen bg-background">
+    <main dir={dir} style={themeVars(theme)} className="min-h-screen bg-background text-foreground">
       <header className="h-16 border-b border-border flex items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-3">
           {home.logoUrl ? (
