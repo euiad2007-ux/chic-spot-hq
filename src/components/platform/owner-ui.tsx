@@ -57,10 +57,7 @@ export function usePlans() {
   return useQuery({
     queryKey: ["platform", "plans"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("platform_plans")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await supabase.from("platform_plans").select("*").order("sort_order");
       if (error) throw error;
       return (data ?? []) as unknown as PlanRow[];
     },
@@ -120,15 +117,7 @@ export function Field({
 }
 
 /** Compact metric tile used across the owner dashboard. */
-export function OwnerStat({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
+export function OwnerStat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <div className="text-xs font-semibold text-muted-foreground">{label}</div>

@@ -124,7 +124,8 @@ function SalonSubscriptions() {
                 <div className="min-w-0">
                   <div className="font-bold truncate">{s.name}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    /{s.slug} · {s.owner_email || "بدون بريد"} · بداية الحساب {fmtDate(s.created_at)}
+                    /{s.slug} · {s.owner_email || "بدون بريد"} · بداية الحساب{" "}
+                    {fmtDate(s.created_at)}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -140,7 +141,7 @@ function SalonSubscriptions() {
                   >
                     {s.is_suspended
                       ? "موقوف"
-                      : STATUS_LABEL[s.subscription_status ?? "trial"] ?? s.subscription_status}
+                      : (STATUS_LABEL[s.subscription_status ?? "trial"] ?? s.subscription_status)}
                   </span>
                   {left !== null && (
                     <span
@@ -158,7 +159,9 @@ function SalonSubscriptions() {
                   )}
                   <button
                     type="button"
-                    onClick={() => update.mutate({ id: s.id, patch: { is_suspended: !s.is_suspended } })}
+                    onClick={() =>
+                      update.mutate({ id: s.id, patch: { is_suspended: !s.is_suspended } })
+                    }
                     className="h-8 px-3 rounded-lg border border-border text-xs font-semibold hover:bg-muted/50"
                   >
                     {s.is_suspended ? "إلغاء الإيقاف" : "إيقاف"}
@@ -217,7 +220,9 @@ function SalonSubscriptions() {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-semibold text-muted-foreground">نهاية الاشتراك</span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    نهاية الاشتراك
+                  </span>
                   <input
                     type="date"
                     defaultValue={(s.subscription_ends_at ?? "").slice(0, 10)}
@@ -466,7 +471,11 @@ function BillingSection() {
             onClick={() => create.mutate()}
             className="h-10 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center gap-2 disabled:opacity-60"
           >
-            {create.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            {create.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Plus className="size-4" />
+            )}
             إصدار
           </button>
         </div>
@@ -488,7 +497,11 @@ function BillingSection() {
         <div className="grid grid-cols-3 gap-2 flex-1 w-full">
           <FinanceCard label="إجمالي" value={money(totals.total)} />
           <FinanceCard label="محصّل" value={money(totals.paid)} tone="good" />
-          <FinanceCard label="مستحق" value={money(totals.due)} tone={totals.due > 0 ? "bad" : "good"} />
+          <FinanceCard
+            label="مستحق"
+            value={money(totals.due)}
+            tone={totals.due > 0 ? "bad" : "good"}
+          />
         </div>
       </div>
 

@@ -63,10 +63,7 @@ function PlatformCustomersPage() {
   const multi = filtered.filter((r) => r.salons_count > 1).length;
 
   return (
-    <OwnerShell
-      title="عملاء المتاجر"
-      subtitle="كل عملاء المنصة، متاجرهم، وعائدهم"
-    >
+    <OwnerShell title="عملاء المتاجر" subtitle="كل عملاء المنصة، متاجرهم، وعائدهم">
       {customers.isLoading ? (
         <div className="grid place-items-center py-16">
           <Loader2 className="size-6 animate-spin text-primary" />

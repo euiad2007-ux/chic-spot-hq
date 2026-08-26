@@ -88,10 +88,14 @@ function PlatformDatabasePage() {
               .slice()
               .sort((a, b) => Number(b.est_bytes) - Number(a.est_bytes))
               .map((r) => {
-                const share = totalSalonBytes > 0 ? (Number(r.est_bytes) / totalSalonBytes) * 100 : 0;
+                const share =
+                  totalSalonBytes > 0 ? (Number(r.est_bytes) / totalSalonBytes) * 100 : 0;
                 const entries = Object.entries(r.tables ?? {}).sort((a, b) => b[1] - a[1]);
                 return (
-                  <div key={r.salon_id} className="rounded-2xl border border-border bg-card p-4 space-y-3">
+                  <div
+                    key={r.salon_id}
+                    className="rounded-2xl border border-border bg-card p-4 space-y-3"
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="font-bold inline-flex items-center gap-2">
                         <Database className="size-4 text-primary" /> {r.salon_name}
@@ -108,7 +112,9 @@ function PlatformDatabasePage() {
                       />
                     </div>
                     {entries.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">لا توجد بيانات مسجّلة لهذا المتجر.</p>
+                      <p className="text-xs text-muted-foreground">
+                        لا توجد بيانات مسجّلة لهذا المتجر.
+                      </p>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                         {entries.map(([table, count]) => (

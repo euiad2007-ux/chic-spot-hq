@@ -74,17 +74,30 @@ export const Route = createFileRoute("/_authenticated/platform")({
 type Tab = "overview" | "salons" | "support" | "plans" | "admins";
 
 const MODULE_OPTIONS = [
-  ["bookings", "الحجوزات"], ["calendar", "التقويم"], ["services", "الخدمات"],
-  ["inventory", "المخزون والجرد"], ["staff", "الموظفون"], ["payroll", "الرواتب"],
-  ["attendance", "الحضور"], ["customers", "العملاء"], ["coupons", "الكوبونات"],
-  ["invoices", "الفواتير"], ["pos", "نقطة البيع"], ["cash", "الصندوق والورديات"],
-  ["expenses", "المصروفات"], ["accounting", "المحاسبة"], ["reports", "التقارير"],
-  ["ledger", "السجل المالي"], ["branches", "الفروع"],
-  ["booking_settings", "ضبط الحجز"], ["invoice_settings", "ضبط الفواتير"],
-  ["site_settings", "إعدادات الموقع"], ["users", "المستخدمون والصلاحيات"],
-  ["activity_log", "سجل النشاط"], ["branch_audit", "سجل تدقيق الفروع"],
+  ["bookings", "الحجوزات"],
+  ["calendar", "التقويم"],
+  ["services", "الخدمات"],
+  ["inventory", "المخزون والجرد"],
+  ["staff", "الموظفون"],
+  ["payroll", "الرواتب"],
+  ["attendance", "الحضور"],
+  ["customers", "العملاء"],
+  ["coupons", "الكوبونات"],
+  ["invoices", "الفواتير"],
+  ["pos", "نقطة البيع"],
+  ["cash", "الصندوق والورديات"],
+  ["expenses", "المصروفات"],
+  ["accounting", "المحاسبة"],
+  ["reports", "التقارير"],
+  ["ledger", "السجل المالي"],
+  ["branches", "الفروع"],
+  ["booking_settings", "ضبط الحجز"],
+  ["invoice_settings", "ضبط الفواتير"],
+  ["site_settings", "إعدادات الموقع"],
+  ["users", "المستخدمون والصلاحيات"],
+  ["activity_log", "سجل النشاط"],
+  ["branch_audit", "سجل تدقيق الفروع"],
 ] as const;
-
 
 function PlatformPage() {
   const { data: account, isLoading } = useAccount();
@@ -134,7 +147,11 @@ function PlatformPage() {
             disabled={claim.isPending}
             className="h-11 px-5 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {claim.isPending ? <Loader2 className="size-4 animate-spin" /> : <Crown className="size-4" />}
+            {claim.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Crown className="size-4" />
+            )}
             تعيينـي مالكًا للمنصة
           </button>
           <button
@@ -261,7 +278,11 @@ function Overview() {
       <div className="grid sm:grid-cols-3 gap-3">
         <FinanceCard label="إجمالي فواتير الاشتراكات" value={money(billed)} />
         <FinanceCard label="المحصّل" value={money(collected)} tone="good" />
-        <FinanceCard label="المستحق غير المحصّل" value={money(due)} tone={due > 0 ? "bad" : "good"} />
+        <FinanceCard
+          label="المستحق غير المحصّل"
+          value={money(due)}
+          tone={due > 0 ? "bad" : "good"}
+        />
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
@@ -415,7 +436,7 @@ function SalonCard({
           >
             {s.is_suspended
               ? "موقوف"
-              : STATUS_LABEL[s.subscription_status ?? "trial"] ?? s.subscription_status}
+              : (STATUS_LABEL[s.subscription_status ?? "trial"] ?? s.subscription_status)}
           </span>
           <button
             type="button"
@@ -565,7 +586,12 @@ function Stat({ label, used, max }: { label: string; used: number; max?: number 
   const limit = max && max > 0 ? max : null;
   const over = limit !== null && used >= limit;
   return (
-    <div className={cn("rounded-xl border p-2", over ? "border-destructive/40 bg-destructive/5" : "border-border")}>
+    <div
+      className={cn(
+        "rounded-xl border p-2",
+        over ? "border-destructive/40 bg-destructive/5" : "border-border",
+      )}
+    >
       <div className="text-[10px] text-muted-foreground">{label}</div>
       <div className="text-sm font-bold">
         {used}
@@ -574,7 +600,6 @@ function Stat({ label, used, max }: { label: string; used: number; max?: number 
     </div>
   );
 }
-
 
 /* -------------------------------- Support -------------------------------- */
 
@@ -588,7 +613,12 @@ function SupportTab() {
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [reply, setReply] = useState("");
-  const [newTicket, setNewTicket] = useState({ salonId: "", subject: "", body: "", priority: "normal" });
+  const [newTicket, setNewTicket] = useState({
+    salonId: "",
+    subject: "",
+    body: "",
+    priority: "normal",
+  });
 
   const messages = useQuery({
     queryKey: ["platform", "ticket-messages", activeId],
@@ -691,11 +721,20 @@ function SupportTab() {
           />
           <button
             type="button"
-            disabled={!newTicket.salonId || !newTicket.subject.trim() || !newTicket.body.trim() || open.isPending}
+            disabled={
+              !newTicket.salonId ||
+              !newTicket.subject.trim() ||
+              !newTicket.body.trim() ||
+              open.isPending
+            }
             onClick={() => open.mutate()}
             className="w-full h-10 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {open.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            {open.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Plus className="size-4" />
+            )}
             فتح التذكرة
           </button>
         </div>
@@ -758,9 +797,7 @@ function SupportTab() {
                   key={m.id}
                   className={cn(
                     "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-                    m.from_platform
-                      ? "bg-primary/10 mr-auto"
-                      : "bg-muted ml-auto",
+                    m.from_platform ? "bg-primary/10 mr-auto" : "bg-muted ml-auto",
                   )}
                 >
                   <div className="text-[10px] text-muted-foreground mb-0.5">
@@ -787,7 +824,11 @@ function SupportTab() {
                 onClick={() => send.mutate()}
                 className="h-10 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center gap-2 disabled:opacity-60"
               >
-                {send.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {send.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
                 إرسال
               </button>
             </div>
@@ -938,7 +979,10 @@ function PlanCard({ plan }: { plan: PlanRow }) {
         <Chip label="الموظفون" value={plan.max_staff} />
         <Chip label="الخدمات" value={plan.max_services} />
         <Chip label="العملاء" value={plan.max_customers} />
-        <Chip label="الفواتير شهريًا" value={plan.max_invoices > 0 ? plan.max_invoices : "غير محدود"} />
+        <Chip
+          label="الفواتير شهريًا"
+          value={plan.max_invoices > 0 ? plan.max_invoices : "غير محدود"}
+        />
         <Chip label="موقع إلكتروني" value={plan.has_website ? "نعم" : "لا"} />
       </div>
 
@@ -1211,7 +1255,11 @@ function AdminsTab() {
             disabled={grant.isPending || !email.trim()}
             className="h-11 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center gap-2 disabled:opacity-60"
           >
-            {grant.isPending ? <Loader2 className="size-4 animate-spin" /> : <Crown className="size-4" />}
+            {grant.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Crown className="size-4" />
+            )}
             ترقية
           </button>
         </div>
