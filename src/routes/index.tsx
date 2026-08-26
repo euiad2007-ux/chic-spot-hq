@@ -168,8 +168,8 @@ function Landing() {
   }, [navigate]);
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background">
-      <header className="h-16 border-b border-border flex items-center justify-between px-4 sm:px-8">
+    <main dir={dir} className="min-h-screen bg-background">
+      <header className="h-16 border-b border-border flex items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-3">
           {home.logoUrl ? (
             <img src={home.logoUrl} alt={brand} className="h-11 w-auto object-contain" />
@@ -185,7 +185,33 @@ function Landing() {
             )}
           </span>
         </div>
+        {navLinks.length > 0 && (
+          <nav className="hidden md:flex items-center gap-4 text-sm">
+            {navLinks.map((l) => (
+              <a key={`${l.label}-${l.href}`} href={l.href} className="hover:text-primary">
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        )}
         <div className="flex items-center gap-2">
+          {enabledLangs.length > 1 && (
+            <div className="hidden sm:flex items-center gap-1 rounded-lg border border-border p-1">
+              <Languages className="size-3.5 text-muted-foreground mx-1" />
+              {enabledLangs.map((l) => (
+                <Link
+                  key={l.code}
+                  to="/"
+                  search={{ lang: l.code }}
+                  className={`rounded-md px-2 py-1 text-xs font-semibold ${
+                    l.code === activeLang ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          )}
           <Link
             to="/auth"
             className="hidden sm:inline-flex h-10 items-center px-4 rounded-lg border border-border text-sm hover:bg-muted"
@@ -200,6 +226,7 @@ function Landing() {
           </Link>
         </div>
       </header>
+
 
       <section className="relative overflow-hidden">
         <img
