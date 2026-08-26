@@ -53,6 +53,7 @@ function PlatformSettingsPage() {
   const save = useMutation({
     mutationFn: () => savePlatformSettings(form),
     onSuccess: () => {
+      qc.setQueryData(PLATFORM_SETTINGS_KEY, structuredClone(form));
       toast.success("تم حفظ إعدادات المنصة");
       void qc.invalidateQueries({ queryKey: PLATFORM_SETTINGS_KEY });
     },

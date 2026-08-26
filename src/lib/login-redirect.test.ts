@@ -28,6 +28,16 @@ vi.mock("@/integrations/supabase/client", () => ({
         error: state.signInError,
       }),
     },
+    from: () => {
+      const query = {
+        select: () => query,
+        eq: () => query,
+        limit: async () => ({ data: [], error: null }),
+        maybeSingle: async () => ({ data: null, error: null }),
+      };
+      return query;
+    },
+    rpc: async () => ({ data: null, error: null }),
   },
 }));
 
@@ -91,6 +101,13 @@ describe("login never bounces back to /auth on success", () => {
     const session = await signIn("owner@example.com", "secret123");
     expect(session).toBeTruthy();
     expect(await guardRedirectsToAuth()).toBe(false);
+  });
+
+  it("loads the account from the valid stored session while Auth is offline", async () => {
+    state.getUser = [{ data: { user: null }, error: netError }];
+    const { loadAccount } = await import("@/lib/account");
+    const account = await loadAccount();
+    expect(account?.userId).toBe("user-1");
   });
 
   it("sign-in rejects wrong credentials instead of entering the app", async () => {

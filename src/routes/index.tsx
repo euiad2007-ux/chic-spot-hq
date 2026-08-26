@@ -66,6 +66,7 @@ export const Route = createFileRoute("/")({
     const lang = deps.lang ?? settings.home?.defaultLang ?? "ar";
     const { brandName, seo, home } = resolvePlatformContent(settings, lang);
     return {
+      settings,
       lang,
       title: seo.title?.trim() || `${brandName} — ${home.tagline || "منصة إدارة المشاغل والصالونات"}`,
       description: seo.description?.trim() || home.subheadline?.trim() || FALLBACK_DESC,
@@ -77,6 +78,7 @@ export const Route = createFileRoute("/")({
   },
   head: ({ loaderData }) => {
     const d = loaderData;
+    const fontHref = d?.settings ? themeFontsHref(d.settings.home?.theme) : undefined;
     return {
       meta: [
         { title: d?.title || FALLBACK_TITLE },
@@ -94,7 +96,10 @@ export const Route = createFileRoute("/")({
             ]
           : []),
       ],
-      links: [{ rel: "canonical", href: "https://novaa.live/" }],
+      links: [
+        { rel: "canonical", href: "https://novaa.live/" },
+        ...(fontHref ? [{ rel: "stylesheet", href: fontHref }] : []),
+      ],
     };
   },
   component: Landing,
@@ -119,7 +124,8 @@ const included = [
 
 function Landing() {
   const navigate = useNavigate();
-  const settings = usePlatformSettings();
+  const loaderData = Route.useLoaderData();
+  const settings = usePlatformSettings(loaderData.settings);
   const { lang } = Route.useSearch();
   const plans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
   const base = settings.data ?? EMPTY_PLATFORM_SETTINGS;
@@ -142,20 +148,6 @@ function Landing() {
   const theme = home.theme;
   const btnPrimary = primaryButtonClass(theme);
   const btnSecondary = secondaryButtonClass(theme);
-
-  // The owner-selected web font is loaded on demand.
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const href = themeFontsHref(theme);
-    let link = document.querySelector<HTMLLinkElement>('link[data-platform-font="1"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.dataset["platformFont"] = "1";
-      document.head.appendChild(link);
-    }
-    link.href = href;
-  }, [theme?.font, theme?.brandFont, theme?.planFont]);
 
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
