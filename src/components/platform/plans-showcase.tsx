@@ -63,13 +63,7 @@ export function PlansShowcase({
         {plans.map((p) => {
           const current = currentCode === p.code;
           return (
-            <article
-              key={p.code}
-              className={
-                "rounded-2xl border bg-card p-5 space-y-4 " +
-                (current ? "border-primary ring-1 ring-primary/40" : "border-border")
-              }
-            >
+            <article key={p.code} className={planCardClass(cardStyle, current)}>
               <div className="flex items-center justify-between">
                 <h3 className="font-extrabold flex items-center gap-2">
                   <Crown className="size-4 text-primary" /> {p.name}
