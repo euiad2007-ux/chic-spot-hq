@@ -389,6 +389,7 @@ function Landing() {
             home.plansNote ||
             "اختر الباقة المناسبة لحجم مشغلك — تُفعّل الأقسام والحدود تلقائيًا حسب الباقة."
           }
+          cardStyle={theme?.planCardStyle}
         />
       </section>
       )}
