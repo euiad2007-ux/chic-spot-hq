@@ -146,7 +146,18 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     ]);
     clearDataContext();
     resetHydration();
-    let account = await loadAccount();
+    // Retry the profile read: a flaky connection must not turn a successful
+    // sign-in into a bounce back to this login page.
+    let account = null as Awaited<ReturnType<typeof loadAccount>>;
+    for (let attempt = 0; attempt < 3 && !account; attempt += 1) {
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * attempt));
+      try {
+        account = await loadAccount();
+      } catch {
+        account = null;
+      }
+    }
+
 
     if (salonId) {
       const alreadyMember = account?.memberships.some((m) => m.salon_id === salonId) ?? false;

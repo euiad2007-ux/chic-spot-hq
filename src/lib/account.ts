@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { resolveUserResilient } from "@/lib/auth-session";
+
 
 export type AppRole =
   | "platform_owner"
@@ -182,13 +184,15 @@ export async function signIn(email: string, password: string) {
   if (error) throw new Error(translateAuthError(error.message));
   if (!data.session) throw new Error("تعذّر تثبيت جلسة الدخول، حاول مرة أخرى");
 
-  // Do not navigate until Auth can read the newly persisted session. This
-  // prevents the protected route guard from bouncing a successful login back.
-  const { data: verified, error: verifyError } = await supabase.auth.getUser();
-  if (verifyError || !verified.user) {
+  // Do not navigate until Auth can read the newly persisted session. On weak
+  // networks the revalidation call may fail transiently, so retry and fall back
+  // to the stored session instead of rejecting a successful sign-in.
+  const { user } = await resolveUserResilient();
+  if (!user) {
     throw new Error("تم قبول بيانات الدخول لكن تعذّر تثبيت الجلسة، حاول مرة أخرى");
   }
   return data.session;
+
 }
 
 export interface SignUpInput {
