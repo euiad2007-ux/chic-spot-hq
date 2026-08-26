@@ -339,7 +339,6 @@ function PlatformCustomersPage() {
               )}
               <Link
                 to="/platform-subscriptions"
-                search={{ salon: merchant.id }}
                 className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-border text-sm font-semibold hover:bg-muted"
               >
                 إدارة الاشتراك
