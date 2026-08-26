@@ -478,13 +478,20 @@ export function AppShell({
             >
               <Share2 className="size-4" />
             </Button>
-            <button
-              aria-label="التنبيهات"
+            <Link
+              to="/join-requests"
+              aria-label={
+                unseenSignups > 0 ? `التنبيهات — ${unseenSignups} تسجيل جديد` : "التنبيهات"
+              }
               className="size-10 rounded-lg border border-border bg-muted/40 hover:bg-muted grid place-items-center relative"
             >
               <Bell className="size-4" />
-              <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-accent" />
-            </button>
+              {unseenSignups > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-[10px] font-bold text-accent-foreground grid place-items-center">
+                  {unseenSignups > 9 ? "9+" : unseenSignups}
+                </span>
+              )}
+            </Link>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <div className="text-sm font-semibold leading-none">
