@@ -17,12 +17,18 @@ const MODULE_LABEL: Record<string, string> = {
   payroll: "الرواتب والعمولات",
   attendance: "الحضور والانصراف",
   coupons: "الكوبونات",
+  ledger: "السجل المالي",
+  branches: "الفروع",
   booking_settings: "ضبط الحجز",
+  invoice_settings: "ضبط الفواتير",
   site_settings: "إعدادات الموقع",
   accounting: "البرنامج المحاسبي",
   assets: "الأصول الثابتة",
   users: "المستخدمون والصلاحيات",
+  activity_log: "سجل النشاط",
+  branch_audit: "سجل تدقيق الفروع",
 };
+
 
 export function moduleLabel(code: string): string {
   return MODULE_LABEL[code] ?? code;
