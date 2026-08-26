@@ -159,7 +159,7 @@ const nav: {
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "manage" },
   { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "manage" },
   { to: "/coupons", label: "الكوبونات والعروض", icon: Ticket, manager: true, module: "coupons", group: "manage" },
-  { to: "/branches", label: "الفروع", icon: Building2, manager: true, group: "manage" },
+  { to: "/branches", label: "الفروع", icon: Building2, manager: true, module: "branches", group: "manage" },
 
   // System & settings
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings", group: "system" },
