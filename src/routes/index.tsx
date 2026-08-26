@@ -344,7 +344,7 @@ function Landing() {
           </ul>
           <Link
             to="/auth"
-            className="mt-7 inline-flex h-11 items-center gap-2 px-6 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm"
+            className={`mt-7 inline-flex h-11 items-center gap-2 px-6 text-sm ${btnPrimary}`}
           >
             أنشئ حساب مالك المشغل <ArrowLeft className="size-4" />
           </Link>
