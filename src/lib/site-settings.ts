@@ -489,10 +489,6 @@ export function useSiteSettings(): SiteSettings {
     (l) => {
       ensure();
       listeners.add(l);
-      if (!hydrated) {
-        hydrated = true;
-        queueMicrotask(() => listeners.forEach((x) => x()));
-      }
       return () => listeners.delete(l);
     },
     () => (hydrated ? state : defaults),
