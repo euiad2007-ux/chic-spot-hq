@@ -98,21 +98,27 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     link.href = href;
   }, [site]);
 
-  // Already signed in → straight to the right home.
+  // Already signed in (including a return from Google) → attach then route home.
   useEffect(() => {
+    if (!siteReady) return;
     let cancelled = false;
     void (async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session || cancelled) return;
       const account = await loadAccount();
       if (!account || cancelled) return;
-      await refreshAccount();
-      navigate({ to: homeForRole(account.role), replace: true });
+      const stored =
+        typeof window === "undefined"
+          ? null
+          : window.sessionStorage.getItem("storeLogin.audience");
+      if (stored) window.sessionStorage.removeItem("storeLogin.audience");
+      await afterAuth(stored === "staff" ? "staff" : stored === "client" ? "client" : audience);
     })();
     return () => {
       cancelled = true;
     };
-  }, [navigate, refreshAccount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteReady]);
 
   /**
    * Attaches the freshly signed-in user to this salon:
