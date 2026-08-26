@@ -98,6 +98,9 @@ function PlatformSitePage() {
   const setSeo = <K extends keyof PlatformSeo>(k: K, v: string) =>
     setHome("seo", { ...seo, [k]: v } as PlatformSeo);
   const navLinks = home.navLinks ?? [];
+  const theme = home.theme ?? {};
+  const setTheme = <K extends keyof PlatformTheme>(k: K, v: string) =>
+    setHome("theme", { ...theme, [k]: v } as PlatformTheme);
 
   const defaultLang = home.defaultLang ?? "ar";
   const enabled = home.languages ?? ["ar"];
