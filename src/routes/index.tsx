@@ -12,6 +12,7 @@ import {
   Building2,
   Check,
   Sparkles,
+  Languages,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +22,13 @@ import {
   PlatformContactCard,
   usePlatformSettings,
 } from "@/components/platform/platform-contact-card";
-import { listPublicPlans } from "@/lib/db/platform-settings-repo";
+import {
+  EMPTY_PLATFORM_SETTINGS,
+  listPublicPlans,
+  loadPlatformSettings,
+  resolvePlatformContent,
+  PLATFORM_LANGS,
+} from "@/lib/db/platform-settings-repo";
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
@@ -30,26 +37,59 @@ import heroImg from "@/assets/platform-hero.jpg";
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
 
+const FALLBACK_TITLE = "Salon Flow — منصة إدارة المشاغل والصالونات";
+const FALLBACK_DESC =
+  "منصة سحابية لملاك المشاغل: حجوزات بلا تعارض، فواتير ضريبية، فروع متعددة، مخزون، رواتب وحضور، محافظ ونقاط ولاء.";
+
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Salon Flow — منصة إدارة المشاغل والصالونات" },
-      {
-        name: "description",
-        content:
-          "منصة سحابية لملاك المشاغل: حجوزات بلا تعارض، فواتير ضريبية، فروع متعددة، مخزون، رواتب وحضور، محافظ ونقاط ولاء.",
-      },
-      { property: "og:title", content: "Salon Flow — منصة إدارة المشاغل والصالونات" },
-      {
-        property: "og:description",
-        content: "أدر مشغلك وفروعك بالكامل من مكان واحد: الحجوزات والخدمات والموظفين والفواتير والمخزون.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+  validateSearch: (search: Record<string, unknown>) => ({
+    lang: typeof search.lang === "string" ? search.lang : undefined,
   }),
+  loaderDeps: ({ search }) => ({ lang: search.lang }),
+  loader: async ({ deps }) => {
+    let settings = EMPTY_PLATFORM_SETTINGS;
+    try {
+      settings = await loadPlatformSettings();
+    } catch {
+      /* landing page still renders with built-in copy */
+    }
+    const lang = deps.lang ?? settings.home?.defaultLang ?? "ar";
+    const { brandName, seo, home } = resolvePlatformContent(settings, lang);
+    return {
+      lang,
+      title: seo.title?.trim() || `${brandName} — ${home.tagline || "منصة إدارة المشاغل والصالونات"}`,
+      description: seo.description?.trim() || home.subheadline?.trim() || FALLBACK_DESC,
+      keywords: seo.keywords?.trim() || "",
+      ogTitle: seo.ogTitle?.trim() || seo.title?.trim() || brandName,
+      ogDescription: seo.ogDescription?.trim() || seo.description?.trim() || FALLBACK_DESC,
+      ogImage: seo.ogImageUrl?.trim() || "",
+    };
+  },
+  head: ({ loaderData }) => {
+    const d = loaderData;
+    return {
+      meta: [
+        { title: d?.title || FALLBACK_TITLE },
+        { name: "description", content: d?.description || FALLBACK_DESC },
+        ...(d?.keywords ? [{ name: "keywords", content: d.keywords }] : []),
+        { property: "og:title", content: d?.ogTitle || FALLBACK_TITLE },
+        { property: "og:description", content: d?.ogDescription || FALLBACK_DESC },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://novaa.live/" },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(d?.ogImage
+          ? [
+              { property: "og:image", content: d.ogImage },
+              { name: "twitter:image", content: d.ogImage },
+            ]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: "https://novaa.live/" }],
+    };
+  },
   component: Landing,
 });
+
 
 const features = [
   { icon: CalendarDays, title: "حجوزات ذكية", desc: "منع تعارض مواعيد الموظفين تلقائيًا وترقيم حجوزات تسلسلي." },
