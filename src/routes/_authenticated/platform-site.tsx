@@ -27,7 +27,6 @@ import {
 } from "@/components/platform/platform-contact-card";
 import { useAccount } from "@/hooks/use-account";
 import {
-  EMPTY_PLATFORM_SETTINGS,
   savePlatformSettings,
   PLATFORM_LANGS,
   type PlatformHome,
@@ -79,7 +78,7 @@ function PlatformSitePage() {
   const { data: account } = useAccount();
   const isOwner = account?.role === "platform_owner";
   const qc = useQueryClient();
-  const loaded = usePlatformSettings();
+  const loaded = usePlatformSettings(undefined, true);
   const [form, setForm] = useState<PlatformSettings | null>(null);
 
   useEffect(() => {
@@ -100,7 +99,7 @@ function PlatformSitePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (loaded.isPending || !form) {
+  if (loaded.isPending || loaded.isFetching || !form) {
     return <SettingsLoadingScreen label="جاري تحميل هوية الموقع المحفوظة…" />;
   }
 
