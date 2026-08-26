@@ -31,6 +31,7 @@ import { Route as AuthenticatedPlatformSiteRouteImport } from './routes/_authent
 import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
 import { Route as AuthenticatedPlatformDatabaseRouteImport } from './routes/_authenticated/platform-database'
 import { Route as AuthenticatedPlatformCustomersRouteImport } from './routes/_authenticated/platform-customers'
+import { Route as AuthenticatedPlatformActivityRouteImport } from './routes/_authenticated/platform-activity'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -185,6 +186,12 @@ const AuthenticatedPlatformCustomersRoute =
   AuthenticatedPlatformCustomersRouteImport.update({
     id: '/platform-customers',
     path: '/platform-customers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformActivityRoute =
+  AuthenticatedPlatformActivityRouteImport.update({
+    id: '/platform-activity',
+    path: '/platform-activity',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
@@ -437,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/platform-activity': typeof AuthenticatedPlatformActivityRoute
   '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
@@ -499,6 +507,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/platform-activity': typeof AuthenticatedPlatformActivityRoute
   '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
@@ -564,6 +573,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/platform-activity': typeof AuthenticatedPlatformActivityRoute
   '/_authenticated/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/_authenticated/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
@@ -629,6 +639,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/payroll'
     | '/platform'
+    | '/platform-activity'
     | '/platform-customers'
     | '/platform-database'
     | '/platform-settings'
@@ -691,6 +702,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/payroll'
     | '/platform'
+    | '/platform-activity'
     | '/platform-customers'
     | '/platform-database'
     | '/platform-settings'
@@ -755,6 +767,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
+    | '/_authenticated/platform-activity'
     | '/_authenticated/platform-customers'
     | '/_authenticated/platform-database'
     | '/_authenticated/platform-settings'
@@ -956,6 +969,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-customers'
       fullPath: '/platform-customers'
       preLoaderRoute: typeof AuthenticatedPlatformCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform-activity': {
+      id: '/_authenticated/platform-activity'
+      path: '/platform-activity'
+      fullPath: '/platform-activity'
+      preLoaderRoute: typeof AuthenticatedPlatformActivityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/platform': {
@@ -1302,6 +1322,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedPlatformActivityRoute: typeof AuthenticatedPlatformActivityRoute
   AuthenticatedPlatformCustomersRoute: typeof AuthenticatedPlatformCustomersRoute
   AuthenticatedPlatformDatabaseRoute: typeof AuthenticatedPlatformDatabaseRoute
   AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
@@ -1345,6 +1366,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedPlatformActivityRoute: AuthenticatedPlatformActivityRoute,
   AuthenticatedPlatformCustomersRoute: AuthenticatedPlatformCustomersRoute,
   AuthenticatedPlatformDatabaseRoute: AuthenticatedPlatformDatabaseRoute,
   AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
