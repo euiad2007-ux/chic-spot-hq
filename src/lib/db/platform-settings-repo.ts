@@ -98,6 +98,8 @@ export interface PlatformHome {
   showContact?: boolean;
   /** SEO / social sharing */
   seo?: PlatformSeo;
+  /** Colors, fonts, button and plan-card styles */
+  theme?: PlatformTheme;
   /** i18n: `defaultLang` holds the fields above; other languages live in `translations`. */
   defaultLang?: PlatformLangCode;
   languages?: PlatformLangCode[];
