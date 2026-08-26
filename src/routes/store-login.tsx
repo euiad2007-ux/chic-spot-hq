@@ -63,12 +63,14 @@ export function StoreLoginView({ slug }: { slug?: string }) {
   const [busy, setBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [salonId, setSalonId] = useState<string | null>(null);
+  const [siteReady, setSiteReady] = useState(false);
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
     void import("@/lib/db/public-hydrate").then(async (m) => {
       const meta = await m.hydratePublicSite(slug, true);
       setSalonId(meta?.salonId ?? null);
+      setSiteReady(true);
     });
   }, [slug]);
 
@@ -162,6 +164,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     if (busy) return;
     setBusy(true);
     try {
+      window.sessionStorage.setItem("storeLogin.audience", audience);
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin + (slug ? `/salon/${slug}/login` : "/store-login"),
       });
