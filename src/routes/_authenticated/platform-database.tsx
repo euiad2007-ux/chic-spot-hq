@@ -5,6 +5,7 @@ import { Database, Loader2 } from "lucide-react";
 import { OwnerShell } from "@/components/platform/owner-shell";
 import { formatBytes, OwnerStat } from "@/components/platform/owner-ui";
 import { listSalonStorage, listTableSizes } from "@/lib/db/platform-repo";
+import { useAccount } from "@/hooks/use-account";
 
 export const Route = createFileRoute("/_authenticated/platform-database")({
   ssr: false,
@@ -52,8 +53,10 @@ const TABLE_LABEL: Record<string, string> = {
 };
 
 function PlatformDatabasePage() {
-  const storage = useQuery({ queryKey: ["platform", "storage"], queryFn: listSalonStorage });
-  const tables = useQuery({ queryKey: ["platform", "table-sizes"], queryFn: listTableSizes });
+  const { data: account, isLoading: accountLoading } = useAccount();
+  const isOwner = account?.role === "platform_owner";
+  const storage = useQuery({ queryKey: ["platform", "storage"], queryFn: listSalonStorage, enabled: isOwner });
+  const tables = useQuery({ queryKey: ["platform", "table-sizes"], queryFn: listTableSizes, enabled: isOwner });
 
   const rows = storage.data ?? [];
   const totalRows = rows.reduce((s, r) => s + Number(r.rows_total || 0), 0);
@@ -65,10 +68,12 @@ function PlatformDatabasePage() {
       title="قواعد بيانات المتاجر"
       subtitle="حجم البيانات المخزّنة لكل متجر وحجم جداول قاعدة البيانات"
     >
-      {storage.isLoading ? (
+      {accountLoading || storage.isLoading ? (
         <div className="grid place-items-center py-16">
           <Loader2 className="size-6 animate-spin text-primary" />
         </div>
+      ) : !isOwner ? (
+        <p className="text-sm text-muted-foreground">هذه الصفحة متاحة لمالك المنصة فقط.</p>
       ) : storage.isError ? (
         <p className="text-sm text-destructive">تعذّر قراءة بيانات التخزين.</p>
       ) : (

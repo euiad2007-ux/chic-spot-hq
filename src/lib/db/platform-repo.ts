@@ -317,6 +317,30 @@ export interface TableSizeRow {
   total_bytes: number;
 }
 
+export interface PlatformNotificationRow {
+  id: string;
+  salon_id: string | null;
+  kind: "subscription_expiring" | "subscription_expired";
+  title: string;
+  body: string;
+  due_at: string | null;
+  read_at: string | null;
+  meta: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface PlatformAuditRow {
+  id: string;
+  salon_id: string | null;
+  user_id: string | null;
+  action: string;
+  entity: string;
+  entity_id: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  created_at: string;
+}
+
 /** Every customer of every salon (platform owner only). */
 export async function listPlatformCustomers(): Promise<PlatformCustomerRow[]> {
   const { data, error } = await supabase.rpc("platform_customers_overview");
@@ -336,4 +360,41 @@ export async function listTableSizes(): Promise<TableSizeRow[]> {
   const { data, error } = await supabase.rpc("platform_table_sizes");
   if (error) throw error;
   return (data ?? []) as unknown as TableSizeRow[];
+}
+
+/** Subscription alerts visible only to the platform owner through RLS. */
+export async function listPlatformNotifications(): Promise<PlatformNotificationRow[]> {
+  const { data, error } = await supabase
+    .from("platform_notifications")
+    .select("id, salon_id, kind, title, body, due_at, read_at, meta, created_at")
+    .order("created_at", { ascending: false })
+    .limit(300);
+  if (error) throw error;
+  return (data ?? []) as PlatformNotificationRow[];
+}
+
+export async function markPlatformNotificationRead(id: string, read: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("platform_notifications")
+    .update({ read_at: read ? new Date().toISOString() : null })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+/** Cross-store change history visible only to the platform owner through RLS. */
+export async function listPlatformAudit(): Promise<PlatformAuditRow[]> {
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id, salon_id, user_id, action, entity, entity_id, before, after, created_at")
+    .in("entity", [
+      "salons",
+      "platform_plans",
+      "subscription_invoices",
+      "subscription_payments",
+      "platform_settings",
+    ])
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) throw error;
+  return (data ?? []) as unknown as PlatformAuditRow[];
 }

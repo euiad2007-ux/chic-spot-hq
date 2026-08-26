@@ -9,6 +9,7 @@ import {
   Database,
   Settings,
   Globe,
+  History,
   Home,
   LogOut,
   Loader2,
@@ -28,6 +29,7 @@ export const OWNER_NAV: { to: string; label: string; icon: typeof Crown }[] = [
   { to: "/platform-database", label: "قواعد البيانات", icon: Database },
   { to: "/platform-settings", label: "إعدادات المنصة", icon: Settings },
   { to: "/platform-site", label: "هوية الموقع الرئيسي", icon: Globe },
+  { to: "/platform-activity", label: "الإشعارات وسجل العمليات", icon: History },
 ];
 
 /**

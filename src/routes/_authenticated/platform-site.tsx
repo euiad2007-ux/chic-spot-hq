@@ -82,6 +82,7 @@ function PlatformSitePage() {
   const loaded = usePlatformSettings(undefined, true);
   const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
   const [settingsReady, setSettingsReady] = useState(false);
+  const [trLang, setTrLang] = useState<string>("en");
 
   useEffect(() => {
     if (loaded.data && !loaded.isFetching) {
@@ -122,9 +123,6 @@ function PlatformSitePage() {
 
   const defaultLang = home.defaultLang ?? "ar";
   const enabled = home.languages ?? ["ar"];
-  const [trLang, setTrLang] = useState<string>(
-    PLATFORM_LANGS.find((l) => l.code !== defaultLang)?.code ?? "en",
-  );
   const tr = home.translations?.[trLang] ?? {};
   const setTr = <K extends keyof PlatformLocaleContent>(k: K, v: PlatformLocaleContent[K]) =>
     setHome("translations", {
