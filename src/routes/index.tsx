@@ -29,6 +29,12 @@ import {
   resolvePlatformContent,
   PLATFORM_LANGS,
 } from "@/lib/db/platform-settings-repo";
+import {
+  fontHref,
+  primaryButtonClass,
+  secondaryButtonClass,
+  themeVars,
+} from "@/lib/platform-theme";
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
