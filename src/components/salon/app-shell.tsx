@@ -155,6 +155,7 @@ const nav: {
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
   { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "manage" },
+  { to: "/join-requests", label: "طلبات الانضمام والتسجيلات", icon: UserPlus, manager: true, module: "staff", group: "manage" },
   { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "manage" },
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "manage" },
   { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "manage" },
