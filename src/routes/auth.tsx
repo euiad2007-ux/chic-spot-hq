@@ -74,6 +74,18 @@ function AuthPage() {
     link.href = href;
   }, [theme?.font]);
 
+  useEffect(() => {
+    document.title = `تسجيل الدخول — ${brand}`;
+    if (!home.faviconUrl) return;
+    let icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!icon) {
+      icon = document.createElement("link");
+      icon.rel = "icon";
+      document.head.appendChild(icon);
+    }
+    icon.href = home.faviconUrl;
+  }, [brand, home.faviconUrl]);
+
   // Automatic continuation is allowed only after the user explicitly pressed
   // the Google button. Merely visiting /auth never opens the dashboard.
   useEffect(() => {
