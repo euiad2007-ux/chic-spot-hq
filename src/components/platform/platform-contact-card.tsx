@@ -32,6 +32,7 @@ export function usePlatformSettings(initialData?: PlatformSettings, requireFresh
     initialData,
     staleTime: requireFresh ? 0 : 5 * 60_000,
     refetchOnMount: requireFresh ? "always" : true,
+    retry: requireFresh ? 3 : 1,
   });
 }
 
