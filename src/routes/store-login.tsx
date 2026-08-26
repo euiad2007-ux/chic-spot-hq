@@ -4,8 +4,17 @@ import { Scissors, Loader2, IdCard, User, ArrowLeft, Eye, EyeOff, KeyRound, Home
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { SiteLink } from "@/components/salon/salon-nav-links";
-import { signIn, signUp, homeForRole, loadAccount, sendPasswordReset } from "@/lib/account";
+import {
+  signIn,
+  signUp,
+  homeForRole,
+  loadAccount,
+  sendPasswordReset,
+  signOutAccount,
+} from "@/lib/account";
+import { requestJoinSalon } from "@/lib/db/join-requests-repo";
 import { useRefreshAccount } from "@/hooks/use-account";
 import {
   useSiteSettings,
