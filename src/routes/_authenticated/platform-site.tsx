@@ -187,12 +187,13 @@ function PlatformSitePage() {
             onChange={(v) => setHome("heroNote", v)}
             multiline
           />
-          <Field
-            label="رابط صورة الخلفية"
+          <ImageUploadField
+            label="صورة خلفية القسم الرئيسي"
+            preset="hero"
             value={home.heroImageUrl ?? ""}
             onChange={(v) => setHome("heroImageUrl", v)}
-            placeholder="https://…/hero.jpg"
           />
+
         </Card>
 
         <Card title="قسم المزايا" icon={LayoutTemplate}>
