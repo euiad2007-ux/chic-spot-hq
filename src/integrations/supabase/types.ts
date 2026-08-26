@@ -3366,6 +3366,25 @@ export type Database = {
         Args: { _branch: string; _opening_float?: number; _salon: string }
         Returns: string
       }
+      platform_customers_overview: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          invoices_count: number
+          last_visit: string
+          loyalty_points: number
+          name: string
+          phone: string
+          salon_id: string
+          salon_name: string
+          salons_count: number
+          total_spent: number
+          visits: number
+          wallet_balance: number
+        }[]
+      }
       platform_salons_overview: {
         Args: never
         Returns: {
@@ -3398,6 +3417,24 @@ export type Database = {
           subscription_ends_at: string
           subscription_status: string
           trial_ends_at: string
+        }[]
+      }
+      platform_storage_overview: {
+        Args: never
+        Returns: {
+          est_bytes: number
+          rows_total: number
+          salon_id: string
+          salon_name: string
+          tables: Json
+        }[]
+      }
+      platform_table_sizes: {
+        Args: never
+        Returns: {
+          row_estimate: number
+          table_name: string
+          total_bytes: number
         }[]
       }
       pos_checkout: {
