@@ -114,10 +114,58 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     };
   }, [navigate, refreshAccount]);
 
-  async function afterAuth() {
-    const account = await loadAccount();
+  /**
+   * Attaches the freshly signed-in user to this salon:
+   * clients are activated at once, staff wait for the merchant's approval.
+   */
+  async function afterAuth(kind: Audience = audience) {
+    let account = await loadAccount();
+
+    if (salonId) {
+      const alreadyMember = account?.memberships.some((m) => m.salon_id === salonId) ?? false;
+      if (kind === "staff" && !alreadyMember) {
+        const res = await requestJoinSalon({
+          salonId,
+          kind: "staff",
+          name: fullName || account?.fullName,
+          phone,
+          jobTitle,
+        });
+        if (res.status !== "member") {
+          await signOutAccount();
+          await refreshAccount();
+          toast.success("تم إرسال طلب الانضمام — سيتم تفعيل حسابك بعد موافقة إدارة المشغل");
+          return;
+        }
+      } else if (kind === "client" && !alreadyMember) {
+        await requestJoinSalon({
+          salonId,
+          kind: "client",
+          name: fullName || account?.fullName,
+          phone,
+        });
+        account = await loadAccount();
+      }
+    }
+
     await refreshAccount();
     navigate({ to: account ? homeForRole(account.role) : "/", replace: true });
+  }
+
+  async function onGoogle() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + (slug ? `/salon/${slug}/login` : "/store-login"),
+      });
+      if (result.error) throw result.error;
+      if (!("redirected" in result && result.redirected)) await afterAuth();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function onForgot() {
