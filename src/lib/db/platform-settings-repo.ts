@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { PlatformTheme } from "@/lib/platform-theme";
 
 export interface PlatformSocials {
   instagram?: string;
