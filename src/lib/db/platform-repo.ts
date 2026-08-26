@@ -283,3 +283,57 @@ export async function setTicketStatus(id: string, status: string) {
   const { error } = await supabase.from("support_tickets").update({ status }).eq("id", id);
   if (error) throw error;
 }
+
+/* --------------------- owner-only cross-tenant reports --------------------- */
+
+export interface PlatformCustomerRow {
+  id: string;
+  salon_id: string;
+  salon_name: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  visits: number;
+  total_spent: number;
+  wallet_balance: number;
+  loyalty_points: number;
+  created_at: string;
+  salons_count: number;
+  invoices_count: number;
+  last_visit: string | null;
+}
+
+export interface SalonStorageRow {
+  salon_id: string;
+  salon_name: string;
+  rows_total: number;
+  est_bytes: number;
+  tables: Record<string, number>;
+}
+
+export interface TableSizeRow {
+  table_name: string;
+  row_estimate: number;
+  total_bytes: number;
+}
+
+/** Every customer of every salon (platform owner only). */
+export async function listPlatformCustomers(): Promise<PlatformCustomerRow[]> {
+  const { data, error } = await supabase.rpc("platform_customers_overview");
+  if (error) throw error;
+  return (data ?? []) as unknown as PlatformCustomerRow[];
+}
+
+/** Data volume held by each salon (platform owner only). */
+export async function listSalonStorage(): Promise<SalonStorageRow[]> {
+  const { data, error } = await supabase.rpc("platform_storage_overview");
+  if (error) throw error;
+  return (data ?? []) as unknown as SalonStorageRow[];
+}
+
+/** Physical size of every table in the platform database (owner only). */
+export async function listTableSizes(): Promise<TableSizeRow[]> {
+  const { data, error } = await supabase.rpc("platform_table_sizes");
+  if (error) throw error;
+  return (data ?? []) as unknown as TableSizeRow[];
+}
