@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { resolveUserResilient } from "@/lib/auth-session";
+
 
 export type AppRole =
   | "platform_owner"
