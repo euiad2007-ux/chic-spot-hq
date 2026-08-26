@@ -175,11 +175,20 @@ export async function loadAccount(): Promise<Account | null> {
 }
 
 export async function signIn(email: string, password: string) {
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email.trim(),
     password,
   });
   if (error) throw new Error(translateAuthError(error.message));
+  if (!data.session) throw new Error("تعذّر تثبيت جلسة الدخول، حاول مرة أخرى");
+
+  // Do not navigate until Auth can read the newly persisted session. This
+  // prevents the protected route guard from bouncing a successful login back.
+  const { data: verified, error: verifyError } = await supabase.auth.getUser();
+  if (verifyError || !verified.user) {
+    throw new Error("تم قبول بيانات الدخول لكن تعذّر تثبيت الجلسة، حاول مرة أخرى");
+  }
+  return data.session;
 }
 
 export interface SignUpInput {
