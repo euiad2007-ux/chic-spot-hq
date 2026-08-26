@@ -333,6 +333,7 @@ export interface PlatformAuditRow {
   id: string;
   salon_id: string | null;
   user_id: string | null;
+  actor_name: string | null;
   action: string;
   entity: string;
   entity_id: string | null;
@@ -385,7 +386,7 @@ export async function markPlatformNotificationRead(id: string, read: boolean): P
 export async function listPlatformAudit(): Promise<PlatformAuditRow[]> {
   const { data, error } = await supabase
     .from("audit_log")
-    .select("id, salon_id, user_id, action, entity, entity_id, before, after, created_at")
+    .select("id, salon_id, user_id, actor_name, action, entity, entity_id, before, after, created_at")
     .in("entity", [
       "salons",
       "platform_plans",

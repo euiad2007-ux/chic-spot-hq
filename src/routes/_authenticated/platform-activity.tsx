@@ -99,7 +99,7 @@ function PlatformActivityPage() {
                   <button type="button" onClick={() => setOpen(expanded ? null : row.id)} className="w-full p-4 flex items-center gap-3 text-right hover:bg-muted/40">
                     <span className="font-bold text-sm">{ACTION_LABEL[row.action] ?? row.action}</span>
                     <span className="text-sm">{ENTITY_LABEL[row.entity] ?? row.entity}</span>
-                    <span className="text-xs text-muted-foreground">بواسطة {row.user_id ? row.user_id.slice(0, 8) : "النظام"}</span>
+                    <span className="text-xs text-muted-foreground">بواسطة {row.actor_name || (row.user_id ? row.user_id.slice(0, 8) : "النظام")}</span>
                     <time className="mr-auto text-xs text-muted-foreground">{new Date(row.created_at).toLocaleString("ar-SA")}</time>
                     {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
                   </button>
