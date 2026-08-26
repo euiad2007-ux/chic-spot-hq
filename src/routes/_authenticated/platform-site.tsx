@@ -82,6 +82,23 @@ function PlatformSitePage() {
 
   const features = home.features ?? [];
   const included = home.includedItems ?? [];
+  const seo = home.seo ?? {};
+  const setSeo = <K extends keyof PlatformSeo>(k: K, v: string) =>
+    setHome("seo", { ...seo, [k]: v } as PlatformSeo);
+  const navLinks = home.navLinks ?? [];
+
+  const defaultLang = home.defaultLang ?? "ar";
+  const enabled = home.languages ?? ["ar"];
+  const [trLang, setTrLang] = useState<string>(
+    PLATFORM_LANGS.find((l) => l.code !== defaultLang)?.code ?? "en",
+  );
+  const tr = home.translations?.[trLang] ?? {};
+  const setTr = <K extends keyof PlatformLocaleContent>(k: K, v: PlatformLocaleContent[K]) =>
+    setHome("translations", {
+      ...(home.translations ?? {}),
+      [trLang]: { ...tr, [k]: v },
+    });
+
 
   if (!isOwner) {
     return (
