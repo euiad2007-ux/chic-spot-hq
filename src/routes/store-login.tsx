@@ -291,6 +291,9 @@ export function StoreLoginView({ slug }: { slug?: string }) {
               <>
                 <Field label="الاسم الكامل" value={fullName} onChange={setFullName} autoComplete="name" required />
                 <Field label="رقم الجوال" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
+                {audience === "staff" && (
+                  <Field label="المسمى الوظيفي" value={jobTitle} onChange={setJobTitle} />
+                )}
               </>
             )}
             <Field
