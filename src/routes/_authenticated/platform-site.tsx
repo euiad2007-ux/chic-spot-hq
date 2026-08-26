@@ -258,11 +258,13 @@ function PlatformSitePage() {
             value={home.showcaseTitle ?? ""}
             onChange={(v) => setHome("showcaseTitle", v)}
           />
-          <Field
-            label="رابط الصورة"
+          <ImageUploadField
+            label="صورة القسم"
+            preset="wide"
             value={home.showcaseImageUrl ?? ""}
             onChange={(v) => setHome("showcaseImageUrl", v)}
           />
+
           <div className="space-y-2">
             {included.map((it, i) => (
               <div key={i} className="flex items-center gap-2">
