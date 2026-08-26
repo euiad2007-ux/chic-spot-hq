@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell } from "@/components/salon/app-shell";
+import { OwnerShell } from "@/components/platform/owner-shell";
 import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
 import {
@@ -135,14 +135,14 @@ function PlatformSitePage() {
 
   if (!isOwner) {
     return (
-      <AppShell title="هوية الموقع الرئيسي" subtitle="مخصصة لمالك المنصة">
+      <OwnerShell title="هوية الموقع الرئيسي" subtitle="مخصصة لمالك المنصة">
         <p className="text-sm text-muted-foreground">هذه الصفحة متاحة لمالك المنصة فقط.</p>
-      </AppShell>
+      </OwnerShell>
     );
   }
 
   return (
-    <AppShell
+    <OwnerShell
       title="هوية الموقع الرئيسي"
       subtitle="الاسم والشعار والصور وجميع الأقسام وأرقام التواصل"
       action={
@@ -849,7 +849,7 @@ function PlatformSitePage() {
         </Card>
       </div>
 
-    </AppShell>
+    </OwnerShell>
   );
 }
 
