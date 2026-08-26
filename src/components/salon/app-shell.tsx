@@ -163,12 +163,12 @@ const nav: {
 
   // System & settings
   { to: "/booking-settings", label: "ضبط الحجز", icon: CalendarCog, manager: true, module: "booking_settings", group: "system" },
-  { to: "/invoice-settings", label: "ضبط الفواتير", icon: Receipt, manager: true, group: "system" },
+  { to: "/invoice-settings", label: "ضبط الفواتير", icon: Receipt, manager: true, module: "invoice_settings", group: "system" },
 
   { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, module: "users", group: "system" },
   { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "system" },
-  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, group: "system" },
-  { to: "/branch-audit", label: "سجل تدقيق الفروع", icon: Building2, manager: true, group: "system" },
+  { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, module: "activity_log", group: "system" },
+  { to: "/branch-audit", label: "سجل تدقيق الفروع", icon: Building2, manager: true, module: "branch_audit", group: "system" },
 ];
 
 
