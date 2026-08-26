@@ -12,6 +12,26 @@ export interface PlatformTheme {
   buttonStyle?: string;
   planCardStyle?: string;
   radius?: string;
+  /** Site name (brand) typography */
+  brandFont?: string;
+  brandColor?: string;
+  brandGradient?: boolean;
+  brandSize?: string;
+  /** Logo height in the header, in pixels */
+  logoHeight?: number;
+  /** Text colors */
+  headingColor?: string;
+  mutedColor?: string;
+  linkColor?: string;
+  /** Opacity (0–100) applied to site images */
+  imageOpacity?: number;
+  heroImageOpacity?: number;
+  /** Plan cards */
+  planFont?: string;
+  planTitleColor?: string;
+  planPriceColor?: string;
+  planCardBg?: string;
+  planBorderColor?: string;
 }
 
 export const FONT_OPTIONS = [
@@ -21,6 +41,22 @@ export const FONT_OPTIONS = [
   { code: "ibm-plex", label: "IBM Plex Sans Arabic", family: "'IBM Plex Sans Arabic', sans-serif", google: "IBM+Plex+Sans+Arabic:wght@400;600;700" },
   { code: "readex", label: "Readex Pro", family: "'Readex Pro', sans-serif", google: "Readex+Pro:wght@400;500;700" },
   { code: "rubik", label: "Rubik", family: "'Rubik', sans-serif", google: "Rubik:wght@400;600;800" },
+  { code: "noto-kufi", label: "Noto Kufi Arabic", family: "'Noto Kufi Arabic', sans-serif", google: "Noto+Kufi+Arabic:wght@400;600;800" },
+  { code: "changa", label: "Changa", family: "'Changa', sans-serif", google: "Changa:wght@400;600;800" },
+  { code: "amiri", label: "Amiri (نسخ)", family: "'Amiri', serif", google: "Amiri:wght@400;700" },
+  { code: "el-messiri", label: "El Messiri", family: "'El Messiri', sans-serif", google: "El+Messiri:wght@400;600;700" },
+  { code: "lalezar", label: "Lalezar (عريض)", family: "'Lalezar', cursive", google: "Lalezar" },
+  { code: "reem-kufi", label: "Reem Kufi", family: "'Reem Kufi', sans-serif", google: "Reem+Kufi:wght@400;600;700" },
+  { code: "markazi", label: "Markazi Text", family: "'Markazi Text', serif", google: "Markazi+Text:wght@400;600;700" },
+  { code: "harmattan", label: "Harmattan", family: "'Harmattan', sans-serif", google: "Harmattan:wght@400;700" },
+  { code: "mada", label: "Mada", family: "'Mada', sans-serif", google: "Mada:wght@400;600;900" },
+] as const;
+
+export const BRAND_SIZES = [
+  { code: "sm", label: "صغير", value: "1.05rem" },
+  { code: "md", label: "متوسط", value: "1.25rem" },
+  { code: "lg", label: "كبير", value: "1.6rem" },
+  { code: "xl", label: "ضخم", value: "2rem" },
 ] as const;
 
 export const BUTTON_STYLES = [
@@ -30,6 +66,7 @@ export const BUTTON_STYLES = [
   { code: "pill", label: "كبسولة (تدرّج)" },
   { code: "soft", label: "ناعم شفاف" },
 ] as const;
+
 
 export const PLAN_CARD_STYLES = [
   { code: "bordered", label: "إطار بسيط" },
