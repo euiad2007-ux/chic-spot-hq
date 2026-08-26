@@ -8,6 +8,7 @@ import {
   CalendarCog,
   Sparkles,
   Users2,
+  UserPlus,
   UserCircle,
   Receipt,
   Settings,
