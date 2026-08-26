@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Building2,
   Check,
+  Sparkles,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -71,6 +72,26 @@ function Landing() {
   const settings = usePlatformSettings();
   const plans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
   const home = settings.data?.home ?? {};
+  const brand = settings.data?.brandName || "Salon Flow";
+  // Owner-managed content falls back to the built-in copy and artwork.
+  const customFeatures = (home.features ?? []).filter((f) => f.title.trim());
+  const featureCards = customFeatures.length
+    ? customFeatures.map((f) => ({ icon: Sparkles, title: f.title, desc: f.desc ?? "" }))
+    : features;
+  const includedItems = (home.includedItems ?? []).filter((i) => i.trim());
+  const includedList = includedItems.length ? includedItems : included;
+
+  // The platform's own favicon completes its brand identity.
+  useEffect(() => {
+    if (typeof document === "undefined" || !home.faviconUrl) return;
+    let icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!icon) {
+      icon = document.createElement("link");
+      icon.rel = "icon";
+      document.head.appendChild(icon);
+    }
+    icon.href = home.faviconUrl;
+  }, [home.faviconUrl]);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,10 +121,19 @@ function Landing() {
     <main dir="rtl" className="min-h-screen bg-background">
       <header className="h-16 border-b border-border flex items-center justify-between px-4 sm:px-8">
         <div className="flex items-center gap-3">
-          <span className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <Scissors className="size-5 text-primary-foreground" />
+          {home.logoUrl ? (
+            <img src={home.logoUrl} alt={brand} className="h-11 w-auto object-contain" />
+          ) : (
+            <span className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Scissors className="size-5 text-primary-foreground" />
+            </span>
+          )}
+          <span className="leading-tight">
+            <span className="block font-extrabold text-lg gradient-text">{brand}</span>
+            {home.tagline && (
+              <span className="block text-[11px] text-muted-foreground">{home.tagline}</span>
+            )}
           </span>
-          <span className="font-extrabold text-lg gradient-text">Salon Flow</span>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -123,7 +153,7 @@ function Landing() {
 
       <section className="relative overflow-hidden">
         <img
-          src={heroImg}
+          src={home.heroImageUrl || heroImg}
           alt="صالون تجميل فاخر بإضاءة ذهبية وكراسي بلون الليلك"
           width={1600}
           height={1008}
@@ -132,7 +162,7 @@ function Landing() {
         <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/85 to-background/60" />
         <div className="relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
-            منصة SaaS لملاك المشاغل والصالونات
+            {home.heroBadge || "منصة SaaS لملاك المشاغل والصالونات"}
           </span>
           <h1 className="mt-6 text-3xl sm:text-5xl font-extrabold leading-tight">
             {home.headline || (
@@ -141,9 +171,9 @@ function Landing() {
               </>
             )}
           </h1>
-          <p className="mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed">
-            حجوزات، خدمات لكل فرع، موظفون، رواتب، مخزون، فواتير ضريبية، محافظ ونقاط ولاء — مع موقع
-            إلكتروني جاهز لكل مشغل وعزل كامل للبيانات.
+          <p className="mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-line">
+            {home.subheadline ||
+              "حجوزات، خدمات لكل فرع، موظفون، رواتب، مخزون، فواتير ضريبية، محافظ ونقاط ولاء — مع موقع إلكتروني جاهز لكل مشغل وعزل كامل للبيانات."}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
@@ -157,31 +187,42 @@ function Landing() {
               to="/site"
               className="inline-flex h-12 items-center px-7 rounded-xl border border-border font-semibold hover:bg-muted bg-background/70"
             >
-              استعراض موقع صالون
+              {home.ctaSecondaryLabel || "استعراض موقع صالون"}
             </Link>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            التسجيل هنا لملاك المشاغل فقط — الموظفون والعملاء يدخلون من صفحة دخول المشغل.
+          <p className="mt-4 text-xs text-muted-foreground whitespace-pre-line">
+            {home.heroNote ||
+              "التسجيل هنا لملاك المشاغل فقط — الموظفون والعملاء يدخلون من صفحة دخول المشغل."}
           </p>
         </div>
       </section>
 
-      <section className="px-4 sm:px-8 py-16 max-w-5xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((f) => (
-          <article key={f.title} className="rounded-2xl border border-border bg-card/70 p-5">
-            <span className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <f.icon className="size-5" />
-            </span>
-            <h2 className="mt-4 font-bold">{f.title}</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-          </article>
-        ))}
-      </section>
+      {home.showFeatures !== false && (
+        <section className="px-4 sm:px-8 py-16 max-w-5xl mx-auto">
+          {home.featuresTitle && (
+            <h2 className="mb-8 text-2xl sm:text-3xl font-extrabold text-center">
+              {home.featuresTitle}
+            </h2>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featureCards.map((f) => (
+              <article key={f.title} className="rounded-2xl border border-border bg-card/70 p-5">
+                <span className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <f.icon className="size-5" />
+                </span>
+                <h3 className="mt-4 font-bold">{f.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
+      {home.showShowcase !== false && (
       <section className="px-4 sm:px-8 pb-16 max-w-6xl mx-auto grid gap-6 lg:grid-cols-2 items-center">
         <div className="rounded-3xl overflow-hidden border border-border">
           <img
-            src={dashboardImg}
+            src={home.showcaseImageUrl || dashboardImg}
             alt="مالكة مشغل تستعرض لوحة التحكم والتقارير على الحاسب"
             loading="lazy"
             width={1200}
@@ -190,9 +231,11 @@ function Landing() {
           />
         </div>
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold">كل ما يحتاجه مشغلك جاهز من اليوم الأول</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold">
+            {home.showcaseTitle || "كل ما يحتاجه مشغلك جاهز من اليوم الأول"}
+          </h2>
           <ul className="mt-5 space-y-3">
-            {included.map((i) => (
+            {includedList.map((i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
                 <Check className="size-4 mt-0.5 text-primary shrink-0" />
                 <span>{i}</span>
@@ -207,13 +250,17 @@ function Landing() {
           </Link>
         </div>
       </section>
+      )}
 
+      {home.showPos !== false && (
       <section className="px-4 sm:px-8 pb-20 max-w-6xl mx-auto grid gap-6 lg:grid-cols-2 items-center">
         <div className="order-2 lg:order-1">
-          <h2 className="text-2xl sm:text-3xl font-extrabold">نقطة بيع وفواتير متوافقة مع الضريبة</h2>
-          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-            بِع الخدمات والمنتجات من شاشة واحدة، اطبع الفاتورة على طابعة حرارية، وأصدر فواتير
-            إلكترونية بـ QR متوافقة مع متطلبات الفاتورة الضريبية.
+          <h2 className="text-2xl sm:text-3xl font-extrabold">
+            {home.posTitle || "نقطة بيع وفواتير متوافقة مع الضريبة"}
+          </h2>
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            {home.posText ||
+              "بِع الخدمات والمنتجات من شاشة واحدة، اطبع الفاتورة على طابعة حرارية، وأصدر فواتير إلكترونية بـ QR متوافقة مع متطلبات الفاتورة الضريبية."}
           </p>
           <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="size-4 text-primary" />
@@ -222,7 +269,7 @@ function Landing() {
         </div>
         <div className="order-1 lg:order-2 rounded-3xl overflow-hidden border border-border">
           <img
-            src={posImg}
+            src={home.posImageUrl || posImg}
             alt="طابعة فواتير ودفع إلكتروني على كاونتر صالون"
             loading="lazy"
             width={1200}
@@ -231,7 +278,9 @@ function Landing() {
           />
         </div>
       </section>
+      )}
 
+      {home.showPlans !== false && (
       <section id="plans" className="px-4 sm:px-8 pb-20 max-w-6xl mx-auto">
         <PlansShowcase
           plans={plans.data ?? []}
@@ -242,16 +291,19 @@ function Landing() {
           }
         />
       </section>
+      )}
 
+      {home.showContact !== false && (
       <section className="px-4 sm:px-8 pb-20 max-w-3xl mx-auto space-y-4">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-center">
           {home.contactTitle || "الاشتراك والتواصل"}
         </h2>
         {settings.data && <PlatformContactCard settings={settings.data} />}
       </section>
+      )}
 
       <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Salon Flow — جميع الحقوق محفوظة
+        {home.footerText || `© ${new Date().getFullYear()} ${brand} — جميع الحقوق محفوظة`}
       </footer>
     </main>
   );

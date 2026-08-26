@@ -11,13 +11,42 @@ export interface PlatformSocials {
   website?: string;
 }
 
+export interface PlatformFeatureItem {
+  title: string;
+  desc?: string;
+}
+
+/** Content and identity of the platform's own marketing website. */
 export interface PlatformHome {
   headline?: string;
   subheadline?: string;
   ctaLabel?: string;
+  ctaSecondaryLabel?: string;
   plansTitle?: string;
   plansNote?: string;
   contactTitle?: string;
+  /** Identity */
+  logoUrl?: string;
+  faviconUrl?: string;
+  tagline?: string;
+  heroBadge?: string;
+  heroImageUrl?: string;
+  heroNote?: string;
+  /** Sections */
+  featuresTitle?: string;
+  features?: PlatformFeatureItem[];
+  showcaseTitle?: string;
+  showcaseImageUrl?: string;
+  includedItems?: string[];
+  posTitle?: string;
+  posText?: string;
+  posImageUrl?: string;
+  footerText?: string;
+  showFeatures?: boolean;
+  showShowcase?: boolean;
+  showPos?: boolean;
+  showPlans?: boolean;
+  showContact?: boolean;
 }
 
 export interface PlatformSettings {
