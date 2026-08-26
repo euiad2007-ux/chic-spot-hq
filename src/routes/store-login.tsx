@@ -335,22 +335,62 @@ export function StoreLoginView({ slug }: { slug?: string }) {
               style={{ background: gradient }}
             >
               {busy && <Loader2 className="size-4 animate-spin" />}
-              {creating ? "إنشاء حساب العميل" : audience === "staff" ? "دخول الموظف" : "دخول العميل"}
+              {creating
+                ? audience === "staff"
+                  ? "إرسال طلب انضمام كموظف"
+                  : "إنشاء حساب العميل"
+                : audience === "staff"
+                  ? "دخول الموظف"
+                  : "دخول العميل"}
             </button>
           </form>
 
-          {audience === "client" ? (
-            <button
-              type="button"
-              onClick={() => setCreating((v) => !v)}
-              className="mt-4 w-full text-center text-sm font-semibold hover:underline"
-              style={{ color: site.primary }}
-            >
-              {creating ? "لدي حساب بالفعل — تسجيل الدخول" : "عميل جديد؟ أنشئ حسابك"}
-            </button>
-          ) : (
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              حسابات الموظفين تُنشأ من إدارة المشغل. راجع الإدارة إذا لم تتمكن من الدخول.
+          <div className="mt-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[11px] font-semibold text-muted-foreground">أو</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <button
+            type="button"
+            onClick={onGoogle}
+            disabled={busy}
+            className="mt-4 w-full h-11 rounded-xl border border-border bg-background hover:bg-muted/50 font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            <svg className="size-4" viewBox="0 0 24 24" aria-hidden>
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.6-5.2 3.6-8.8Z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2a7 7 0 0 1-6.6-4.8H1.4v3.1A12 12 0 0 0 12 24Z"
+              />
+              <path fill="#FBBC05" d="M5.4 14.5a7.2 7.2 0 0 1 0-5H1.4a12 12 0 0 0 0 8.1l4-3.1Z" />
+              <path
+                fill="#EA4335"
+                d="M12 4.8c1.8 0 3.3.6 4.5 1.8l3.4-3.4A11.6 11.6 0 0 0 12 0 12 12 0 0 0 1.4 6.4l4 3.1A7 7 0 0 1 12 4.8Z"
+              />
+            </svg>
+            {audience === "staff" ? "متابعة بحساب Google كموظف" : "متابعة بحساب Google"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCreating((v) => !v)}
+            className="mt-4 w-full text-center text-sm font-semibold hover:underline"
+            style={{ color: site.primary }}
+          >
+            {creating
+              ? "لدي حساب بالفعل — تسجيل الدخول"
+              : audience === "staff"
+                ? "موظف جديد؟ أرسل طلب انضمام"
+                : "عميل جديد؟ أنشئ حسابك"}
+          </button>
+
+          {audience === "staff" && (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              طلبات الموظفين تحتاج موافقة إدارة المشغل قبل تفعيل الحساب.
             </p>
           )}
         </div>
