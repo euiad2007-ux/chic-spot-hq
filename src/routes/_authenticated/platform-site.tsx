@@ -34,6 +34,17 @@ import {
   type PlatformSeo,
   type PlatformSettings,
 } from "@/lib/db/platform-settings-repo";
+import {
+  BUTTON_STYLES,
+  FONT_OPTIONS,
+  PLAN_CARD_STYLES,
+  RADIUS_OPTIONS,
+  primaryButtonClass,
+  planCardClass,
+  secondaryButtonClass,
+  themeVars,
+  type PlatformTheme,
+} from "@/lib/platform-theme";
 
 
 export const Route = createFileRoute("/_authenticated/platform-site")({
