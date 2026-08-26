@@ -78,6 +78,7 @@ export const Route = createFileRoute("/")({
   },
   head: ({ loaderData }) => {
     const d = loaderData;
+    const fontHref = d?.settings ? themeFontsHref(d.settings.home?.theme) : undefined;
     return {
       meta: [
         { title: d?.title || FALLBACK_TITLE },
@@ -95,7 +96,10 @@ export const Route = createFileRoute("/")({
             ]
           : []),
       ],
-      links: [{ rel: "canonical", href: "https://novaa.live/" }],
+      links: [
+        { rel: "canonical", href: "https://novaa.live/" },
+        ...(fontHref ? [{ rel: "stylesheet", href: fontHref }] : []),
+      ],
     };
   },
   component: Landing,
@@ -144,20 +148,6 @@ function Landing() {
   const theme = home.theme;
   const btnPrimary = primaryButtonClass(theme);
   const btnSecondary = secondaryButtonClass(theme);
-
-  // The owner-selected web font is loaded on demand.
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const href = themeFontsHref(theme);
-    let link = document.querySelector<HTMLLinkElement>('link[data-platform-font="1"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.dataset["platformFont"] = "1";
-      document.head.appendChild(link);
-    }
-    link.href = href;
-  }, [theme?.font, theme?.brandFont, theme?.planFont]);
 
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
