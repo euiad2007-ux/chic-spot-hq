@@ -135,27 +135,21 @@ function PlatformSitePage() {
             onChange={(v) => setHome("tagline", v)}
             placeholder="منصة إدارة المشاغل والصالونات"
           />
-          <Field
-            label="رابط الشعار (Logo)"
+          <ImageUploadField
+            label="الشعار (Logo)"
+            preset="logo"
+            contain
             value={home.logoUrl ?? ""}
             onChange={(v) => setHome("logoUrl", v)}
-            placeholder="https://…/logo.png"
           />
-          <Field
-            label="رابط أيقونة المتصفح (Favicon)"
+          <ImageUploadField
+            label="أيقونة المتصفح (Favicon)"
+            preset="favicon"
+            contain
             value={home.faviconUrl ?? ""}
             onChange={(v) => setHome("faviconUrl", v)}
-            placeholder="https://…/favicon.png"
           />
-          {home.logoUrl && (
-            <div className="rounded-xl border border-border bg-muted/40 p-3">
-              <img
-                src={home.logoUrl}
-                alt="معاينة شعار المنصة"
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-          )}
+
         </Card>
 
         <Card title="القسم الرئيسي (Hero)" icon={ImageIcon}>
