@@ -132,6 +132,7 @@ export function themeVars(theme?: PlatformTheme): React.CSSProperties {
     vars["--card"] = t.cardBg;
     vars["--popover"] = t.cardBg;
   }
+  if (isColor(t.mutedColor)) vars["--muted-foreground"] = t.mutedColor;
   const radius = RADIUS_OPTIONS.find((r) => r.code === t.radius);
   if (radius) vars["--radius"] = radius.value;
   const family = fontOption(t.font).family;
@@ -139,6 +140,75 @@ export function themeVars(theme?: PlatformTheme): React.CSSProperties {
   vars["--font-display"] = family;
   return { ...vars, fontFamily: family } as React.CSSProperties;
 }
+
+/** Single Google Fonts URL covering every font the theme uses. */
+export function themeFontsHref(theme?: PlatformTheme): string {
+  const codes = [theme?.font, theme?.brandFont, theme?.planFont];
+  const families = Array.from(new Set(codes.map((c) => fontOption(c).google)));
+  return `https://fonts.googleapis.com/css2?${families
+    .map((f) => `family=${f}`)
+    .join("&")}&display=swap`;
+}
+
+/** Typography of the site name in the header. */
+export function brandNameStyle(theme?: PlatformTheme): React.CSSProperties {
+  const t = theme ?? {};
+  const size = BRAND_SIZES.find((s) => s.code === t.brandSize)?.value ?? BRAND_SIZES[1].value;
+  const style: React.CSSProperties = {
+    fontFamily: fontOption(t.brandFont ?? t.font).family,
+    fontSize: size,
+    lineHeight: 1.2,
+  };
+  if (isColor(t.brandColor)) style.color = t.brandColor;
+  return style;
+}
+
+/** True when the site name should keep the gradient treatment. */
+export function brandUsesGradient(theme?: PlatformTheme): boolean {
+  return theme?.brandGradient !== false && !isColor(theme?.brandColor);
+}
+
+/** Header logo height. */
+export function logoStyle(theme?: PlatformTheme): React.CSSProperties {
+  const h = theme?.logoHeight;
+  const px = typeof h === "number" && h >= 20 && h <= 160 ? h : 44;
+  return { height: `${px}px` };
+}
+
+/** Opacity applied to decorative site images. */
+export function imageOpacityStyle(
+  theme?: PlatformTheme,
+  kind: "hero" | "section" = "section",
+): React.CSSProperties {
+  const raw = kind === "hero" ? theme?.heroImageOpacity : theme?.imageOpacity;
+  if (typeof raw !== "number" || raw < 0 || raw > 100) return {};
+  return { opacity: raw / 100 };
+}
+
+/** Colors and font applied inside plan cards. */
+export function planCardStyleVars(theme?: PlatformTheme): React.CSSProperties {
+  const t = theme ?? {};
+  const vars: Record<string, string> = {};
+  if (isColor(t.planCardBg)) {
+    vars["--card"] = t.planCardBg;
+    vars["--foreground"] = onColor(t.planCardBg) === "#111111" ? "#111111" : "#ffffff";
+  }
+  if (isColor(t.planBorderColor)) vars["--border"] = t.planBorderColor;
+  const style: Record<string, string> = { ...vars };
+  if (t.planFont) style["fontFamily"] = fontOption(t.planFont).family;
+  return style as React.CSSProperties;
+}
+
+/** Inline color for a plan's name. */
+export function planTitleStyle(theme?: PlatformTheme): React.CSSProperties {
+  return isColor(theme?.planTitleColor) ? { color: theme!.planTitleColor } : {};
+}
+
+/** Inline color for a plan's price. */
+export function planPriceStyle(theme?: PlatformTheme): React.CSSProperties {
+  return isColor(theme?.planPriceColor) ? { color: theme!.planPriceColor } : {};
+}
+
 
 /** Classes for the primary call-to-action button in the chosen style. */
 export function primaryButtonClass(theme?: PlatformTheme): string {
