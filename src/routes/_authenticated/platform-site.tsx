@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
 import {
   usePlatformSettings,
@@ -79,21 +80,29 @@ function PlatformSitePage() {
   const isOwner = account?.role === "platform_owner";
   const qc = useQueryClient();
   const loaded = usePlatformSettings();
-  const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
+  const [form, setForm] = useState<PlatformSettings | null>(null);
 
   useEffect(() => {
     if (loaded.data) setForm(loaded.data);
   }, [loaded.data]);
 
   const save = useMutation({
-    mutationFn: () => savePlatformSettings(form),
+    mutationFn: async () => {
+      if (!form) throw new Error("لم تكتمل قراءة هوية الموقع بعد");
+      await savePlatformSettings(form);
+    },
     onSuccess: () => {
+      if (!form) return;
       qc.setQueryData(PLATFORM_SETTINGS_KEY, structuredClone(form));
       toast.success("تم حفظ هوية الموقع");
       void qc.invalidateQueries({ queryKey: PLATFORM_SETTINGS_KEY });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (loaded.isPending || !form) {
+    return <SettingsLoadingScreen label="جاري تحميل هوية الموقع المحفوظة…" />;
+  }
 
   const home = form.home;
   const setHome = <K extends keyof PlatformHome>(k: K, v: PlatformHome[K]) =>

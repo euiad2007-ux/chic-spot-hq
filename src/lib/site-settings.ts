@@ -500,6 +500,18 @@ export function useSiteSettings(): SiteSettings {
   );
 }
 
+/** True only after the current salon's saved settings have been applied. */
+export function useSiteSettingsReady(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    () => hydrated,
+    () => false,
+  );
+}
+
 function readHexChannel(hex: string, start: number): number | null {
   const part = hex.slice(start, start + 2);
   if (part.length !== 2) return null;

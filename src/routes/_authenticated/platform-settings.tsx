@@ -5,6 +5,7 @@ import { Save, Banknote, Phone, Share2, LayoutTemplate } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import {
   PlatformContactCard,
   SOCIAL_META,
@@ -44,21 +45,29 @@ function PlatformSettingsPage() {
   const isOwner = account?.role === "platform_owner";
   const qc = useQueryClient();
   const loaded = usePlatformSettings();
-  const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
+  const [form, setForm] = useState<PlatformSettings | null>(null);
 
   useEffect(() => {
     if (loaded.data) setForm(loaded.data);
   }, [loaded.data]);
 
   const save = useMutation({
-    mutationFn: () => savePlatformSettings(form),
+    mutationFn: async () => {
+      if (!form) throw new Error("لم تكتمل قراءة إعدادات المنصة بعد");
+      await savePlatformSettings(form);
+    },
     onSuccess: () => {
+      if (!form) return;
       qc.setQueryData(PLATFORM_SETTINGS_KEY, structuredClone(form));
       toast.success("تم حفظ إعدادات المنصة");
       void qc.invalidateQueries({ queryKey: PLATFORM_SETTINGS_KEY });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (loaded.isPending || !form) {
+    return <SettingsLoadingScreen label="جاري تحميل إعدادات المنصة المحفوظة…" />;
+  }
 
   const set = <K extends keyof PlatformSettings>(k: K, v: PlatformSettings[K]) =>
     setForm((f) => ({ ...f, [k]: v }));

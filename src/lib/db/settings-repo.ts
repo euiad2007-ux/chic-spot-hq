@@ -20,6 +20,7 @@ export async function loadSettingsBundle(salonId: string): Promise<SettingsBundl
     .eq("salon_id", salonId)
     .maybeSingle();
   logDbError("load salon_settings", error);
+  if (error) throw error;
   const pick = (v: unknown) =>
     v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
   const row = (data ?? {}) as Record<string, unknown>;
