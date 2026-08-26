@@ -25,22 +25,23 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAccount } from "@/hooks/use-account";
-import { AppShell } from "@/components/salon/app-shell";
+import { OwnerShell } from "@/components/platform/owner-shell";
+import {
+  STATUS_LABEL,
+  money,
+  useSalonsOverview,
+  usePlans,
+  FinanceCard,
+  Field,
+  type PlanRow,
+} from "@/components/platform/owner-ui";
 import { cn } from "@/lib/utils";
 import {
-  listSalonsOverview,
-  listSubscriptionInvoices,
-  listSubscriptionPayments,
-  createSubscriptionInvoice,
-  recordSubscriptionPayment,
-  setSubscriptionInvoiceStatus,
-  deleteSubscriptionInvoice,
   listSupportTickets,
   listSupportMessages,
   addSupportMessage,
   createSupportTicket,
   setTicketStatus,
-  SUB_STATUS_LABEL,
   TICKET_STATUS_LABEL,
   TICKET_PRIORITY_LABEL,
   type PlatformSalonOverview,
@@ -67,6 +68,20 @@ export const Route = createFileRoute("/_authenticated/platform")({
   }),
   component: PlatformPage,
 });
+
+type Tab = "overview" | "salons" | "support" | "plans" | "admins";
+
+const MODULE_OPTIONS = [
+  ["bookings", "الحجوزات"], ["calendar", "التقويم"], ["services", "الخدمات"],
+  ["inventory", "المخزون والجرد"], ["staff", "الموظفون"], ["payroll", "الرواتب"],
+  ["attendance", "الحضور"], ["customers", "العملاء"], ["coupons", "الكوبونات"],
+  ["invoices", "الفواتير"], ["pos", "نقطة البيع"], ["cash", "الصندوق والورديات"],
+  ["expenses", "المصروفات"], ["accounting", "المحاسبة"], ["reports", "التقارير"],
+  ["ledger", "السجل المالي"], ["branches", "الفروع"],
+  ["booking_settings", "ضبط الحجز"], ["invoice_settings", "ضبط الفواتير"],
+  ["site_settings", "إعدادات الموقع"], ["users", "المستخدمون والصلاحيات"],
+  ["activity_log", "سجل النشاط"], ["branch_audit", "سجل تدقيق الفروع"],
+] as const;
 
 
 function PlatformPage() {
@@ -101,7 +116,7 @@ function PlatformPage() {
 
   if (!isOwner) {
     return (
-      <AppShell title="لوحة مالك المنصة" subtitle="صلاحية خاصة">
+      <OwnerShell title="لوحة مالك المنصة" subtitle="صلاحية خاصة">
         <div className="max-w-lg mx-auto text-center rounded-2xl border border-border bg-card p-8 space-y-4">
           <span className="mx-auto size-14 rounded-2xl bg-primary/10 grid place-items-center">
             <ShieldCheck className="size-7 text-primary" />
@@ -128,19 +143,18 @@ function PlatformPage() {
             العودة إلى لوحة المشغل
           </button>
         </div>
-      </AppShell>
+      </OwnerShell>
     );
   }
 
   return (
-    <AppShell title="لوحة مالك المنصة" subtitle="اشتراكات المتاجر والباقات والدعم الفني">
+    <OwnerShell title="لوحة مالك المنصة" subtitle="نظرة عامة على المتاجر والباقات والدعم">
       <div className="space-y-6">
         <div className="flex gap-1 p-1 rounded-xl bg-muted/50 w-full overflow-x-auto">
           {(
             [
               ["overview", "نظرة عامة"],
               ["salons", "المتاجر"],
-              ["billing", "حسابات الاشتراكات"],
               ["support", "الدعم الفني"],
               ["plans", "الباقات"],
               ["admins", "مالكو المنصة"],
@@ -164,12 +178,11 @@ function PlatformPage() {
 
         {tab === "overview" && <Overview />}
         {tab === "salons" && <SalonsTab />}
-        {tab === "billing" && <BillingTab />}
         {tab === "support" && <SupportTab />}
         {tab === "plans" && <PlansTab />}
         {tab === "admins" && <AdminsTab />}
       </div>
-    </AppShell>
+    </OwnerShell>
   );
 }
 
