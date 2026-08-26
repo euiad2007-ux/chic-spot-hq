@@ -42,9 +42,9 @@ const FALLBACK_DESC =
   "منصة سحابية لملاك المشاغل: حجوزات بلا تعارض، فواتير ضريبية، فروع متعددة، مخزون، رواتب وحضور، محافظ ونقاط ولاء.";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    lang: typeof search.lang === "string" ? search.lang : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { lang?: string } =>
+    typeof search.lang === "string" ? { lang: search.lang } : {},
+
   loaderDeps: ({ search }) => ({ lang: search.lang }),
   loader: async ({ deps }) => {
     let settings = EMPTY_PLATFORM_SETTINGS;
