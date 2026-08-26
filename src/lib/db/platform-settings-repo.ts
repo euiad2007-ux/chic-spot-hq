@@ -16,6 +16,54 @@ export interface PlatformFeatureItem {
   desc?: string;
 }
 
+/** Search-engine and social-share metadata for the platform landing page. */
+export interface PlatformSeo {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageUrl?: string;
+}
+
+export interface PlatformNavLink {
+  label: string;
+  href: string;
+}
+
+/** Per-language overrides of the marketing copy. */
+export interface PlatformLocaleContent {
+  brandName?: string;
+  tagline?: string;
+  heroBadge?: string;
+  headline?: string;
+  subheadline?: string;
+  ctaLabel?: string;
+  ctaSecondaryLabel?: string;
+  heroNote?: string;
+  featuresTitle?: string;
+  showcaseTitle?: string;
+  posTitle?: string;
+  posText?: string;
+  plansTitle?: string;
+  plansNote?: string;
+  contactTitle?: string;
+  footerText?: string;
+  navLinks?: PlatformNavLink[];
+  features?: PlatformFeatureItem[];
+  includedItems?: string[];
+  seo?: PlatformSeo;
+}
+
+export const PLATFORM_LANGS = [
+  { code: "ar", label: "العربية", dir: "rtl" as const },
+  { code: "en", label: "English", dir: "ltr" as const },
+];
+
+export type PlatformLangCode = (typeof PLATFORM_LANGS)[number]["code"];
+
+
+
 /** Content and identity of the platform's own marketing website. */
 export interface PlatformHome {
   headline?: string;
