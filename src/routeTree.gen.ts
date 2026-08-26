@@ -31,6 +31,7 @@ import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLedgerRouteImport } from './routes/_authenticated/ledger'
+import { Route as AuthenticatedJoinRequestsRouteImport } from './routes/_authenticated/join-requests'
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInvoiceSettingsRouteImport } from './routes/_authenticated/invoice-settings'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
@@ -178,6 +179,12 @@ const AuthenticatedLedgerRoute = AuthenticatedLedgerRouteImport.update({
   path: '/ledger',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedJoinRequestsRoute =
+  AuthenticatedJoinRequestsRouteImport.update({
+    id: '/join-requests',
+    path: '/join-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
   id: '/invoices',
   path: '/invoices',
@@ -397,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
+  '/join-requests': typeof AuthenticatedJoinRequestsRoute
   '/ledger': typeof AuthenticatedLedgerRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
@@ -454,6 +462,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
+  '/join-requests': typeof AuthenticatedJoinRequestsRoute
   '/ledger': typeof AuthenticatedLedgerRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
@@ -514,6 +523,7 @@ export interface FileRoutesById {
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
+  '/_authenticated/join-requests': typeof AuthenticatedJoinRequestsRoute
   '/_authenticated/ledger': typeof AuthenticatedLedgerRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
@@ -574,6 +584,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invoice-settings'
     | '/invoices'
+    | '/join-requests'
     | '/ledger'
     | '/onboarding'
     | '/payroll'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invoice-settings'
     | '/invoices'
+    | '/join-requests'
     | '/ledger'
     | '/onboarding'
     | '/payroll'
@@ -690,6 +702,7 @@ export interface FileRouteTypes {
     | '/_authenticated/inventory'
     | '/_authenticated/invoice-settings'
     | '/_authenticated/invoices'
+    | '/_authenticated/join-requests'
     | '/_authenticated/ledger'
     | '/_authenticated/onboarding'
     | '/_authenticated/payroll'
@@ -891,6 +904,13 @@ declare module '@tanstack/react-router' {
       path: '/ledger'
       fullPath: '/ledger'
       preLoaderRoute: typeof AuthenticatedLedgerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/join-requests': {
+      id: '/_authenticated/join-requests'
+      path: '/join-requests'
+      fullPath: '/join-requests'
+      preLoaderRoute: typeof AuthenticatedJoinRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/invoices': {
@@ -1197,6 +1217,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoiceSettingsRoute: typeof AuthenticatedInvoiceSettingsRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
+  AuthenticatedJoinRequestsRoute: typeof AuthenticatedJoinRequestsRoute
   AuthenticatedLedgerRoute: typeof AuthenticatedLedgerRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
@@ -1235,6 +1256,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoiceSettingsRoute: AuthenticatedInvoiceSettingsRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
+  AuthenticatedJoinRequestsRoute: AuthenticatedJoinRequestsRoute,
   AuthenticatedLedgerRoute: AuthenticatedLedgerRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,

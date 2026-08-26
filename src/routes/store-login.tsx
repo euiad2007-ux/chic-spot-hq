@@ -4,8 +4,17 @@ import { Scissors, Loader2, IdCard, User, ArrowLeft, Eye, EyeOff, KeyRound, Home
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { SiteLink } from "@/components/salon/salon-nav-links";
-import { signIn, signUp, homeForRole, loadAccount, sendPasswordReset } from "@/lib/account";
+import {
+  signIn,
+  signUp,
+  homeForRole,
+  loadAccount,
+  sendPasswordReset,
+  signOutAccount,
+} from "@/lib/account";
+import { requestJoinSalon } from "@/lib/db/join-requests-repo";
 import { useRefreshAccount } from "@/hooks/use-account";
 import {
   useSiteSettings,
@@ -50,12 +59,19 @@ export function StoreLoginView({ slug }: { slug?: string }) {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [salonId, setSalonId] = useState<string | null>(null);
+  const [siteReady, setSiteReady] = useState(false);
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug, true));
+    void import("@/lib/db/public-hydrate").then(async (m) => {
+      const meta = await m.hydratePublicSite(slug, true);
+      setSalonId(meta?.salonId ?? null);
+      setSiteReady(true);
+    });
   }, [slug]);
 
 
@@ -84,26 +100,81 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     link.href = href;
   }, [site]);
 
-  // Already signed in → straight to the right home.
+  // Already signed in (including a return from Google) → attach then route home.
   useEffect(() => {
+    if (!siteReady) return;
     let cancelled = false;
     void (async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session || cancelled) return;
       const account = await loadAccount();
       if (!account || cancelled) return;
-      await refreshAccount();
-      navigate({ to: homeForRole(account.role), replace: true });
+      const stored =
+        typeof window === "undefined"
+          ? null
+          : window.sessionStorage.getItem("storeLogin.audience");
+      if (stored) window.sessionStorage.removeItem("storeLogin.audience");
+      await afterAuth(stored === "staff" ? "staff" : stored === "client" ? "client" : audience);
     })();
     return () => {
       cancelled = true;
     };
-  }, [navigate, refreshAccount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteReady]);
 
-  async function afterAuth() {
-    const account = await loadAccount();
+  /**
+   * Attaches the freshly signed-in user to this salon:
+   * clients are activated at once, staff wait for the merchant's approval.
+   */
+  async function afterAuth(kind: Audience = audience) {
+    let account = await loadAccount();
+
+    if (salonId) {
+      const alreadyMember = account?.memberships.some((m) => m.salon_id === salonId) ?? false;
+      if (kind === "staff" && !alreadyMember) {
+        const res = await requestJoinSalon({
+          salonId,
+          kind: "staff",
+          name: fullName || account?.fullName,
+          phone,
+          jobTitle,
+        });
+        if (res.status !== "member") {
+          await signOutAccount();
+          await refreshAccount();
+          toast.success("تم إرسال طلب الانضمام — سيتم تفعيل حسابك بعد موافقة إدارة المشغل");
+          return;
+        }
+      } else if (kind === "client" && !alreadyMember) {
+        await requestJoinSalon({
+          salonId,
+          kind: "client",
+          name: fullName || account?.fullName,
+          phone,
+        });
+        account = await loadAccount();
+      }
+    }
+
     await refreshAccount();
     navigate({ to: account ? homeForRole(account.role) : "/", replace: true });
+  }
+
+  async function onGoogle() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      window.sessionStorage.setItem("storeLogin.audience", audience);
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + (slug ? `/salon/${slug}/login` : "/store-login"),
+      });
+      if (result.error) throw result.error;
+      if (!("redirected" in result && result.redirected)) await afterAuth();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function onForgot() {
@@ -220,6 +291,9 @@ export function StoreLoginView({ slug }: { slug?: string }) {
               <>
                 <Field label="الاسم الكامل" value={fullName} onChange={setFullName} autoComplete="name" required />
                 <Field label="رقم الجوال" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
+                {audience === "staff" && (
+                  <Field label="المسمى الوظيفي" value={jobTitle} onChange={setJobTitle} />
+                )}
               </>
             )}
             <Field
@@ -261,22 +335,62 @@ export function StoreLoginView({ slug }: { slug?: string }) {
               style={{ background: gradient }}
             >
               {busy && <Loader2 className="size-4 animate-spin" />}
-              {creating ? "إنشاء حساب العميل" : audience === "staff" ? "دخول الموظف" : "دخول العميل"}
+              {creating
+                ? audience === "staff"
+                  ? "إرسال طلب انضمام كموظف"
+                  : "إنشاء حساب العميل"
+                : audience === "staff"
+                  ? "دخول الموظف"
+                  : "دخول العميل"}
             </button>
           </form>
 
-          {audience === "client" ? (
-            <button
-              type="button"
-              onClick={() => setCreating((v) => !v)}
-              className="mt-4 w-full text-center text-sm font-semibold hover:underline"
-              style={{ color: site.primary }}
-            >
-              {creating ? "لدي حساب بالفعل — تسجيل الدخول" : "عميل جديد؟ أنشئ حسابك"}
-            </button>
-          ) : (
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              حسابات الموظفين تُنشأ من إدارة المشغل. راجع الإدارة إذا لم تتمكن من الدخول.
+          <div className="mt-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[11px] font-semibold text-muted-foreground">أو</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <button
+            type="button"
+            onClick={onGoogle}
+            disabled={busy}
+            className="mt-4 w-full h-11 rounded-xl border border-border bg-background hover:bg-muted/50 font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            <svg className="size-4" viewBox="0 0 24 24" aria-hidden>
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.6-5.2 3.6-8.8Z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2a7 7 0 0 1-6.6-4.8H1.4v3.1A12 12 0 0 0 12 24Z"
+              />
+              <path fill="#FBBC05" d="M5.4 14.5a7.2 7.2 0 0 1 0-5H1.4a12 12 0 0 0 0 8.1l4-3.1Z" />
+              <path
+                fill="#EA4335"
+                d="M12 4.8c1.8 0 3.3.6 4.5 1.8l3.4-3.4A11.6 11.6 0 0 0 12 0 12 12 0 0 0 1.4 6.4l4 3.1A7 7 0 0 1 12 4.8Z"
+              />
+            </svg>
+            {audience === "staff" ? "متابعة بحساب Google كموظف" : "متابعة بحساب Google"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCreating((v) => !v)}
+            className="mt-4 w-full text-center text-sm font-semibold hover:underline"
+            style={{ color: site.primary }}
+          >
+            {creating
+              ? "لدي حساب بالفعل — تسجيل الدخول"
+              : audience === "staff"
+                ? "موظف جديد؟ أرسل طلب انضمام"
+                : "عميل جديد؟ أنشئ حسابك"}
+          </button>
+
+          {audience === "staff" && (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              طلبات الموظفين تحتاج موافقة إدارة المشغل قبل تفعيل الحساب.
             </p>
           )}
         </div>

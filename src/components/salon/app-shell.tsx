@@ -8,6 +8,7 @@ import {
   CalendarCog,
   Sparkles,
   Users2,
+  UserPlus,
   UserCircle,
   Receipt,
   Settings,
@@ -56,6 +57,7 @@ import { listBranches, logBranchSwitch, type Branch } from "@/lib/db/ops-repo";
 import { restoreActiveBranch, setActiveBranch, useActiveBranch } from "@/lib/active-branch";
 import { searchBranches } from "@/lib/branch-scope";
 import { PlanUpgradeNotice } from "@/components/platform/plan-gate";
+import { lastSeenSignups, listSignupNotifications } from "@/lib/db/join-requests-repo";
 
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
@@ -155,6 +157,7 @@ const nav: {
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
   { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "manage" },
+  { to: "/join-requests", label: "طلبات الانضمام والتسجيلات", icon: UserPlus, manager: true, module: "staff", group: "manage" },
   { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "manage" },
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "manage" },
   { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "manage" },
@@ -222,6 +225,18 @@ export function AppShell({
       ? currentNav.module
       : null;
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
+
+  // New sign-ups (staff requests / client registrations) badge for the merchant.
+  const signupsQuery = useQuery({
+    queryKey: ["signup-notifications", account?.salonId],
+    queryFn: () => listSignupNotifications(account!.salonId!),
+    enabled: !!account?.salonId && manager,
+    refetchInterval: 60_000,
+  });
+  const seenAt = lastSeenSignups();
+  const unseenSignups = (signupsQuery.data ?? []).filter(
+    (n) => !seenAt || n.created_at > seenAt,
+  ).length;
 
 
   // Branch scope: everything branch-aware (services, invoices, POS…) follows it.
@@ -464,13 +479,20 @@ export function AppShell({
             >
               <Share2 className="size-4" />
             </Button>
-            <button
-              aria-label="التنبيهات"
+            <Link
+              to="/join-requests"
+              aria-label={
+                unseenSignups > 0 ? `التنبيهات — ${unseenSignups} تسجيل جديد` : "التنبيهات"
+              }
               className="size-10 rounded-lg border border-border bg-muted/40 hover:bg-muted grid place-items-center relative"
             >
               <Bell className="size-4" />
-              <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-accent" />
-            </button>
+              {unseenSignups > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-[10px] font-bold text-accent-foreground grid place-items-center">
+                  {unseenSignups > 9 ? "9+" : unseenSignups}
+                </span>
+              )}
+            </Link>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <div className="text-sm font-semibold leading-none">
