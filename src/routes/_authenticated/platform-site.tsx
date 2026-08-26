@@ -725,6 +725,65 @@ function Card({
   );
 }
 
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="size-10 rounded-lg border border-border bg-background p-1"
+        />
+        <input
+          value={value}
+          dir="ltr"
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 h-10 rounded-lg border border-border bg-background px-3 text-sm"
+        />
+      </span>
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function Field({
   label,
   value,
