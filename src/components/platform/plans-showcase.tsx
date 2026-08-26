@@ -1,6 +1,7 @@
 import { Check, Crown, Globe, X } from "lucide-react";
 
 import type { PublicPlan } from "@/lib/db/platform-settings-repo";
+import { planCardClass } from "@/lib/platform-theme";
 
 const MODULE_LABEL: Record<string, string> = {
   bookings: "الحجوزات",
