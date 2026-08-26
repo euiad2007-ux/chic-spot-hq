@@ -11,10 +11,14 @@ import {
   Trash2,
   ToggleRight,
   Type,
+  Search,
+  Languages,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { ImageUploadField } from "@/components/platform/image-upload-field";
 import {
   usePlatformSettings,
   PLATFORM_SETTINGS_KEY,
@@ -23,9 +27,13 @@ import { useAccount } from "@/hooks/use-account";
 import {
   EMPTY_PLATFORM_SETTINGS,
   savePlatformSettings,
+  PLATFORM_LANGS,
   type PlatformHome,
+  type PlatformLocaleContent,
+  type PlatformSeo,
   type PlatformSettings,
 } from "@/lib/db/platform-settings-repo";
+
 
 export const Route = createFileRoute("/_authenticated/platform-site")({
   head: () => ({
