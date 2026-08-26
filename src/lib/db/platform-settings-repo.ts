@@ -90,12 +90,53 @@ export interface PlatformHome {
   posText?: string;
   posImageUrl?: string;
   footerText?: string;
+  navLinks?: PlatformNavLink[];
   showFeatures?: boolean;
   showShowcase?: boolean;
   showPos?: boolean;
   showPlans?: boolean;
   showContact?: boolean;
+  /** SEO / social sharing */
+  seo?: PlatformSeo;
+  /** i18n: `defaultLang` holds the fields above; other languages live in `translations`. */
+  defaultLang?: PlatformLangCode;
+  languages?: PlatformLangCode[];
+  translations?: Record<string, PlatformLocaleContent>;
 }
+
+/** Merges a language's overrides over the default content. Empty values fall back. */
+export function resolvePlatformContent(
+  settings: PlatformSettings,
+  lang: string,
+): { brandName: string; home: PlatformHome; seo: PlatformSeo; dir: "rtl" | "ltr" } {
+  const home = settings.home ?? {};
+  const defaultLang = home.defaultLang ?? "ar";
+  const tr = lang === defaultLang ? undefined : home.translations?.[lang];
+  const dir = PLATFORM_LANGS.find((l) => l.code === lang)?.dir ?? "rtl";
+  if (!tr) return { brandName: settings.brandName, home, seo: home.seo ?? {}, dir };
+
+  const merged: PlatformHome = { ...home };
+  for (const [k, v] of Object.entries(tr)) {
+    if (k === "seo" || k === "brandName") continue;
+    const empty =
+      v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
+    if (!empty) (merged as Record<string, unknown>)[k] = v;
+  }
+  return {
+    brandName: tr.brandName?.trim() || settings.brandName,
+    home: merged,
+    seo: { ...(home.seo ?? {}), ...cleanSeo(tr.seo) },
+    dir,
+  };
+}
+
+function cleanSeo(seo?: PlatformSeo): PlatformSeo {
+  if (!seo) return {};
+  return Object.fromEntries(
+    Object.entries(seo).filter(([, v]) => typeof v === "string" && v.trim()),
+  ) as PlatformSeo;
+}
+
 
 export interface PlatformSettings {
   brandName: string;
