@@ -27,6 +27,7 @@ import {
 } from "@/components/platform/platform-contact-card";
 import { useAccount } from "@/hooks/use-account";
 import {
+  EMPTY_PLATFORM_SETTINGS,
   savePlatformSettings,
   PLATFORM_LANGS,
   type PlatformHome,
@@ -79,19 +80,19 @@ function PlatformSitePage() {
   const isOwner = account?.role === "platform_owner";
   const qc = useQueryClient();
   const loaded = usePlatformSettings(undefined, true);
-  const [form, setForm] = useState<PlatformSettings | null>(null);
+  const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
+  const [settingsReady, setSettingsReady] = useState(false);
 
   useEffect(() => {
-    if (loaded.data) setForm(loaded.data);
-  }, [loaded.data]);
+    if (loaded.data && !loaded.isFetching) {
+      setForm(loaded.data);
+      setSettingsReady(true);
+    }
+  }, [loaded.data, loaded.isFetching]);
 
   const save = useMutation({
-    mutationFn: async () => {
-      if (!form) throw new Error("لم تكتمل قراءة هوية الموقع بعد");
-      await savePlatformSettings(form);
-    },
+    mutationFn: () => savePlatformSettings(form),
     onSuccess: () => {
-      if (!form) return;
       qc.setQueryData(PLATFORM_SETTINGS_KEY, structuredClone(form));
       toast.success("تم حفظ هوية الموقع");
       void qc.invalidateQueries({ queryKey: PLATFORM_SETTINGS_KEY });
@@ -99,7 +100,7 @@ function PlatformSitePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (loaded.isPending || loaded.isFetching || !form) {
+  if (loaded.isPending || loaded.isFetching || !settingsReady) {
     return <SettingsLoadingScreen label="جاري تحميل هوية الموقع المحفوظة…" />;
   }
 
