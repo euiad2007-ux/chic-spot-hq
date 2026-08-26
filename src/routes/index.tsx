@@ -285,7 +285,7 @@ function Landing() {
             </Link>
             <Link
               to="/site"
-              className="inline-flex h-12 items-center px-7 rounded-xl border border-border font-semibold hover:bg-muted bg-background/70"
+              className={`inline-flex h-12 items-center px-7 ${btnSecondary}`}
             >
               {home.ctaSecondaryLabel || "استعراض موقع صالون"}
             </Link>
