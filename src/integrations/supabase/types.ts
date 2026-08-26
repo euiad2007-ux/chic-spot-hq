@@ -1583,6 +1583,75 @@ export type Database = {
           },
         ]
       }
+      join_requests: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          job_title: string | null
+          kind: string
+          name: string
+          note: string | null
+          phone: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salon_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          job_title?: string | null
+          kind?: string
+          name: string
+          note?: string | null
+          phone?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          job_title?: string | null
+          kind?: string
+          name?: string
+          note?: string | null
+          phone?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_requests_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           amount: number
@@ -3439,6 +3508,21 @@ export type Database = {
       reopen_fiscal_year: {
         Args: { _salon: string; _year: number }
         Returns: undefined
+      }
+      request_join_salon: {
+        Args: {
+          _job_title?: string
+          _kind: string
+          _name?: string
+          _note?: string
+          _phone?: string
+          _salon: string
+        }
+        Returns: Json
+      }
+      review_join_request: {
+        Args: { _approve: boolean; _branch?: string; _request: string }
+        Returns: Json
       }
       salon_staff_directory: {
         Args: { _salon: string }
