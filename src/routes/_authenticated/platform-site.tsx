@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
 import {
   usePlatformSettings,
@@ -78,12 +79,16 @@ function PlatformSitePage() {
   const { data: account } = useAccount();
   const isOwner = account?.role === "platform_owner";
   const qc = useQueryClient();
-  const loaded = usePlatformSettings();
+  const loaded = usePlatformSettings(undefined, true);
   const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
+  const [settingsReady, setSettingsReady] = useState(false);
 
   useEffect(() => {
-    if (loaded.data) setForm(loaded.data);
-  }, [loaded.data]);
+    if (loaded.data && !loaded.isFetching) {
+      setForm(loaded.data);
+      setSettingsReady(true);
+    }
+  }, [loaded.data, loaded.isFetching]);
 
   const save = useMutation({
     mutationFn: () => savePlatformSettings(form),
@@ -94,6 +99,10 @@ function PlatformSitePage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (loaded.isPending || loaded.isFetching || !settingsReady) {
+    return <SettingsLoadingScreen label="جاري تحميل هوية الموقع المحفوظة…" />;
+  }
 
   const home = form.home;
   const setHome = <K extends keyof PlatformHome>(k: K, v: PlatformHome[K]) =>

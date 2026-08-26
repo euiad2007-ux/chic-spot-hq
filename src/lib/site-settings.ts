@@ -489,14 +489,22 @@ export function useSiteSettings(): SiteSettings {
     (l) => {
       ensure();
       listeners.add(l);
-      if (!hydrated) {
-        hydrated = true;
-        queueMicrotask(() => listeners.forEach((x) => x()));
-      }
       return () => listeners.delete(l);
     },
     () => (hydrated ? state : defaults),
     () => defaults,
+  );
+}
+
+/** True only after the current salon's saved settings have been applied. */
+export function useSiteSettingsReady(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    () => hydrated,
+    () => false,
   );
 }
 

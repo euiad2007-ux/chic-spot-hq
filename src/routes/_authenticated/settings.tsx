@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
-import { useSiteSettings, siteActions, useSiteDirty, saveSiteSettingsNow, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
+import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
+import { useSiteSettings, useSiteSettingsReady, siteActions, useSiteDirty, saveSiteSettingsNow, waLink, fillTemplate, type LayoutStyle, type PaymentMethodId, THEME_PRESETS, FONT_OPTIONS, fontById } from "@/lib/site-settings";
 import { useSalon } from "@/lib/salon-store";
 import { currentSalonId } from "@/lib/db/hydrate";
 import { loadSalonDomain } from "@/lib/db/domain-repo";
@@ -38,6 +39,7 @@ type TabId = "design" | "hero" | "sections" | "contact" | "seo" | "images" | "pa
 
 function SettingsPage() {
   const s = useSiteSettings();
+  const siteReady = useSiteSettingsReady();
   const customers = useSalon((x) => x.customers);
   const [tab, setTab] = useState<TabId>("design");
   const dirty = useSiteDirty();
@@ -74,6 +76,8 @@ function SettingsPage() {
       setSaving(false);
     }
   }
+
+  if (!siteReady) return <SettingsLoadingScreen />;
 
   return (
     <AppShell

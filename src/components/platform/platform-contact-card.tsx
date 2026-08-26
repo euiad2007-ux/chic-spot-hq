@@ -25,12 +25,14 @@ import {
 
 export const PLATFORM_SETTINGS_KEY = ["platform-settings"] as const;
 
-export function usePlatformSettings(initialData?: PlatformSettings) {
+export function usePlatformSettings(initialData?: PlatformSettings, requireFresh = false) {
   return useQuery({
     queryKey: PLATFORM_SETTINGS_KEY,
     queryFn: loadPlatformSettings,
     initialData,
-    staleTime: 5 * 60_000,
+    staleTime: requireFresh ? 0 : 5 * 60_000,
+    refetchOnMount: requireFresh ? "always" : true,
+    retry: requireFresh ? 3 : 1,
   });
 }
 
