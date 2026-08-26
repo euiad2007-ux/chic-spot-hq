@@ -309,11 +309,13 @@ function PlatformSitePage() {
             onChange={(v) => setHome("posText", v)}
             multiline
           />
-          <Field
-            label="رابط الصورة"
+          <ImageUploadField
+            label="صورة القسم"
+            preset="wide"
             value={home.posImageUrl ?? ""}
             onChange={(v) => setHome("posImageUrl", v)}
           />
+
         </Card>
 
         <Card title="الباقات والتواصل والتذييل" icon={Phone}>
