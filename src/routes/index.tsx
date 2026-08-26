@@ -110,9 +110,18 @@ const included = [
 function Landing() {
   const navigate = useNavigate();
   const settings = usePlatformSettings();
+  const { lang } = Route.useSearch();
   const plans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
-  const home = settings.data?.home ?? {};
-  const brand = settings.data?.brandName || "Salon Flow";
+  const base = settings.data ?? EMPTY_PLATFORM_SETTINGS;
+  const activeLang = lang ?? base.home?.defaultLang ?? "ar";
+  const resolved = resolvePlatformContent(base, activeLang);
+  const home = resolved.home;
+  const brand = resolved.brandName || "Salon Flow";
+  const dir = resolved.dir;
+  const enabledLangs = PLATFORM_LANGS.filter(
+    (l) => (home.languages ?? ["ar"]).includes(l.code) || l.code === activeLang,
+  );
+  const navLinks = (home.navLinks ?? []).filter((l) => l.label.trim() && l.href.trim());
   // Owner-managed content falls back to the built-in copy and artwork.
   const customFeatures = (home.features ?? []).filter((f) => f.title.trim());
   const featureCards = customFeatures.length
@@ -120,6 +129,7 @@ function Landing() {
     : features;
   const includedItems = (home.includedItems ?? []).filter((i) => i.trim());
   const includedList = includedItems.length ? includedItems : included;
+
 
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
