@@ -132,7 +132,7 @@ export async function savePlatformSettings(s: PlatformSettings): Promise<void> {
     email: s.email || null,
     support_hours: s.supportHours || null,
     socials: s.socials as unknown as Record<string, string>,
-    home: s.home as unknown as Record<string, unknown>,
+    home: s.home as unknown as Record<string, string>,
   });
   if (error) throw error;
 }
