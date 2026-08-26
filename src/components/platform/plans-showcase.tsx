@@ -51,6 +51,7 @@ export function PlansShowcase({
   title,
   note,
   cardStyle,
+  theme,
 }: {
   plans: PublicPlan[];
   currentCode?: string | null;
@@ -58,6 +59,8 @@ export function PlansShowcase({
   note?: string;
   /** Visual style chosen by the platform owner. */
   cardStyle?: string;
+  /** Colors and fonts chosen by the platform owner. */
+  theme?: PlatformTheme;
 }) {
   if (plans.length === 0) return null;
   return (
@@ -70,9 +73,13 @@ export function PlansShowcase({
         {plans.map((p) => {
           const current = currentCode === p.code;
           return (
-            <article key={p.code} className={planCardClass(cardStyle, current)}>
+            <article
+              key={p.code}
+              style={planCardStyleVars(theme)}
+              className={planCardClass(cardStyle ?? theme?.planCardStyle, current)}
+            >
               <div className="flex items-center justify-between">
-                <h3 className="font-extrabold flex items-center gap-2">
+                <h3 className="font-extrabold flex items-center gap-2" style={planTitleStyle(theme)}>
                   <Crown className="size-4 text-primary" /> {p.name}
                 </h3>
                 {current && (
@@ -82,9 +89,12 @@ export function PlansShowcase({
                 )}
               </div>
               <div>
-                <span className="text-3xl font-extrabold">{Number(p.price_monthly)}</span>
+                <span className="text-3xl font-extrabold" style={planPriceStyle(theme)}>
+                  {Number(p.price_monthly)}
+                </span>
                 <span className="text-sm text-muted-foreground"> ر.س / شهريًا</span>
               </div>
+
 
               <ul className="space-y-1.5 text-sm">
                 <Limit label="الفروع" value={num(p.max_branches)} />
