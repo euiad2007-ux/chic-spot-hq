@@ -22,6 +22,12 @@ import {
   googleFontsHref,
 } from "@/lib/site-settings";
 
+const STORE_OAUTH_PENDING = "storeLogin.oauthPending";
+
+function rememberedStoreEmail(slug?: string) {
+  return `storeLogin.rememberedEmail.${slug ?? "default"}`;
+}
+
 export const Route = createFileRoute("/store-login")({
   ssr: false,
   head: () => ({
@@ -64,6 +70,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
   const [showPwd, setShowPwd] = useState(false);
   const [salonId, setSalonId] = useState<string | null>(null);
   const [siteReady, setSiteReady] = useState(false);
+  const [rememberEmail, setRememberEmail] = useState(true);
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
@@ -100,9 +107,14 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     link.href = href;
   }, [site]);
 
-  // Already signed in (including a return from Google) → attach then route home.
   useEffect(() => {
-    if (!siteReady) return;
+    const saved = window.localStorage.getItem(rememberedStoreEmail(slug));
+    if (saved) setEmail(saved);
+  }, [slug]);
+
+  // Continue automatically only when returning from a Google button click.
+  useEffect(() => {
+    if (!siteReady || window.sessionStorage.getItem(STORE_OAUTH_PENDING) !== "1") return;
     let cancelled = false;
     void (async () => {
       const { data } = await supabase.auth.getSession();
@@ -114,6 +126,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
           ? null
           : window.sessionStorage.getItem("storeLogin.audience");
       if (stored) window.sessionStorage.removeItem("storeLogin.audience");
+      window.sessionStorage.removeItem(STORE_OAUTH_PENDING);
       await afterAuth(stored === "staff" ? "staff" : stored === "client" ? "client" : audience);
     })();
     return () => {
@@ -127,6 +140,12 @@ export function StoreLoginView({ slug }: { slug?: string }) {
    * clients are activated at once, staff wait for the merchant's approval.
    */
   async function afterAuth(kind: Audience = audience) {
+    const [{ clearDataContext }, { resetHydration }] = await Promise.all([
+      import("@/lib/db/context"),
+      import("@/lib/db/hydrate"),
+    ]);
+    clearDataContext();
+    resetHydration();
     let account = await loadAccount();
 
     if (salonId) {
@@ -165,12 +184,14 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     setBusy(true);
     try {
       window.sessionStorage.setItem("storeLogin.audience", audience);
+      window.sessionStorage.setItem(STORE_OAUTH_PENDING, "1");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin + (slug ? `/salon/${slug}/login` : "/store-login"),
       });
       if (result.error) throw result.error;
       if (!("redirected" in result && result.redirected)) await afterAuth();
     } catch (err) {
+      window.sessionStorage.removeItem(STORE_OAUTH_PENDING);
       toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
     } finally {
       setBusy(false);
@@ -211,6 +232,8 @@ export function StoreLoginView({ slug }: { slug?: string }) {
         }
       } else {
         await signIn(email, password);
+        if (rememberEmail) window.localStorage.setItem(rememberedStoreEmail(slug), email.trim());
+        else window.localStorage.removeItem(rememberedStoreEmail(slug));
         toast.success("تم تسجيل الدخول");
         await afterAuth();
       }
@@ -317,15 +340,26 @@ export function StoreLoginView({ slug }: { slug?: string }) {
             />
 
             {!creating && (
-              <button
-                type="button"
-                onClick={onForgot}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold hover:underline disabled:opacity-60"
-                style={{ color: site.primary }}
-              >
-                <KeyRound className="size-3.5" aria-hidden /> نسيت كلمة المرور؟
-              </button>
+              <div className="flex items-center justify-between gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={rememberEmail}
+                    onChange={(e) => setRememberEmail(e.target.checked)}
+                    className="size-4 accent-[var(--site-primary)]"
+                  />
+                  تذكّر البريد
+                </label>
+                <button
+                  type="button"
+                  onClick={onForgot}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold hover:underline disabled:opacity-60"
+                  style={{ color: site.primary }}
+                >
+                  <KeyRound className="size-3.5" aria-hidden /> نسيت كلمة المرور؟
+                </button>
+              </div>
             )}
 
             <button

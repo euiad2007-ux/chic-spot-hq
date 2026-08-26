@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Scissors, Loader2, Store, Eye, EyeOff, ArrowLeft, KeyRound } from "lucide-react";
+import { Scissors, Loader2, Store, Eye, EyeOff, ArrowLeft, KeyRound, Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,12 @@ import { lovable } from "@/integrations/lovable/index";
 
 import { signIn, signUp, homeForRole, loadAccount, resendConfirmation, sendPasswordReset } from "@/lib/account";
 import { useRefreshAccount } from "@/hooks/use-account";
+import { usePlatformSettings } from "@/components/platform/platform-contact-card";
+import { EMPTY_PLATFORM_SETTINGS } from "@/lib/db/platform-settings-repo";
+import { fontHref, primaryButtonClass, themeVars } from "@/lib/platform-theme";
+
+const REMEMBERED_OWNER_EMAIL = "platformAuth.rememberedEmail";
+const OWNER_OAUTH_PENDING = "platformAuth.oauthPending";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -32,6 +38,11 @@ type Mode = "signin" | "signup";
 function AuthPage() {
   const navigate = useNavigate();
   const refreshAccount = useRefreshAccount();
+  const platform = usePlatformSettings();
+  const settings = platform.data ?? EMPTY_PLATFORM_SETTINGS;
+  const home = settings.home ?? {};
+  const theme = home.theme;
+  const brand = settings.brandName || "Salon Flow";
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,27 +52,57 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [rememberEmail, setRememberEmail] = useState(true);
 
-  // Already signed in → go to the right home.
+  // Restore only the non-sensitive email preference. Passwords remain under
+  // the browser/password manager, while the auth client persists the session.
   useEffect(() => {
+    const saved = window.localStorage.getItem(REMEMBERED_OWNER_EMAIL);
+    if (saved) setEmail(saved);
+  }, []);
+
+  useEffect(() => {
+    const href = fontHref(theme?.font);
+    if (!href) return;
+    let link = document.querySelector<HTMLLinkElement>('link[data-auth-font="platform"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.dataset["authFont"] = "platform";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [theme?.font]);
+
+  // Automatic continuation is allowed only after the user explicitly pressed
+  // the Google button. Merely visiting /auth never opens the dashboard.
+  useEffect(() => {
+    if (window.sessionStorage.getItem(OWNER_OAUTH_PENDING) !== "1") return;
     let cancelled = false;
     void (async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session || cancelled) return;
-      const account = await loadAccount();
-      if (!account || cancelled) return;
-      await refreshAccount();
-      navigate({ to: homeForRole(account.role), replace: true });
+      window.sessionStorage.removeItem(OWNER_OAUTH_PENDING);
+      await afterAuth();
     })();
     return () => {
       cancelled = true;
     };
-  }, [navigate, refreshAccount]);
+    // Run once on an OAuth return only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function afterAuth() {
+    const [{ clearDataContext }, { resetHydration }] = await Promise.all([
+      import("@/lib/db/context"),
+      import("@/lib/db/hydrate"),
+    ]);
+    clearDataContext();
+    resetHydration();
     const account = await loadAccount();
+    if (!account) throw new Error("تعذّر تحميل الحساب بعد الدخول، حاول مرة أخرى");
     await refreshAccount();
-    navigate({ to: account ? homeForRole(account.role) : "/", replace: true });
+    await navigate({ to: homeForRole(account.role), replace: true });
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -71,6 +112,8 @@ function AuthPage() {
     try {
       if (mode === "signin") {
         await signIn(email, password);
+        if (rememberEmail) window.localStorage.setItem(REMEMBERED_OWNER_EMAIL, email.trim());
+        else window.localStorage.removeItem(REMEMBERED_OWNER_EMAIL);
         toast.success("تم تسجيل الدخول");
         await afterAuth();
       } else {
@@ -120,6 +163,7 @@ function AuthPage() {
     if (busy) return;
     setBusy(true);
     try {
+      window.sessionStorage.setItem(OWNER_OAUTH_PENDING, "1");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin + "/auth",
       });
@@ -128,6 +172,7 @@ function AuthPage() {
       toast.success("تم تسجيل الدخول");
       await afterAuth();
     } catch (err) {
+      window.sessionStorage.removeItem(OWNER_OAUTH_PENDING);
       toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
     } finally {
       setBusy(false);
@@ -138,14 +183,31 @@ function AuthPage() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-primary/10 via-background to-accent/10"
+      style={themeVars(theme)}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-10 bg-background text-foreground"
     >
-      <div className="w-full max-w-md">
+      {home.heroImageUrl && (
+        <img
+          src={home.heroImageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 size-full object-cover opacity-15"
+        />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background/90 to-accent/15" />
+      <div className="relative w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-3 mb-7">
-          <span className="size-11 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
-            <Scissors className="size-6 text-primary-foreground" />
+          {home.logoUrl ? (
+            <img src={home.logoUrl} alt={brand} className="h-14 max-w-48 object-contain" />
+          ) : (
+            <span className="size-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
+              <Scissors className="size-6 text-primary-foreground" />
+            </span>
+          )}
+          <span className="leading-tight">
+            <span className="block text-2xl font-extrabold">{brand}</span>
+            {home.tagline && <span className="block text-xs text-muted-foreground">{home.tagline}</span>}
           </span>
-          <span className="text-2xl font-extrabold gradient-text">Salon Flow</span>
         </Link>
 
         <div className="rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-6 shadow-lg">
@@ -263,20 +325,34 @@ function AuthPage() {
               />
 
               {mode === "signin" && (
-                <button
-                  type="button"
-                  onClick={onForgot}
-                  disabled={busy}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline disabled:opacity-60"
-                >
-                  <KeyRound className="size-3.5" aria-hidden /> نسيت كلمة المرور؟
-                </button>
+                <div className="flex items-center justify-between gap-3">
+                  <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={rememberEmail}
+                      onChange={(e) => setRememberEmail(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <span className="size-4 rounded border border-input grid place-items-center peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground">
+                      {rememberEmail && <Check className="size-3" />}
+                    </span>
+                    تذكّر البريد
+                  </label>
+                  <button
+                    type="button"
+                    onClick={onForgot}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline disabled:opacity-60"
+                  >
+                    <KeyRound className="size-3.5" aria-hidden /> نسيت كلمة المرور؟
+                  </button>
+                </div>
               )}
 
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full h-11 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
+                className={`w-full h-11 text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60 ${primaryButtonClass(theme)}`}
               >
                 {busy && <Loader2 className="size-4 animate-spin" />}
                 {mode === "signin" ? "دخول" : "إنشاء الحساب"}
