@@ -59,12 +59,17 @@ export function StoreLoginView({ slug }: { slug?: string }) {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [salonId, setSalonId] = useState<string | null>(null);
 
   // Store branding comes from the salon's own site settings.
   useEffect(() => {
-    void import("@/lib/db/public-hydrate").then((m) => m.hydratePublicSite(slug, true));
+    void import("@/lib/db/public-hydrate").then(async (m) => {
+      const meta = await m.hydratePublicSite(slug, true);
+      setSalonId(meta?.salonId ?? null);
+    });
   }, [slug]);
 
 
