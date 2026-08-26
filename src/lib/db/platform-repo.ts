@@ -320,7 +320,7 @@ export interface TableSizeRow {
 export interface PlatformNotificationRow {
   id: string;
   salon_id: string | null;
-  kind: "subscription_expiring" | "subscription_expired";
+  kind: "subscription_expiring" | "subscription_expired" | "new_customer";
   title: string;
   body: string;
   due_at: string | null;
