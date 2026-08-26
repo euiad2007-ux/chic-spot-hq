@@ -111,11 +111,22 @@ function AuthPage() {
     ]);
     clearDataContext();
     resetHydration();
-    const account = await loadAccount();
+    // Weak networks can drop the first profile read; retry before giving up so a
+    // successful sign-in is never reported as a failure.
+    let account = null as Awaited<ReturnType<typeof loadAccount>>;
+    for (let attempt = 0; attempt < 3 && !account; attempt += 1) {
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * attempt));
+      try {
+        account = await loadAccount();
+      } catch {
+        account = null;
+      }
+    }
     if (!account) throw new Error("تعذّر تحميل الحساب بعد الدخول، حاول مرة أخرى");
     await refreshAccount();
     await navigate({ to: homeForRole(account.role), replace: true });
   }
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
