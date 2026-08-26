@@ -278,7 +278,7 @@ function Landing() {
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               to="/auth"
-              className="inline-flex h-12 items-center gap-2 px-7 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold"
+              className={`inline-flex h-12 items-center gap-2 px-7 ${btnPrimary}`}
             >
               {home.ctaLabel || "ابدأ تجربة 30 يومًا"}
               <ArrowLeft className="size-4" />
