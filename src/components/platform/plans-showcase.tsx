@@ -43,11 +43,14 @@ export function PlansShowcase({
   currentCode,
   title,
   note,
+  cardStyle,
 }: {
   plans: PublicPlan[];
   currentCode?: string | null;
   title?: string;
   note?: string;
+  /** Visual style chosen by the platform owner. */
+  cardStyle?: string;
 }) {
   if (plans.length === 0) return null;
   return (
