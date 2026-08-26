@@ -243,7 +243,7 @@ function Landing() {
           </Link>
           <Link
             to="/auth"
-            className="inline-flex h-10 items-center px-5 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-bold"
+            className={`inline-flex h-10 items-center px-5 text-sm ${btnPrimary}`}
           >
             سجّل مشغلك
           </Link>
