@@ -28,6 +28,7 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
 import { Route as AuthenticatedPlatformSiteRouteImport } from './routes/_authenticated/platform-site'
 import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
+import { Route as AuthenticatedPlatformCustomersRouteImport } from './routes/_authenticated/platform-customers'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -164,6 +165,12 @@ const AuthenticatedPlatformSettingsRoute =
   AuthenticatedPlatformSettingsRouteImport.update({
     id: '/platform-settings',
     path: '/platform-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformCustomersRoute =
+  AuthenticatedPlatformCustomersRouteImport.update({
+    id: '/platform-customers',
+    path: '/platform-customers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
@@ -416,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/platform-site': typeof AuthenticatedPlatformSiteRoute
   '/pos': typeof AuthenticatedPosRoute
@@ -475,6 +483,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/platform-site': typeof AuthenticatedPlatformSiteRoute
   '/pos': typeof AuthenticatedPosRoute
@@ -537,6 +546,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/_authenticated/platform-site': typeof AuthenticatedPlatformSiteRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
@@ -599,6 +609,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/payroll'
     | '/platform'
+    | '/platform-customers'
     | '/platform-settings'
     | '/platform-site'
     | '/pos'
@@ -658,6 +669,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/payroll'
     | '/platform'
+    | '/platform-customers'
     | '/platform-settings'
     | '/platform-site'
     | '/pos'
@@ -719,6 +731,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
+    | '/_authenticated/platform-customers'
     | '/_authenticated/platform-settings'
     | '/_authenticated/platform-site'
     | '/_authenticated/pos'
@@ -896,6 +909,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-settings'
       fullPath: '/platform-settings'
       preLoaderRoute: typeof AuthenticatedPlatformSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform-customers': {
+      id: '/_authenticated/platform-customers'
+      path: '/platform-customers'
+      fullPath: '/platform-customers'
+      preLoaderRoute: typeof AuthenticatedPlatformCustomersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/platform': {
@@ -1242,6 +1262,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedPlatformCustomersRoute: typeof AuthenticatedPlatformCustomersRoute
   AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
   AuthenticatedPlatformSiteRoute: typeof AuthenticatedPlatformSiteRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
@@ -1282,6 +1303,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedPlatformCustomersRoute: AuthenticatedPlatformCustomersRoute,
   AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
   AuthenticatedPlatformSiteRoute: AuthenticatedPlatformSiteRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
