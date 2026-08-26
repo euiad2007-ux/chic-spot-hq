@@ -14,6 +14,7 @@ import {
   Search,
   Languages,
   Link2,
+  Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 
