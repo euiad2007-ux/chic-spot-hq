@@ -20,9 +20,7 @@ export interface PlatformTheme {
   /** Logo height in the header, in pixels */
   logoHeight?: number;
   /** Text colors */
-  headingColor?: string;
   mutedColor?: string;
-  linkColor?: string;
   /** Opacity (0–100) applied to site images */
   imageOpacity?: number;
   heroImageOpacity?: number;

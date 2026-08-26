@@ -35,12 +35,18 @@ import {
   type PlatformSettings,
 } from "@/lib/db/platform-settings-repo";
 import {
+  BRAND_SIZES,
   BUTTON_STYLES,
   FONT_OPTIONS,
   PLAN_CARD_STYLES,
   RADIUS_OPTIONS,
+  brandNameStyle,
+  brandUsesGradient,
   primaryButtonClass,
   planCardClass,
+  planCardStyleVars,
+  planPriceStyle,
+  planTitleStyle,
   secondaryButtonClass,
   themeVars,
   type PlatformTheme,
@@ -100,6 +106,8 @@ function PlatformSitePage() {
   const navLinks = home.navLinks ?? [];
   const theme = home.theme ?? {};
   const setTheme = <K extends keyof PlatformTheme>(k: K, v: string) =>
+    setHome("theme", { ...theme, [k]: v } as PlatformTheme);
+  const setThemeVal = <K extends keyof PlatformTheme>(k: K, v: PlatformTheme[K]) =>
     setHome("theme", { ...theme, [k]: v } as PlatformTheme);
 
   const defaultLang = home.defaultLang ?? "ar";
@@ -194,6 +202,11 @@ function PlatformSitePage() {
               value={theme.cardBg ?? "#ffffff"}
               onChange={(v) => setTheme("cardBg", v)}
             />
+            <ColorField
+              label="لون النصوص الثانوية"
+              value={theme.mutedColor ?? "#6b6478"}
+              onChange={(v) => setTheme("mutedColor", v)}
+            />
           </div>
 
           <SelectField
@@ -221,6 +234,17 @@ function PlatformSitePage() {
             options={RADIUS_OPTIONS.map((r) => ({ value: r.code, label: r.label }))}
           />
 
+          <RangeField
+            label="شفافية صورة القسم الرئيسي"
+            value={theme.heroImageOpacity ?? 100}
+            onChange={(v) => setThemeVal("heroImageOpacity", v)}
+          />
+          <RangeField
+            label="شفافية صور الأقسام"
+            value={theme.imageOpacity ?? 100}
+            onChange={(v) => setThemeVal("imageOpacity", v)}
+          />
+
           {/* Live preview of the chosen colors, font and styles */}
           <div
             style={themeVars(theme)}
@@ -246,6 +270,119 @@ function PlatformSitePage() {
           <p className="text-[11px] text-muted-foreground">
             اتركها كما هي لاستخدام هوية المنصة الافتراضية. تُطبَّق الألوان والخطوط على الصفحة الرئيسية.
           </p>
+        </Card>
+
+        <Card title="اسم الموقع والشعار" icon={Type}>
+          <SelectField
+            label="خط اسم الموقع"
+            value={theme.brandFont ?? theme.font ?? "cairo"}
+            onChange={(v) => setTheme("brandFont", v)}
+            options={FONT_OPTIONS.map((f) => ({ value: f.code, label: f.label }))}
+          />
+          <SelectField
+            label="حجم اسم الموقع"
+            value={theme.brandSize ?? "md"}
+            onChange={(v) => setTheme("brandSize", v)}
+            options={BRAND_SIZES.map((b) => ({ value: b.code, label: b.label }))}
+          />
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={theme.brandGradient !== false && !theme.brandColor}
+              onChange={(e) =>
+                setHome("theme", {
+                  ...theme,
+                  brandGradient: e.target.checked,
+                  brandColor: e.target.checked ? "" : (theme.brandColor || "#a855f7"),
+                })
+              }
+              className="size-4 accent-[var(--primary)]"
+            />
+            تدرّج لوني لاسم الموقع
+          </label>
+          {theme.brandGradient === false || theme.brandColor ? (
+            <ColorField
+              label="لون اسم الموقع"
+              value={theme.brandColor || "#a855f7"}
+              onChange={(v) => setTheme("brandColor", v)}
+            />
+          ) : null}
+          <RangeField
+            label="ارتفاع الشعار (بكسل)"
+            min={20}
+            max={140}
+            value={theme.logoHeight ?? 44}
+            onChange={(v) => setThemeVal("logoHeight", v)}
+          />
+          <div
+            style={themeVars(theme)}
+            className="rounded-xl border border-border bg-background p-4 flex items-center gap-3"
+          >
+            {home.logoUrl && (
+              <img
+                src={home.logoUrl}
+                alt=""
+                style={{ height: `${theme.logoHeight ?? 44}px` }}
+                className="w-auto object-contain"
+              />
+            )}
+            <span
+              style={brandNameStyle(theme)}
+              className={`font-extrabold ${brandUsesGradient(theme) ? "gradient-text" : ""}`}
+            >
+              {form.brandName || "اسم المنصة"}
+            </span>
+          </div>
+        </Card>
+
+        <Card title="تخصيص بطاقات الاشتراك" icon={LayoutTemplate}>
+          <SelectField
+            label="نمط البطاقة"
+            value={theme.planCardStyle ?? "bordered"}
+            onChange={(v) => setTheme("planCardStyle", v)}
+            options={PLAN_CARD_STYLES.map((c) => ({ value: c.code, label: c.label }))}
+          />
+          <SelectField
+            label="خط البطاقات"
+            value={theme.planFont ?? theme.font ?? "cairo"}
+            onChange={(v) => setTheme("planFont", v)}
+            options={FONT_OPTIONS.map((f) => ({ value: f.code, label: f.label }))}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <ColorField
+              label="خلفية البطاقة"
+              value={theme.planCardBg ?? "#ffffff"}
+              onChange={(v) => setTheme("planCardBg", v)}
+            />
+            <ColorField
+              label="لون الإطار"
+              value={theme.planBorderColor ?? "#e8dff0"}
+              onChange={(v) => setTheme("planBorderColor", v)}
+            />
+            <ColorField
+              label="لون اسم الباقة"
+              value={theme.planTitleColor ?? "#211830"}
+              onChange={(v) => setTheme("planTitleColor", v)}
+            />
+            <ColorField
+              label="لون السعر"
+              value={theme.planPriceColor ?? "#a855f7"}
+              onChange={(v) => setTheme("planPriceColor", v)}
+            />
+          </div>
+          <div style={themeVars(theme)} className="rounded-xl border border-border bg-background p-4">
+            <div
+              style={planCardStyleVars(theme)}
+              className={`${planCardClass(theme.planCardStyle, true)} text-sm`}
+            >
+              <div className="font-extrabold" style={planTitleStyle(theme)}>
+                باقة تجريبية
+              </div>
+              <div className="text-2xl font-extrabold" style={planPriceStyle(theme)}>
+                299 <span className="text-xs text-muted-foreground">ر.س / شهريًا</span>
+              </div>
+            </div>
+          </div>
         </Card>
 
         <Card title="القسم الرئيسي (Hero)" icon={ImageIcon}>
@@ -751,6 +888,37 @@ function ColorField({
           className="flex-1 h-10 rounded-lg border border-border bg-background px-3 text-sm"
         />
       </span>
+    </label>
+  );
+}
+
+function RangeField({
+  label,
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-muted-foreground flex items-center justify-between">
+        <span>{label}</span>
+        <span className="font-semibold text-foreground">{value}</span>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-[var(--primary)]"
+      />
     </label>
   );
 }
