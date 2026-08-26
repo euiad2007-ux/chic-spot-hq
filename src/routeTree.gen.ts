@@ -26,8 +26,11 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
+import { Route as AuthenticatedPlatformSubscriptionsRouteImport } from './routes/_authenticated/platform-subscriptions'
 import { Route as AuthenticatedPlatformSiteRouteImport } from './routes/_authenticated/platform-site'
 import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
+import { Route as AuthenticatedPlatformDatabaseRouteImport } from './routes/_authenticated/platform-database'
+import { Route as AuthenticatedPlatformCustomersRouteImport } from './routes/_authenticated/platform-customers'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -154,6 +157,12 @@ const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
   path: '/pos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlatformSubscriptionsRoute =
+  AuthenticatedPlatformSubscriptionsRouteImport.update({
+    id: '/platform-subscriptions',
+    path: '/platform-subscriptions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPlatformSiteRoute =
   AuthenticatedPlatformSiteRouteImport.update({
     id: '/platform-site',
@@ -164,6 +173,18 @@ const AuthenticatedPlatformSettingsRoute =
   AuthenticatedPlatformSettingsRouteImport.update({
     id: '/platform-settings',
     path: '/platform-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformDatabaseRoute =
+  AuthenticatedPlatformDatabaseRouteImport.update({
+    id: '/platform-database',
+    path: '/platform-database',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformCustomersRoute =
+  AuthenticatedPlatformCustomersRouteImport.update({
+    id: '/platform-customers',
+    path: '/platform-customers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
@@ -416,8 +437,11 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
+  '/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/platform-site': typeof AuthenticatedPlatformSiteRoute
+  '/platform-subscriptions': typeof AuthenticatedPlatformSubscriptionsRoute
   '/pos': typeof AuthenticatedPosRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/services': typeof AuthenticatedServicesRoute
@@ -475,8 +499,11 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
+  '/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/platform-site': typeof AuthenticatedPlatformSiteRoute
+  '/platform-subscriptions': typeof AuthenticatedPlatformSubscriptionsRoute
   '/pos': typeof AuthenticatedPosRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/services': typeof AuthenticatedServicesRoute
@@ -537,8 +564,11 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/platform-customers': typeof AuthenticatedPlatformCustomersRoute
+  '/_authenticated/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/_authenticated/platform-site': typeof AuthenticatedPlatformSiteRoute
+  '/_authenticated/platform-subscriptions': typeof AuthenticatedPlatformSubscriptionsRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
@@ -599,8 +629,11 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/payroll'
     | '/platform'
+    | '/platform-customers'
+    | '/platform-database'
     | '/platform-settings'
     | '/platform-site'
+    | '/platform-subscriptions'
     | '/pos'
     | '/reports'
     | '/services'
@@ -658,8 +691,11 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/payroll'
     | '/platform'
+    | '/platform-customers'
+    | '/platform-database'
     | '/platform-settings'
     | '/platform-site'
+    | '/platform-subscriptions'
     | '/pos'
     | '/reports'
     | '/services'
@@ -719,8 +755,11 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
+    | '/_authenticated/platform-customers'
+    | '/_authenticated/platform-database'
     | '/_authenticated/platform-settings'
     | '/_authenticated/platform-site'
+    | '/_authenticated/platform-subscriptions'
     | '/_authenticated/pos'
     | '/_authenticated/reports'
     | '/_authenticated/services'
@@ -884,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform-subscriptions': {
+      id: '/_authenticated/platform-subscriptions'
+      path: '/platform-subscriptions'
+      fullPath: '/platform-subscriptions'
+      preLoaderRoute: typeof AuthenticatedPlatformSubscriptionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/platform-site': {
       id: '/_authenticated/platform-site'
       path: '/platform-site'
@@ -896,6 +942,20 @@ declare module '@tanstack/react-router' {
       path: '/platform-settings'
       fullPath: '/platform-settings'
       preLoaderRoute: typeof AuthenticatedPlatformSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform-database': {
+      id: '/_authenticated/platform-database'
+      path: '/platform-database'
+      fullPath: '/platform-database'
+      preLoaderRoute: typeof AuthenticatedPlatformDatabaseRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform-customers': {
+      id: '/_authenticated/platform-customers'
+      path: '/platform-customers'
+      fullPath: '/platform-customers'
+      preLoaderRoute: typeof AuthenticatedPlatformCustomersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/platform': {
@@ -1242,8 +1302,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedPlatformCustomersRoute: typeof AuthenticatedPlatformCustomersRoute
+  AuthenticatedPlatformDatabaseRoute: typeof AuthenticatedPlatformDatabaseRoute
   AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
   AuthenticatedPlatformSiteRoute: typeof AuthenticatedPlatformSiteRoute
+  AuthenticatedPlatformSubscriptionsRoute: typeof AuthenticatedPlatformSubscriptionsRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
@@ -1282,8 +1345,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedPlatformCustomersRoute: AuthenticatedPlatformCustomersRoute,
+  AuthenticatedPlatformDatabaseRoute: AuthenticatedPlatformDatabaseRoute,
   AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
   AuthenticatedPlatformSiteRoute: AuthenticatedPlatformSiteRoute,
+  AuthenticatedPlatformSubscriptionsRoute:
+    AuthenticatedPlatformSubscriptionsRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,

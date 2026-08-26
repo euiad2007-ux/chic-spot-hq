@@ -25,22 +25,25 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAccount } from "@/hooks/use-account";
-import { AppShell } from "@/components/salon/app-shell";
+import { OwnerShell } from "@/components/platform/owner-shell";
+import {
+  STATUS_LABEL,
+  money,
+  useSalonsOverview,
+  usePlans,
+  FinanceCard,
+  Field,
+  type PlanRow,
+} from "@/components/platform/owner-ui";
 import { cn } from "@/lib/utils";
 import {
-  listSalonsOverview,
   listSubscriptionInvoices,
   listSubscriptionPayments,
-  createSubscriptionInvoice,
-  recordSubscriptionPayment,
-  setSubscriptionInvoiceStatus,
-  deleteSubscriptionInvoice,
   listSupportTickets,
   listSupportMessages,
   addSupportMessage,
   createSupportTicket,
   setTicketStatus,
-  SUB_STATUS_LABEL,
   TICKET_STATUS_LABEL,
   TICKET_PRIORITY_LABEL,
   type PlatformSalonOverview,
@@ -68,47 +71,33 @@ export const Route = createFileRoute("/_authenticated/platform")({
   component: PlatformPage,
 });
 
-const STATUS_LABEL: Record<string, string> = {
-  trial: "تجربة",
-  active: "نشط",
-  past_due: "متأخر",
-  canceled: "ملغى",
-};
-
-interface PlanRow {
-  id: string;
-  code: string;
-  name: string;
-  price_monthly: number;
-  max_branches: number;
-  max_staff: number;
-  max_services: number;
-  max_customers: number;
-  max_invoices: number;
-  has_website: boolean;
-  features: string[];
-  enabled_modules: string[];
-  is_active: boolean;
-  sort_order: number;
-}
-
-type Tab = "overview" | "salons" | "billing" | "support" | "plans" | "admins";
+type Tab = "overview" | "salons" | "support" | "plans" | "admins";
 
 const MODULE_OPTIONS = [
-  ["bookings", "الحجوزات"], ["calendar", "التقويم"], ["services", "الخدمات"],
-  ["inventory", "المخزون والجرد"], ["staff", "الموظفون"], ["payroll", "الرواتب"],
-  ["attendance", "الحضور"], ["customers", "العملاء"], ["coupons", "الكوبونات"],
-  ["invoices", "الفواتير"], ["pos", "نقطة البيع"], ["cash", "الصندوق والورديات"],
-  ["expenses", "المصروفات"], ["accounting", "المحاسبة"], ["reports", "التقارير"],
-  ["ledger", "السجل المالي"], ["branches", "الفروع"],
-  ["booking_settings", "ضبط الحجز"], ["invoice_settings", "ضبط الفواتير"],
-  ["site_settings", "إعدادات الموقع"], ["users", "المستخدمون والصلاحيات"],
-  ["activity_log", "سجل النشاط"], ["branch_audit", "سجل تدقيق الفروع"],
+  ["bookings", "الحجوزات"],
+  ["calendar", "التقويم"],
+  ["services", "الخدمات"],
+  ["inventory", "المخزون والجرد"],
+  ["staff", "الموظفون"],
+  ["payroll", "الرواتب"],
+  ["attendance", "الحضور"],
+  ["customers", "العملاء"],
+  ["coupons", "الكوبونات"],
+  ["invoices", "الفواتير"],
+  ["pos", "نقطة البيع"],
+  ["cash", "الصندوق والورديات"],
+  ["expenses", "المصروفات"],
+  ["accounting", "المحاسبة"],
+  ["reports", "التقارير"],
+  ["ledger", "السجل المالي"],
+  ["branches", "الفروع"],
+  ["booking_settings", "ضبط الحجز"],
+  ["invoice_settings", "ضبط الفواتير"],
+  ["site_settings", "إعدادات الموقع"],
+  ["users", "المستخدمون والصلاحيات"],
+  ["activity_log", "سجل النشاط"],
+  ["branch_audit", "سجل تدقيق الفروع"],
 ] as const;
-
-
-const money = (v: number) =>
-  `${Number(v || 0).toLocaleString("ar-SA", { maximumFractionDigits: 2 })} ر.س`;
 
 function PlatformPage() {
   const { data: account, isLoading } = useAccount();
@@ -142,7 +131,7 @@ function PlatformPage() {
 
   if (!isOwner) {
     return (
-      <AppShell title="لوحة مالك المنصة" subtitle="صلاحية خاصة">
+      <OwnerShell title="لوحة مالك المنصة" subtitle="صلاحية خاصة">
         <div className="max-w-lg mx-auto text-center rounded-2xl border border-border bg-card p-8 space-y-4">
           <span className="mx-auto size-14 rounded-2xl bg-primary/10 grid place-items-center">
             <ShieldCheck className="size-7 text-primary" />
@@ -158,7 +147,11 @@ function PlatformPage() {
             disabled={claim.isPending}
             className="h-11 px-5 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {claim.isPending ? <Loader2 className="size-4 animate-spin" /> : <Crown className="size-4" />}
+            {claim.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Crown className="size-4" />
+            )}
             تعيينـي مالكًا للمنصة
           </button>
           <button
@@ -169,19 +162,18 @@ function PlatformPage() {
             العودة إلى لوحة المشغل
           </button>
         </div>
-      </AppShell>
+      </OwnerShell>
     );
   }
 
   return (
-    <AppShell title="لوحة مالك المنصة" subtitle="اشتراكات المتاجر والباقات والدعم الفني">
+    <OwnerShell title="لوحة مالك المنصة" subtitle="نظرة عامة على المتاجر والباقات والدعم">
       <div className="space-y-6">
         <div className="flex gap-1 p-1 rounded-xl bg-muted/50 w-full overflow-x-auto">
           {(
             [
               ["overview", "نظرة عامة"],
               ["salons", "المتاجر"],
-              ["billing", "حسابات الاشتراكات"],
               ["support", "الدعم الفني"],
               ["plans", "الباقات"],
               ["admins", "مالكو المنصة"],
@@ -205,33 +197,12 @@ function PlatformPage() {
 
         {tab === "overview" && <Overview />}
         {tab === "salons" && <SalonsTab />}
-        {tab === "billing" && <BillingTab />}
         {tab === "support" && <SupportTab />}
         {tab === "plans" && <PlansTab />}
         {tab === "admins" && <AdminsTab />}
       </div>
-    </AppShell>
+    </OwnerShell>
   );
-}
-
-/* --------------------------------- data --------------------------------- */
-
-function useSalonsOverview() {
-  return useQuery({ queryKey: ["platform", "salons-overview"], queryFn: listSalonsOverview });
-}
-
-function usePlans() {
-  return useQuery({
-    queryKey: ["platform", "plans"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("platform_plans")
-        .select("*")
-        .order("sort_order");
-      if (error) throw error;
-      return (data ?? []) as unknown as PlanRow[];
-    },
-  });
 }
 
 /* ------------------------------- Overview ------------------------------- */
@@ -307,7 +278,11 @@ function Overview() {
       <div className="grid sm:grid-cols-3 gap-3">
         <FinanceCard label="إجمالي فواتير الاشتراكات" value={money(billed)} />
         <FinanceCard label="المحصّل" value={money(collected)} tone="good" />
-        <FinanceCard label="المستحق غير المحصّل" value={money(due)} tone={due > 0 ? "bad" : "good"} />
+        <FinanceCard
+          label="المستحق غير المحصّل"
+          value={money(due)}
+          tone={due > 0 ? "bad" : "good"}
+        />
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
@@ -331,34 +306,6 @@ function Overview() {
           </ul>
         )}
       </div>
-    </div>
-  );
-}
-
-function FinanceCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "good" | "bad";
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border p-4",
-        tone === "bad"
-          ? "border-destructive/30 bg-destructive/5"
-          : tone === "good"
-            ? "border-primary/30 bg-primary/5"
-            : "border-border bg-card",
-      )}
-    >
-      <div className="text-xs font-semibold text-muted-foreground inline-flex items-center gap-2">
-        <Wallet className="size-4 text-primary" /> {label}
-      </div>
-      <div className="mt-2 text-xl font-extrabold">{value}</div>
     </div>
   );
 }
@@ -489,7 +436,7 @@ function SalonCard({
           >
             {s.is_suspended
               ? "موقوف"
-              : STATUS_LABEL[s.subscription_status ?? "trial"] ?? s.subscription_status}
+              : (STATUS_LABEL[s.subscription_status ?? "trial"] ?? s.subscription_status)}
           </span>
           <button
             type="button"
@@ -639,348 +586,18 @@ function Stat({ label, used, max }: { label: string; used: number; max?: number 
   const limit = max && max > 0 ? max : null;
   const over = limit !== null && used >= limit;
   return (
-    <div className={cn("rounded-xl border p-2", over ? "border-destructive/40 bg-destructive/5" : "border-border")}>
+    <div
+      className={cn(
+        "rounded-xl border p-2",
+        over ? "border-destructive/40 bg-destructive/5" : "border-border",
+      )}
+    >
       <div className="text-[10px] text-muted-foreground">{label}</div>
       <div className="text-sm font-bold">
         {used}
         {limit !== null && <span className="text-[10px] text-muted-foreground"> / {limit}</span>}
       </div>
     </div>
-  );
-}
-
-/* -------------------------------- Billing -------------------------------- */
-
-function BillingTab() {
-  const qc = useQueryClient();
-  const salons = useSalonsOverview();
-  const plans = usePlans();
-  const [salonId, setSalonId] = useState("");
-  const invoices = useQuery({
-    queryKey: ["platform", "sub-invoices"],
-    queryFn: () => listSubscriptionInvoices(),
-  });
-  const payments = useQuery({
-    queryKey: ["platform", "sub-payments"],
-    queryFn: () => listSubscriptionPayments(),
-  });
-
-  const refresh = async () => {
-    await qc.invalidateQueries({ queryKey: ["platform"] });
-  };
-
-  const [form, setForm] = useState({
-    salonId: "",
-    planCode: "",
-    periodStart: new Date().toISOString().slice(0, 10),
-    months: 1,
-    amount: 0,
-    vatRate: 15,
-    dueDate: "",
-    note: "",
-  });
-
-  const create = useMutation({
-    mutationFn: () =>
-      createSubscriptionInvoice({
-        salonId: form.salonId,
-        planCode: form.planCode || null,
-        periodStart: form.periodStart,
-        months: Number(form.months) || 1,
-        amount: Number(form.amount) || 0,
-        vatRate: Number(form.vatRate) || 0,
-        dueDate: form.dueDate || null,
-        note: form.note || null,
-      }),
-    onSuccess: async () => {
-      toast.success("تم إصدار فاتورة الاشتراك");
-      await refresh();
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "تعذّر الإصدار"),
-  });
-
-  const pay = useMutation({
-    mutationFn: (v: { salonId: string; invoiceId: string; amount: number; method: string }) =>
-      recordSubscriptionPayment({ ...v, reference: null }),
-    onSuccess: async () => {
-      toast.success("تم تسجيل الدفعة");
-      await refresh();
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "تعذّر تسجيل الدفعة"),
-  });
-
-  const voidInv = useMutation({
-    mutationFn: (id: string) => setSubscriptionInvoiceStatus(id, "void"),
-    onSuccess: refresh,
-  });
-  const removeInv = useMutation({
-    mutationFn: (id: string) => deleteSubscriptionInvoice(id),
-    onSuccess: async () => {
-      toast.success("تم الحذف");
-      await refresh();
-    },
-  });
-
-  const nameOf = (id: string) => salons.data?.find((s) => s.id === id)?.name ?? "—";
-  const rows = (invoices.data ?? []).filter((i) => !salonId || i.salon_id === salonId);
-  const totals = rows.reduce(
-    (acc, i) => {
-      acc.total += Number(i.total);
-      acc.paid += Number(i.paid);
-      if (i.status !== "void") acc.due += Number(i.total) - Number(i.paid);
-      return acc;
-    },
-    { total: 0, paid: 0, due: 0 },
-  );
-
-  return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-primary/30 bg-card p-4 space-y-3">
-        <h2 className="font-bold text-sm inline-flex items-center gap-2">
-          <ReceiptText className="size-4 text-primary" /> إصدار فاتورة اشتراك
-        </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <label className="block">
-            <span className="text-xs font-semibold text-muted-foreground">المتجر</span>
-            <select
-              value={form.salonId}
-              onChange={(e) => setForm({ ...form, salonId: e.target.value })}
-              className="mt-1 w-full h-10 rounded-xl border border-input bg-background px-2 text-sm"
-            >
-              <option value="">— اختر المتجر —</option>
-              {(salons.data ?? []).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-xs font-semibold text-muted-foreground">الباقة</span>
-            <select
-              value={form.planCode}
-              onChange={(e) => {
-                const p = (plans.data ?? []).find((x) => x.code === e.target.value);
-                setForm({
-                  ...form,
-                  planCode: e.target.value,
-                  amount: p ? Number(p.price_monthly) * (Number(form.months) || 1) : form.amount,
-                });
-              }}
-              className="mt-1 w-full h-10 rounded-xl border border-input bg-background px-2 text-sm"
-            >
-              <option value="">— بدون —</option>
-              {(plans.data ?? []).map((p) => (
-                <option key={p.code} value={p.code}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Field
-            label="بداية الفترة"
-            type="date"
-            value={form.periodStart}
-            onChange={(v) => setForm({ ...form, periodStart: v })}
-          />
-          <Field
-            label="عدد الأشهر"
-            type="number"
-            value={String(form.months)}
-            onChange={(v) => setForm({ ...form, months: Number(v) || 1 })}
-          />
-          <Field
-            label="المبلغ قبل الضريبة"
-            type="number"
-            value={String(form.amount)}
-            onChange={(v) => setForm({ ...form, amount: Number(v) || 0 })}
-          />
-          <Field
-            label="نسبة الضريبة %"
-            type="number"
-            value={String(form.vatRate)}
-            onChange={(v) => setForm({ ...form, vatRate: Number(v) || 0 })}
-          />
-          <Field
-            label="تاريخ الاستحقاق"
-            type="date"
-            value={form.dueDate}
-            onChange={(v) => setForm({ ...form, dueDate: v })}
-          />
-          <Field label="ملاحظة" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground">
-            الإجمالي مع الضريبة:{" "}
-            <b className="text-foreground">
-              {money(form.amount + (form.amount * form.vatRate) / 100)}
-            </b>
-          </span>
-          <button
-            type="button"
-            disabled={!form.salonId || create.isPending}
-            onClick={() => create.mutate()}
-            className="h-10 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center gap-2 disabled:opacity-60"
-          >
-            {create.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            إصدار
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-2 items-center">
-        <select
-          value={salonId}
-          onChange={(e) => setSalonId(e.target.value)}
-          className="h-10 rounded-xl border border-input bg-background px-3 text-sm w-full sm:w-64"
-        >
-          <option value="">كل المتاجر</option>
-          {(salons.data ?? []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <div className="grid grid-cols-3 gap-2 flex-1 w-full">
-          <FinanceCard label="إجمالي" value={money(totals.total)} />
-          <FinanceCard label="محصّل" value={money(totals.paid)} tone="good" />
-          <FinanceCard label="مستحق" value={money(totals.due)} tone={totals.due > 0 ? "bad" : "good"} />
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-xs text-muted-foreground bg-muted/40">
-            <tr>
-              <th className="p-2 text-right">المتجر</th>
-              <th className="p-2 text-right">الفترة</th>
-              <th className="p-2 text-right">الإجمالي</th>
-              <th className="p-2 text-right">المدفوع</th>
-              <th className="p-2 text-right">الحالة</th>
-              <th className="p-2 text-right">الاستحقاق</th>
-              <th className="p-2 text-right">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-6 text-center text-muted-foreground text-xs">
-                  لا توجد فواتير اشتراك بعد.
-                </td>
-              </tr>
-            ) : (
-              rows.map((i) => (
-                <tr key={i.id} className="border-t border-border">
-                  <td className="p-2 font-semibold">{nameOf(i.salon_id)}</td>
-                  <td className="p-2 text-xs">
-                    {i.period_start} → {i.period_end}
-                  </td>
-                  <td className="p-2">{money(Number(i.total))}</td>
-                  <td className="p-2">{money(Number(i.paid))}</td>
-                  <td className="p-2 text-xs">
-                    <span
-                      className={cn(
-                        "px-2 py-0.5 rounded-full font-bold",
-                        i.status === "paid"
-                          ? "bg-primary/10 text-primary"
-                          : i.status === "void"
-                            ? "bg-muted text-muted-foreground"
-                            : "bg-destructive/10 text-destructive",
-                      )}
-                    >
-                      {SUB_STATUS_LABEL[i.status] ?? i.status}
-                    </span>
-                  </td>
-                  <td className="p-2 text-xs">{i.due_date ?? "—"}</td>
-                  <td className="p-2">
-                    <div className="flex gap-1 justify-end">
-                      {i.status !== "paid" && i.status !== "void" && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            pay.mutate({
-                              salonId: i.salon_id,
-                              invoiceId: i.id,
-                              amount: Number(i.total) - Number(i.paid),
-                              method: "transfer",
-                            })
-                          }
-                          className="h-8 px-2 rounded-lg border border-border text-xs font-semibold hover:bg-muted/50"
-                        >
-                          سداد كامل
-                        </button>
-                      )}
-                      {i.status !== "void" && (
-                        <button
-                          type="button"
-                          onClick={() => voidInv.mutate(i.id)}
-                          className="h-8 px-2 rounded-lg border border-border text-xs font-semibold hover:bg-muted/50"
-                        >
-                          إلغاء
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeInv.mutate(i.id)}
-                        className="size-8 grid place-items-center rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10"
-                        aria-label="حذف"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h2 className="font-bold text-sm mb-3">آخر الدفعات</h2>
-        <ul className="divide-y divide-border text-sm">
-          {(payments.data ?? [])
-            .filter((p) => !salonId || p.salon_id === salonId)
-            .slice(0, 15)
-            .map((p) => (
-              <li key={p.id} className="py-2 flex items-center justify-between gap-2">
-                <span className="font-semibold truncate">{nameOf(p.salon_id)}</span>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(p.paid_at).toLocaleDateString("ar-SA")} · {p.method}
-                </span>
-                <span className="font-bold">{money(Number(p.amount))}</span>
-              </li>
-            ))}
-          {(payments.data ?? []).length === 0 && (
-            <li className="py-3 text-xs text-muted-foreground">لا توجد دفعات مسجّلة.</li>
-          )}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full h-10 rounded-xl border border-input bg-background px-2 text-sm outline-none focus:border-primary"
-      />
-    </label>
   );
 }
 
@@ -996,7 +613,12 @@ function SupportTab() {
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [reply, setReply] = useState("");
-  const [newTicket, setNewTicket] = useState({ salonId: "", subject: "", body: "", priority: "normal" });
+  const [newTicket, setNewTicket] = useState({
+    salonId: "",
+    subject: "",
+    body: "",
+    priority: "normal",
+  });
 
   const messages = useQuery({
     queryKey: ["platform", "ticket-messages", activeId],
@@ -1099,11 +721,20 @@ function SupportTab() {
           />
           <button
             type="button"
-            disabled={!newTicket.salonId || !newTicket.subject.trim() || !newTicket.body.trim() || open.isPending}
+            disabled={
+              !newTicket.salonId ||
+              !newTicket.subject.trim() ||
+              !newTicket.body.trim() ||
+              open.isPending
+            }
             onClick={() => open.mutate()}
             className="w-full h-10 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {open.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            {open.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Plus className="size-4" />
+            )}
             فتح التذكرة
           </button>
         </div>
@@ -1166,9 +797,7 @@ function SupportTab() {
                   key={m.id}
                   className={cn(
                     "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-                    m.from_platform
-                      ? "bg-primary/10 mr-auto"
-                      : "bg-muted ml-auto",
+                    m.from_platform ? "bg-primary/10 mr-auto" : "bg-muted ml-auto",
                   )}
                 >
                   <div className="text-[10px] text-muted-foreground mb-0.5">
@@ -1195,7 +824,11 @@ function SupportTab() {
                 onClick={() => send.mutate()}
                 className="h-10 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center gap-2 disabled:opacity-60"
               >
-                {send.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {send.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
                 إرسال
               </button>
             </div>
@@ -1346,7 +979,10 @@ function PlanCard({ plan }: { plan: PlanRow }) {
         <Chip label="الموظفون" value={plan.max_staff} />
         <Chip label="الخدمات" value={plan.max_services} />
         <Chip label="العملاء" value={plan.max_customers} />
-        <Chip label="الفواتير شهريًا" value={plan.max_invoices > 0 ? plan.max_invoices : "غير محدود"} />
+        <Chip
+          label="الفواتير شهريًا"
+          value={plan.max_invoices > 0 ? plan.max_invoices : "غير محدود"}
+        />
         <Chip label="موقع إلكتروني" value={plan.has_website ? "نعم" : "لا"} />
       </div>
 
@@ -1619,7 +1255,11 @@ function AdminsTab() {
             disabled={grant.isPending || !email.trim()}
             className="h-11 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center gap-2 disabled:opacity-60"
           >
-            {grant.isPending ? <Loader2 className="size-4 animate-spin" /> : <Crown className="size-4" />}
+            {grant.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Crown className="size-4" />
+            )}
             ترقية
           </button>
         </div>

@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, Banknote, Phone, Share2, LayoutTemplate } from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell } from "@/components/salon/app-shell";
+import { OwnerShell } from "@/components/platform/owner-shell";
 import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import {
   PlatformContactCard,
@@ -74,14 +74,14 @@ function PlatformSettingsPage() {
 
   if (!isOwner) {
     return (
-      <AppShell title="إعدادات المنصة" subtitle="مخصصة لمالك المنصة">
+      <OwnerShell title="إعدادات المنصة" subtitle="مخصصة لمالك المنصة">
         <p className="text-sm text-muted-foreground">هذه الصفحة متاحة لمالك المنصة فقط.</p>
-      </AppShell>
+      </OwnerShell>
     );
   }
 
   return (
-    <AppShell
+    <OwnerShell
       title="إعدادات المنصة"
       subtitle="بيانات السداد وأرقام التواصل والسوشل ميديا ومحتوى الصفحة الرئيسية"
       action={
@@ -175,7 +175,7 @@ function PlatformSettingsPage() {
           <PlatformContactCard settings={form} />
         </div>
       </div>
-    </AppShell>
+    </OwnerShell>
   );
 }
 

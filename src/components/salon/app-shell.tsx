@@ -66,6 +66,9 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/platform", roles: ["platform_owner"] },
   { prefix: "/platform-settings", roles: ["platform_owner"] },
   { prefix: "/platform-site", roles: ["platform_owner"] },
+  { prefix: "/platform-subscriptions", roles: ["platform_owner"] },
+  { prefix: "/platform-customers", roles: ["platform_owner"] },
+  { prefix: "/platform-database", roles: ["platform_owner"] },
 
   { prefix: "/dashboard", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/services", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -130,8 +133,6 @@ const nav: {
   module?: string;
 }[] = [
   { to: "/platform", label: "لوحة المنصة", icon: Crown, manager: true, platform: true, group: "main" },
-  { to: "/platform-settings", label: "إعدادات المنصة", icon: Settings, manager: true, platform: true, group: "main" },
-  { to: "/platform-site", label: "هوية الموقع الرئيسي", icon: Globe, manager: true, platform: true, group: "main" },
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard, manager: true, group: "main" },
 
   // Daily operations
