@@ -16,6 +16,54 @@ export interface PlatformFeatureItem {
   desc?: string;
 }
 
+/** Search-engine and social-share metadata for the platform landing page. */
+export interface PlatformSeo {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageUrl?: string;
+}
+
+export interface PlatformNavLink {
+  label: string;
+  href: string;
+}
+
+/** Per-language overrides of the marketing copy. */
+export interface PlatformLocaleContent {
+  brandName?: string;
+  tagline?: string;
+  heroBadge?: string;
+  headline?: string;
+  subheadline?: string;
+  ctaLabel?: string;
+  ctaSecondaryLabel?: string;
+  heroNote?: string;
+  featuresTitle?: string;
+  showcaseTitle?: string;
+  posTitle?: string;
+  posText?: string;
+  plansTitle?: string;
+  plansNote?: string;
+  contactTitle?: string;
+  footerText?: string;
+  navLinks?: PlatformNavLink[];
+  features?: PlatformFeatureItem[];
+  includedItems?: string[];
+  seo?: PlatformSeo;
+}
+
+export const PLATFORM_LANGS = [
+  { code: "ar", label: "العربية", dir: "rtl" as const },
+  { code: "en", label: "English", dir: "ltr" as const },
+];
+
+export type PlatformLangCode = (typeof PLATFORM_LANGS)[number]["code"];
+
+
+
 /** Content and identity of the platform's own marketing website. */
 export interface PlatformHome {
   headline?: string;
@@ -42,12 +90,53 @@ export interface PlatformHome {
   posText?: string;
   posImageUrl?: string;
   footerText?: string;
+  navLinks?: PlatformNavLink[];
   showFeatures?: boolean;
   showShowcase?: boolean;
   showPos?: boolean;
   showPlans?: boolean;
   showContact?: boolean;
+  /** SEO / social sharing */
+  seo?: PlatformSeo;
+  /** i18n: `defaultLang` holds the fields above; other languages live in `translations`. */
+  defaultLang?: PlatformLangCode;
+  languages?: PlatformLangCode[];
+  translations?: Record<string, PlatformLocaleContent>;
 }
+
+/** Merges a language's overrides over the default content. Empty values fall back. */
+export function resolvePlatformContent(
+  settings: PlatformSettings,
+  lang: string,
+): { brandName: string; home: PlatformHome; seo: PlatformSeo; dir: "rtl" | "ltr" } {
+  const home = settings.home ?? {};
+  const defaultLang = home.defaultLang ?? "ar";
+  const tr = lang === defaultLang ? undefined : home.translations?.[lang];
+  const dir = PLATFORM_LANGS.find((l) => l.code === lang)?.dir ?? "rtl";
+  if (!tr) return { brandName: settings.brandName, home, seo: home.seo ?? {}, dir };
+
+  const merged: PlatformHome = { ...home };
+  for (const [k, v] of Object.entries(tr)) {
+    if (k === "seo" || k === "brandName") continue;
+    const empty =
+      v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
+    if (!empty) (merged as Record<string, unknown>)[k] = v;
+  }
+  return {
+    brandName: tr.brandName?.trim() || settings.brandName,
+    home: merged,
+    seo: { ...(home.seo ?? {}), ...cleanSeo(tr.seo) },
+    dir,
+  };
+}
+
+function cleanSeo(seo?: PlatformSeo): PlatformSeo {
+  if (!seo) return {};
+  return Object.fromEntries(
+    Object.entries(seo).filter(([, v]) => typeof v === "string" && v.trim()),
+  ) as PlatformSeo;
+}
+
 
 export interface PlatformSettings {
   brandName: string;

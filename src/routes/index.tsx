@@ -12,6 +12,7 @@ import {
   Building2,
   Check,
   Sparkles,
+  Languages,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +22,13 @@ import {
   PlatformContactCard,
   usePlatformSettings,
 } from "@/components/platform/platform-contact-card";
-import { listPublicPlans } from "@/lib/db/platform-settings-repo";
+import {
+  EMPTY_PLATFORM_SETTINGS,
+  listPublicPlans,
+  loadPlatformSettings,
+  resolvePlatformContent,
+  PLATFORM_LANGS,
+} from "@/lib/db/platform-settings-repo";
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
@@ -30,26 +37,59 @@ import heroImg from "@/assets/platform-hero.jpg";
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
 
+const FALLBACK_TITLE = "Salon Flow — منصة إدارة المشاغل والصالونات";
+const FALLBACK_DESC =
+  "منصة سحابية لملاك المشاغل: حجوزات بلا تعارض، فواتير ضريبية، فروع متعددة، مخزون، رواتب وحضور، محافظ ونقاط ولاء.";
+
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Salon Flow — منصة إدارة المشاغل والصالونات" },
-      {
-        name: "description",
-        content:
-          "منصة سحابية لملاك المشاغل: حجوزات بلا تعارض، فواتير ضريبية، فروع متعددة، مخزون، رواتب وحضور، محافظ ونقاط ولاء.",
-      },
-      { property: "og:title", content: "Salon Flow — منصة إدارة المشاغل والصالونات" },
-      {
-        property: "og:description",
-        content: "أدر مشغلك وفروعك بالكامل من مكان واحد: الحجوزات والخدمات والموظفين والفواتير والمخزون.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  validateSearch: (search: Record<string, unknown>): { lang?: string } =>
+    typeof search.lang === "string" ? { lang: search.lang } : {},
+
+  loaderDeps: ({ search }) => ({ lang: search.lang }),
+  loader: async ({ deps }) => {
+    let settings = EMPTY_PLATFORM_SETTINGS;
+    try {
+      settings = await loadPlatformSettings();
+    } catch {
+      /* landing page still renders with built-in copy */
+    }
+    const lang = deps.lang ?? settings.home?.defaultLang ?? "ar";
+    const { brandName, seo, home } = resolvePlatformContent(settings, lang);
+    return {
+      lang,
+      title: seo.title?.trim() || `${brandName} — ${home.tagline || "منصة إدارة المشاغل والصالونات"}`,
+      description: seo.description?.trim() || home.subheadline?.trim() || FALLBACK_DESC,
+      keywords: seo.keywords?.trim() || "",
+      ogTitle: seo.ogTitle?.trim() || seo.title?.trim() || brandName,
+      ogDescription: seo.ogDescription?.trim() || seo.description?.trim() || FALLBACK_DESC,
+      ogImage: seo.ogImageUrl?.trim() || "",
+    };
+  },
+  head: ({ loaderData }) => {
+    const d = loaderData;
+    return {
+      meta: [
+        { title: d?.title || FALLBACK_TITLE },
+        { name: "description", content: d?.description || FALLBACK_DESC },
+        ...(d?.keywords ? [{ name: "keywords", content: d.keywords }] : []),
+        { property: "og:title", content: d?.ogTitle || FALLBACK_TITLE },
+        { property: "og:description", content: d?.ogDescription || FALLBACK_DESC },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://novaa.live/" },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(d?.ogImage
+          ? [
+              { property: "og:image", content: d.ogImage },
+              { name: "twitter:image", content: d.ogImage },
+            ]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: "https://novaa.live/" }],
+    };
+  },
   component: Landing,
 });
+
 
 const features = [
   { icon: CalendarDays, title: "حجوزات ذكية", desc: "منع تعارض مواعيد الموظفين تلقائيًا وترقيم حجوزات تسلسلي." },
@@ -70,9 +110,18 @@ const included = [
 function Landing() {
   const navigate = useNavigate();
   const settings = usePlatformSettings();
+  const { lang } = Route.useSearch();
   const plans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
-  const home = settings.data?.home ?? {};
-  const brand = settings.data?.brandName || "Salon Flow";
+  const base = settings.data ?? EMPTY_PLATFORM_SETTINGS;
+  const activeLang = lang ?? base.home?.defaultLang ?? "ar";
+  const resolved = resolvePlatformContent(base, activeLang);
+  const home = resolved.home;
+  const brand = resolved.brandName || "Salon Flow";
+  const dir = resolved.dir;
+  const enabledLangs = PLATFORM_LANGS.filter(
+    (l) => (home.languages ?? ["ar"]).includes(l.code) || l.code === activeLang,
+  );
+  const navLinks = (home.navLinks ?? []).filter((l) => l.label.trim() && l.href.trim());
   // Owner-managed content falls back to the built-in copy and artwork.
   const customFeatures = (home.features ?? []).filter((f) => f.title.trim());
   const featureCards = customFeatures.length
@@ -80,6 +129,7 @@ function Landing() {
     : features;
   const includedItems = (home.includedItems ?? []).filter((i) => i.trim());
   const includedList = includedItems.length ? includedItems : included;
+
 
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
@@ -118,8 +168,8 @@ function Landing() {
   }, [navigate]);
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background">
-      <header className="h-16 border-b border-border flex items-center justify-between px-4 sm:px-8">
+    <main dir={dir} className="min-h-screen bg-background">
+      <header className="h-16 border-b border-border flex items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-3">
           {home.logoUrl ? (
             <img src={home.logoUrl} alt={brand} className="h-11 w-auto object-contain" />
@@ -135,7 +185,33 @@ function Landing() {
             )}
           </span>
         </div>
+        {navLinks.length > 0 && (
+          <nav className="hidden md:flex items-center gap-4 text-sm">
+            {navLinks.map((l) => (
+              <a key={`${l.label}-${l.href}`} href={l.href} className="hover:text-primary">
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        )}
         <div className="flex items-center gap-2">
+          {enabledLangs.length > 1 && (
+            <div className="hidden sm:flex items-center gap-1 rounded-lg border border-border p-1">
+              <Languages className="size-3.5 text-muted-foreground mx-1" />
+              {enabledLangs.map((l) => (
+                <Link
+                  key={l.code}
+                  to="/"
+                  search={{ lang: l.code }}
+                  className={`rounded-md px-2 py-1 text-xs font-semibold ${
+                    l.code === activeLang ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          )}
           <Link
             to="/auth"
             className="hidden sm:inline-flex h-10 items-center px-4 rounded-lg border border-border text-sm hover:bg-muted"
@@ -150,6 +226,7 @@ function Landing() {
           </Link>
         </div>
       </header>
+
 
       <section className="relative overflow-hidden">
         <img

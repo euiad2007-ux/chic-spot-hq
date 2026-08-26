@@ -11,10 +11,14 @@ import {
   Trash2,
   ToggleRight,
   Type,
+  Search,
+  Languages,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/salon/app-shell";
+import { ImageUploadField } from "@/components/platform/image-upload-field";
 import {
   usePlatformSettings,
   PLATFORM_SETTINGS_KEY,
@@ -23,9 +27,13 @@ import { useAccount } from "@/hooks/use-account";
 import {
   EMPTY_PLATFORM_SETTINGS,
   savePlatformSettings,
+  PLATFORM_LANGS,
   type PlatformHome,
+  type PlatformLocaleContent,
+  type PlatformSeo,
   type PlatformSettings,
 } from "@/lib/db/platform-settings-repo";
+
 
 export const Route = createFileRoute("/_authenticated/platform-site")({
   head: () => ({
@@ -74,6 +82,23 @@ function PlatformSitePage() {
 
   const features = home.features ?? [];
   const included = home.includedItems ?? [];
+  const seo = home.seo ?? {};
+  const setSeo = <K extends keyof PlatformSeo>(k: K, v: string) =>
+    setHome("seo", { ...seo, [k]: v } as PlatformSeo);
+  const navLinks = home.navLinks ?? [];
+
+  const defaultLang = home.defaultLang ?? "ar";
+  const enabled = home.languages ?? ["ar"];
+  const [trLang, setTrLang] = useState<string>(
+    PLATFORM_LANGS.find((l) => l.code !== defaultLang)?.code ?? "en",
+  );
+  const tr = home.translations?.[trLang] ?? {};
+  const setTr = <K extends keyof PlatformLocaleContent>(k: K, v: PlatformLocaleContent[K]) =>
+    setHome("translations", {
+      ...(home.translations ?? {}),
+      [trLang]: { ...tr, [k]: v },
+    });
+
 
   if (!isOwner) {
     return (
@@ -110,27 +135,21 @@ function PlatformSitePage() {
             onChange={(v) => setHome("tagline", v)}
             placeholder="منصة إدارة المشاغل والصالونات"
           />
-          <Field
-            label="رابط الشعار (Logo)"
+          <ImageUploadField
+            label="الشعار (Logo)"
+            preset="logo"
+            contain
             value={home.logoUrl ?? ""}
             onChange={(v) => setHome("logoUrl", v)}
-            placeholder="https://…/logo.png"
           />
-          <Field
-            label="رابط أيقونة المتصفح (Favicon)"
+          <ImageUploadField
+            label="أيقونة المتصفح (Favicon)"
+            preset="favicon"
+            contain
             value={home.faviconUrl ?? ""}
             onChange={(v) => setHome("faviconUrl", v)}
-            placeholder="https://…/favicon.png"
           />
-          {home.logoUrl && (
-            <div className="rounded-xl border border-border bg-muted/40 p-3">
-              <img
-                src={home.logoUrl}
-                alt="معاينة شعار المنصة"
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-          )}
+
         </Card>
 
         <Card title="القسم الرئيسي (Hero)" icon={ImageIcon}>
@@ -168,12 +187,13 @@ function PlatformSitePage() {
             onChange={(v) => setHome("heroNote", v)}
             multiline
           />
-          <Field
-            label="رابط صورة الخلفية"
+          <ImageUploadField
+            label="صورة خلفية القسم الرئيسي"
+            preset="hero"
             value={home.heroImageUrl ?? ""}
             onChange={(v) => setHome("heroImageUrl", v)}
-            placeholder="https://…/hero.jpg"
           />
+
         </Card>
 
         <Card title="قسم المزايا" icon={LayoutTemplate}>
@@ -238,11 +258,13 @@ function PlatformSitePage() {
             value={home.showcaseTitle ?? ""}
             onChange={(v) => setHome("showcaseTitle", v)}
           />
-          <Field
-            label="رابط الصورة"
+          <ImageUploadField
+            label="صورة القسم"
+            preset="wide"
             value={home.showcaseImageUrl ?? ""}
             onChange={(v) => setHome("showcaseImageUrl", v)}
           />
+
           <div className="space-y-2">
             {included.map((it, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -287,11 +309,13 @@ function PlatformSitePage() {
             onChange={(v) => setHome("posText", v)}
             multiline
           />
-          <Field
-            label="رابط الصورة"
+          <ImageUploadField
+            label="صورة القسم"
+            preset="wide"
             value={home.posImageUrl ?? ""}
             onChange={(v) => setHome("posImageUrl", v)}
           />
+
         </Card>
 
         <Card title="الباقات والتواصل والتذييل" icon={Phone}>
@@ -362,7 +386,226 @@ function PlatformSitePage() {
             جميع الأقسام ظاهرة افتراضيًا — أزل التحديد لإخفاء القسم من الصفحة الرئيسية.
           </p>
         </Card>
+
+        <Card title="تحسين محركات البحث (SEO)" icon={Search}>
+          <Field
+            label="عنوان الصفحة (Title)"
+            value={seo.title ?? ""}
+            onChange={(v) => setSeo("title", v)}
+            placeholder="أقل من 60 حرفًا"
+          />
+          <Field
+            label="وصف الصفحة (Meta description)"
+            value={seo.description ?? ""}
+            onChange={(v) => setSeo("description", v)}
+            placeholder="أقل من 160 حرفًا"
+            multiline
+          />
+          <Field
+            label="الكلمات المفتاحية (اختياري)"
+            value={seo.keywords ?? ""}
+            onChange={(v) => setSeo("keywords", v)}
+            placeholder="إدارة صالونات، حجوزات، فواتير ضريبية"
+          />
+          <Field
+            label="Open Graph — العنوان"
+            value={seo.ogTitle ?? ""}
+            onChange={(v) => setSeo("ogTitle", v)}
+          />
+          <Field
+            label="Open Graph — الوصف"
+            value={seo.ogDescription ?? ""}
+            onChange={(v) => setSeo("ogDescription", v)}
+            multiline
+          />
+          <ImageUploadField
+            label="صورة المشاركة (og:image)"
+            preset="og"
+            value={seo.ogImageUrl ?? ""}
+            onChange={(v) => setSeo("ogImageUrl", v)}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            قد تحتاج منصات التواصل بعض الوقت لتحديث معاينة الرابط بعد تغيير الصورة أو العنوان.
+          </p>
+        </Card>
+
+        <Card title="روابط الأقسام في الشريط العلوي" icon={Link2}>
+          {navLinks.map((l, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={l.label}
+                onChange={(e) => {
+                  const next = [...navLinks];
+                  next[i] = { ...l, label: e.target.value };
+                  setHome("navLinks", next);
+                }}
+                placeholder="اسم القسم"
+                className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm"
+              />
+              <input
+                value={l.href}
+                onChange={(e) => {
+                  const next = [...navLinks];
+                  next[i] = { ...l, href: e.target.value };
+                  setHome("navLinks", next);
+                }}
+                placeholder="#plans"
+                dir="ltr"
+                className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm"
+              />
+              <button
+                type="button"
+                aria-label="حذف الرابط"
+                onClick={() => setHome("navLinks", navLinks.filter((_, j) => j !== i))}
+                className="size-9 rounded-lg border border-border grid place-items-center text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setHome("navLinks", [...navLinks, { label: "", href: "" }])}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted"
+          >
+            <Plus className="size-3.5" /> إضافة رابط
+          </button>
+        </Card>
+
+        <Card title="اللغات والترجمات" icon={Languages}>
+          <div className="space-y-2">
+            {PLATFORM_LANGS.map((l) => (
+              <label
+                key={l.code}
+                className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2.5 text-sm"
+              >
+                <span>
+                  {l.label}
+                  {l.code === defaultLang && (
+                    <span className="ms-2 text-[11px] text-muted-foreground">(اللغة الأساسية)</span>
+                  )}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={enabled.includes(l.code) || l.code === defaultLang}
+                  disabled={l.code === defaultLang}
+                  onChange={(e) =>
+                    setHome(
+                      "languages",
+                      e.target.checked
+                        ? [...new Set([...enabled, l.code])]
+                        : enabled.filter((c) => c !== l.code),
+                    )
+                  }
+                  className="size-4 accent-primary"
+                />
+              </label>
+            ))}
+          </div>
+
+          <label className="block space-y-1.5">
+            <span className="text-xs text-muted-foreground">تحرير ترجمة لغة</span>
+            <select
+              value={trLang}
+              onChange={(e) => setTrLang(e.target.value)}
+              className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm"
+            >
+              {PLATFORM_LANGS.filter((l) => l.code !== defaultLang).map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <Field label="اسم المنصة" value={tr.brandName ?? ""} onChange={(v) => setTr("brandName", v)} />
+          <Field label="الوصف المختصر" value={tr.tagline ?? ""} onChange={(v) => setTr("tagline", v)} />
+          <Field label="العنوان الرئيسي" value={tr.headline ?? ""} onChange={(v) => setTr("headline", v)} />
+          <Field
+            label="النص التعريفي"
+            value={tr.subheadline ?? ""}
+            onChange={(v) => setTr("subheadline", v)}
+            multiline
+          />
+          <Field label="نص الزر الأساسي" value={tr.ctaLabel ?? ""} onChange={(v) => setTr("ctaLabel", v)} />
+          <Field
+            label="نص الزر الثانوي"
+            value={tr.ctaSecondaryLabel ?? ""}
+            onChange={(v) => setTr("ctaSecondaryLabel", v)}
+          />
+          <Field
+            label="عنوان قسم المزايا"
+            value={tr.featuresTitle ?? ""}
+            onChange={(v) => setTr("featuresTitle", v)}
+          />
+          <Field label="عنوان قسم الباقات" value={tr.plansTitle ?? ""} onChange={(v) => setTr("plansTitle", v)} />
+          <Field
+            label="عنوان قسم التواصل"
+            value={tr.contactTitle ?? ""}
+            onChange={(v) => setTr("contactTitle", v)}
+          />
+          <Field label="نص التذييل" value={tr.footerText ?? ""} onChange={(v) => setTr("footerText", v)} />
+          <Field
+            label="SEO — عنوان الصفحة"
+            value={tr.seo?.title ?? ""}
+            onChange={(v) => setTr("seo", { ...(tr.seo ?? {}), title: v })}
+          />
+          <Field
+            label="SEO — وصف الصفحة"
+            value={tr.seo?.description ?? ""}
+            onChange={(v) => setTr("seo", { ...(tr.seo ?? {}), description: v })}
+            multiline
+          />
+          <div className="space-y-2">
+            <span className="text-xs text-muted-foreground">روابط الأقسام بهذه اللغة</span>
+            {(tr.navLinks ?? []).map((l, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={l.label}
+                  onChange={(e) => {
+                    const next = [...(tr.navLinks ?? [])];
+                    next[i] = { ...l, label: e.target.value };
+                    setTr("navLinks", next);
+                  }}
+                  placeholder="Section name"
+                  className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm"
+                />
+                <input
+                  value={l.href}
+                  onChange={(e) => {
+                    const next = [...(tr.navLinks ?? [])];
+                    next[i] = { ...l, href: e.target.value };
+                    setTr("navLinks", next);
+                  }}
+                  placeholder="#plans"
+                  dir="ltr"
+                  className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm"
+                />
+                <button
+                  type="button"
+                  aria-label="حذف الرابط"
+                  onClick={() => setTr("navLinks", (tr.navLinks ?? []).filter((_, j) => j !== i))}
+                  className="size-9 rounded-lg border border-border grid place-items-center text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setTr("navLinks", [...(tr.navLinks ?? []), { label: "", href: "" }])}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted"
+            >
+              <Plus className="size-3.5" /> إضافة رابط
+            </button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            الحقول الفارغة تعود تلقائيًا إلى نص اللغة الأساسية. تُعرض النسخة عبر ‎?lang=رمز اللغة‎
+            ومن مبدّل اللغة في الشريط العلوي.
+          </p>
+        </Card>
       </div>
+
     </AppShell>
   );
 }
