@@ -97,9 +97,10 @@ export function themeVars(theme?: PlatformTheme): React.CSSProperties {
   }
   const radius = RADIUS_OPTIONS.find((r) => r.code === t.radius);
   if (radius) vars["--radius"] = radius.value;
-  vars["--font-sans"] = fontOption(t.font).family;
-  vars["fontFamily" as string] = fontOption(t.font).family;
-  return vars as React.CSSProperties;
+  const family = fontOption(t.font).family;
+  vars["--font-sans"] = family;
+  vars["--font-display"] = family;
+  return { ...vars, fontFamily: family } as React.CSSProperties;
 }
 
 /** Classes for the primary call-to-action button in the chosen style. */
