@@ -55,7 +55,7 @@ export async function resolveUserResilient(
     const stillValid =
       session?.user &&
       (!session.expires_at || session.expires_at * 1000 > Date.now());
-    if (stillValid) return { user: session!.user, degraded: true };
+    if (stillValid && session?.user) return { user: session.user, degraded: true };
   }
 
   return { user: null, degraded: false };

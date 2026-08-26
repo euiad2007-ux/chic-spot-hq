@@ -89,9 +89,11 @@ function slugify(name: string): string {
 
 /** Loads the signed-in user together with tenant membership and role. */
 export async function loadAccount(): Promise<Account | null> {
-  const { data: userRes, error } = await supabase.auth.getUser();
-  if (error || !userRes.user) return null;
-  const user = userRes.user;
+  // Keep account hydration on the same resilient identity path as the route
+  // guard. A successful login must not become a signed-out result merely
+  // because the immediate Auth revalidation request timed out.
+  const { user } = await resolveUserResilient();
+  if (!user) return null;
 
   const { data: rows } = await supabase
     .from("salon_members")

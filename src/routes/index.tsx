@@ -66,6 +66,7 @@ export const Route = createFileRoute("/")({
     const lang = deps.lang ?? settings.home?.defaultLang ?? "ar";
     const { brandName, seo, home } = resolvePlatformContent(settings, lang);
     return {
+      settings,
       lang,
       title: seo.title?.trim() || `${brandName} — ${home.tagline || "منصة إدارة المشاغل والصالونات"}`,
       description: seo.description?.trim() || home.subheadline?.trim() || FALLBACK_DESC,
@@ -119,7 +120,8 @@ const included = [
 
 function Landing() {
   const navigate = useNavigate();
-  const settings = usePlatformSettings();
+  const loaderData = Route.useLoaderData();
+  const settings = usePlatformSettings(loaderData.settings);
   const { lang } = Route.useSearch();
   const plans = useQuery({ queryKey: ["public-plans"], queryFn: listPublicPlans });
   const base = settings.data ?? EMPTY_PLATFORM_SETTINGS;
