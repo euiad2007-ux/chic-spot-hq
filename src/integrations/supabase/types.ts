@@ -102,6 +102,7 @@ export type Database = {
       audit_log: {
         Row: {
           action: string
+          actor_name: string | null
           after: Json | null
           before: Json | null
           created_at: string
@@ -113,6 +114,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          actor_name?: string | null
           after?: Json | null
           before?: Json | null
           created_at?: string
@@ -124,6 +126,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          actor_name?: string | null
           after?: Json | null
           before?: Json | null
           created_at?: string
@@ -2052,6 +2055,50 @@ export type Database = {
           },
         ]
       }
+      platform_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          due_at: string | null
+          id: string
+          kind: string
+          meta: Json
+          read_at: string | null
+          salon_id: string | null
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          kind: string
+          meta?: Json
+          read_at?: string | null
+          salon_id?: string | null
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          kind?: string
+          meta?: Json
+          read_at?: string | null
+          salon_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_notifications_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_plans: {
         Row: {
           code: string
@@ -3540,6 +3587,10 @@ export type Database = {
       }
       redeem_loyalty: {
         Args: { _customer: string; _points: number; _rate?: number }
+        Returns: number
+      }
+      refresh_subscription_expiry_notifications: {
+        Args: never
         Returns: number
       }
       reopen_fiscal_year: {

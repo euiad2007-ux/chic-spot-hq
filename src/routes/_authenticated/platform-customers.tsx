@@ -6,6 +6,7 @@ import { Loader2, Search, Users2 } from "lucide-react";
 import { OwnerShell } from "@/components/platform/owner-shell";
 import { money, fmtDate, OwnerStat } from "@/components/platform/owner-ui";
 import { listPlatformCustomers } from "@/lib/db/platform-repo";
+import { useAccount } from "@/hooks/use-account";
 
 export const Route = createFileRoute("/_authenticated/platform-customers")({
   ssr: false,
@@ -30,9 +31,12 @@ export const Route = createFileRoute("/_authenticated/platform-customers")({
 });
 
 function PlatformCustomersPage() {
+  const { data: account, isLoading: accountLoading } = useAccount();
+  const isOwner = account?.role === "platform_owner";
   const customers = useQuery({
     queryKey: ["platform", "customers"],
     queryFn: listPlatformCustomers,
+    enabled: isOwner,
   });
   const [q, setQ] = useState("");
   const [salon, setSalon] = useState("");
@@ -64,10 +68,12 @@ function PlatformCustomersPage() {
 
   return (
     <OwnerShell title="عملاء المتاجر" subtitle="كل عملاء المنصة، متاجرهم، وعائدهم">
-      {customers.isLoading ? (
+      {accountLoading || customers.isLoading ? (
         <div className="grid place-items-center py-16">
           <Loader2 className="size-6 animate-spin text-primary" />
         </div>
+      ) : !isOwner ? (
+        <p className="text-sm text-muted-foreground">هذه الصفحة متاحة لمالك المنصة فقط.</p>
       ) : customers.isError ? (
         <p className="text-sm text-destructive">تعذّر تحميل بيانات العملاء.</p>
       ) : (

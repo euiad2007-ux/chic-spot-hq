@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, ReceiptText, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useAccount } from "@/hooks/use-account";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,17 @@ export const Route = createFileRoute("/_authenticated/platform-subscriptions")({
 });
 
 function SubscriptionsPage() {
+  const { data: account, isLoading } = useAccount();
+  if (isLoading) {
+    return <div className="min-h-screen grid place-items-center"><Loader2 className="size-6 animate-spin text-primary" /></div>;
+  }
+  if (account?.role !== "platform_owner") {
+    return (
+      <OwnerShell title="إدارة الاشتراكات" subtitle="مخصصة لمالك المنصة">
+        <p className="text-sm text-muted-foreground">هذه الصفحة متاحة لمالك المنصة فقط.</p>
+      </OwnerShell>
+    );
+  }
   return (
     <OwnerShell
       title="إدارة الاشتراكات"
