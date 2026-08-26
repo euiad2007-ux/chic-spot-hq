@@ -30,9 +30,13 @@ import {
   PLATFORM_LANGS,
 } from "@/lib/db/platform-settings-repo";
 import {
-  fontHref,
+  brandNameStyle,
+  brandUsesGradient,
+  imageOpacityStyle,
+  logoStyle,
   primaryButtonClass,
   secondaryButtonClass,
+  themeFontsHref,
   themeVars,
 } from "@/lib/platform-theme";
 import { supabase } from "@/integrations/supabase/client";
@@ -142,8 +146,7 @@ function Landing() {
   // The owner-selected web font is loaded on demand.
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const href = fontHref(theme?.font);
-    if (!href) return;
+    const href = themeFontsHref(theme);
     let link = document.querySelector<HTMLLinkElement>('link[data-platform-font="1"]');
     if (!link) {
       link = document.createElement("link");
@@ -152,7 +155,7 @@ function Landing() {
       document.head.appendChild(link);
     }
     link.href = href;
-  }, [theme?.font]);
+  }, [theme?.font, theme?.brandFont, theme?.planFont]);
 
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
@@ -195,14 +198,24 @@ function Landing() {
       <header className="h-16 border-b border-border flex items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-3">
           {home.logoUrl ? (
-            <img src={home.logoUrl} alt={brand} className="h-11 w-auto object-contain" />
+            <img
+              src={home.logoUrl}
+              alt={brand}
+              style={logoStyle(theme)}
+              className="w-auto object-contain"
+            />
           ) : (
             <span className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Scissors className="size-5 text-primary-foreground" />
             </span>
           )}
           <span className="leading-tight">
-            <span className="block font-extrabold text-lg gradient-text">{brand}</span>
+            <span
+              style={brandNameStyle(theme)}
+              className={`block font-extrabold ${brandUsesGradient(theme) ? "gradient-text" : ""}`}
+            >
+              {brand}
+            </span>
             {home.tagline && (
               <span className="block text-[11px] text-muted-foreground">{home.tagline}</span>
             )}
@@ -257,6 +270,7 @@ function Landing() {
           alt="صالون تجميل فاخر بإضاءة ذهبية وكراسي بلون الليلك"
           width={1600}
           height={1008}
+          style={imageOpacityStyle(theme, "hero")}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/85 to-background/60" />
@@ -327,6 +341,7 @@ function Landing() {
             loading="lazy"
             width={1200}
             height={900}
+            style={imageOpacityStyle(theme)}
             className="w-full h-full object-cover"
           />
         </div>
@@ -374,6 +389,7 @@ function Landing() {
             loading="lazy"
             width={1200}
             height={900}
+            style={imageOpacityStyle(theme)}
             className="w-full h-full object-cover"
           />
         </div>
@@ -390,6 +406,7 @@ function Landing() {
             "اختر الباقة المناسبة لحجم مشغلك — تُفعّل الأقسام والحدود تلقائيًا حسب الباقة."
           }
           cardStyle={theme?.planCardStyle}
+          theme={theme}
         />
       </section>
       )}

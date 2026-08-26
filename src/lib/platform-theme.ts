@@ -12,6 +12,24 @@ export interface PlatformTheme {
   buttonStyle?: string;
   planCardStyle?: string;
   radius?: string;
+  /** Site name (brand) typography */
+  brandFont?: string;
+  brandColor?: string;
+  brandGradient?: boolean;
+  brandSize?: string;
+  /** Logo height in the header, in pixels */
+  logoHeight?: number;
+  /** Text colors */
+  mutedColor?: string;
+  /** Opacity (0–100) applied to site images */
+  imageOpacity?: number;
+  heroImageOpacity?: number;
+  /** Plan cards */
+  planFont?: string;
+  planTitleColor?: string;
+  planPriceColor?: string;
+  planCardBg?: string;
+  planBorderColor?: string;
 }
 
 export const FONT_OPTIONS = [
@@ -21,6 +39,22 @@ export const FONT_OPTIONS = [
   { code: "ibm-plex", label: "IBM Plex Sans Arabic", family: "'IBM Plex Sans Arabic', sans-serif", google: "IBM+Plex+Sans+Arabic:wght@400;600;700" },
   { code: "readex", label: "Readex Pro", family: "'Readex Pro', sans-serif", google: "Readex+Pro:wght@400;500;700" },
   { code: "rubik", label: "Rubik", family: "'Rubik', sans-serif", google: "Rubik:wght@400;600;800" },
+  { code: "noto-kufi", label: "Noto Kufi Arabic", family: "'Noto Kufi Arabic', sans-serif", google: "Noto+Kufi+Arabic:wght@400;600;800" },
+  { code: "changa", label: "Changa", family: "'Changa', sans-serif", google: "Changa:wght@400;600;800" },
+  { code: "amiri", label: "Amiri (نسخ)", family: "'Amiri', serif", google: "Amiri:wght@400;700" },
+  { code: "el-messiri", label: "El Messiri", family: "'El Messiri', sans-serif", google: "El+Messiri:wght@400;600;700" },
+  { code: "lalezar", label: "Lalezar (عريض)", family: "'Lalezar', cursive", google: "Lalezar" },
+  { code: "reem-kufi", label: "Reem Kufi", family: "'Reem Kufi', sans-serif", google: "Reem+Kufi:wght@400;600;700" },
+  { code: "markazi", label: "Markazi Text", family: "'Markazi Text', serif", google: "Markazi+Text:wght@400;600;700" },
+  { code: "harmattan", label: "Harmattan", family: "'Harmattan', sans-serif", google: "Harmattan:wght@400;700" },
+  { code: "mada", label: "Mada", family: "'Mada', sans-serif", google: "Mada:wght@400;600;900" },
+] as const;
+
+export const BRAND_SIZES = [
+  { code: "sm", label: "صغير", value: "1.05rem" },
+  { code: "md", label: "متوسط", value: "1.25rem" },
+  { code: "lg", label: "كبير", value: "1.6rem" },
+  { code: "xl", label: "ضخم", value: "2rem" },
 ] as const;
 
 export const BUTTON_STYLES = [
@@ -30,6 +64,7 @@ export const BUTTON_STYLES = [
   { code: "pill", label: "كبسولة (تدرّج)" },
   { code: "soft", label: "ناعم شفاف" },
 ] as const;
+
 
 export const PLAN_CARD_STYLES = [
   { code: "bordered", label: "إطار بسيط" },
@@ -95,6 +130,7 @@ export function themeVars(theme?: PlatformTheme): React.CSSProperties {
     vars["--card"] = t.cardBg;
     vars["--popover"] = t.cardBg;
   }
+  if (isColor(t.mutedColor)) vars["--muted-foreground"] = t.mutedColor;
   const radius = RADIUS_OPTIONS.find((r) => r.code === t.radius);
   if (radius) vars["--radius"] = radius.value;
   const family = fontOption(t.font).family;
@@ -102,6 +138,75 @@ export function themeVars(theme?: PlatformTheme): React.CSSProperties {
   vars["--font-display"] = family;
   return { ...vars, fontFamily: family } as React.CSSProperties;
 }
+
+/** Single Google Fonts URL covering every font the theme uses. */
+export function themeFontsHref(theme?: PlatformTheme): string {
+  const codes = [theme?.font, theme?.brandFont, theme?.planFont];
+  const families = Array.from(new Set(codes.map((c) => fontOption(c).google)));
+  return `https://fonts.googleapis.com/css2?${families
+    .map((f) => `family=${f}`)
+    .join("&")}&display=swap`;
+}
+
+/** Typography of the site name in the header. */
+export function brandNameStyle(theme?: PlatformTheme): React.CSSProperties {
+  const t = theme ?? {};
+  const size = BRAND_SIZES.find((s) => s.code === t.brandSize)?.value ?? BRAND_SIZES[1].value;
+  const style: React.CSSProperties = {
+    fontFamily: fontOption(t.brandFont ?? t.font).family,
+    fontSize: size,
+    lineHeight: 1.2,
+  };
+  if (isColor(t.brandColor)) style.color = t.brandColor;
+  return style;
+}
+
+/** True when the site name should keep the gradient treatment. */
+export function brandUsesGradient(theme?: PlatformTheme): boolean {
+  return theme?.brandGradient !== false && !isColor(theme?.brandColor);
+}
+
+/** Header logo height. */
+export function logoStyle(theme?: PlatformTheme): React.CSSProperties {
+  const h = theme?.logoHeight;
+  const px = typeof h === "number" && h >= 20 && h <= 160 ? h : 44;
+  return { height: `${px}px` };
+}
+
+/** Opacity applied to decorative site images. */
+export function imageOpacityStyle(
+  theme?: PlatformTheme,
+  kind: "hero" | "section" = "section",
+): React.CSSProperties {
+  const raw = kind === "hero" ? theme?.heroImageOpacity : theme?.imageOpacity;
+  if (typeof raw !== "number" || raw < 0 || raw > 100) return {};
+  return { opacity: raw / 100 };
+}
+
+/** Colors and font applied inside plan cards. */
+export function planCardStyleVars(theme?: PlatformTheme): React.CSSProperties {
+  const t = theme ?? {};
+  const vars: Record<string, string> = {};
+  if (isColor(t.planCardBg)) {
+    vars["--card"] = t.planCardBg;
+    vars["--foreground"] = onColor(t.planCardBg) === "#111111" ? "#111111" : "#ffffff";
+  }
+  if (isColor(t.planBorderColor)) vars["--border"] = t.planBorderColor;
+  const style: Record<string, string> = { ...vars };
+  if (t.planFont) style["fontFamily"] = fontOption(t.planFont).family;
+  return style as React.CSSProperties;
+}
+
+/** Inline color for a plan's name. */
+export function planTitleStyle(theme?: PlatformTheme): React.CSSProperties {
+  return isColor(theme?.planTitleColor) ? { color: theme!.planTitleColor } : {};
+}
+
+/** Inline color for a plan's price. */
+export function planPriceStyle(theme?: PlatformTheme): React.CSSProperties {
+  return isColor(theme?.planPriceColor) ? { color: theme!.planPriceColor } : {};
+}
+
 
 /** Classes for the primary call-to-action button in the chosen style. */
 export function primaryButtonClass(theme?: PlatformTheme): string {
