@@ -1,6 +1,7 @@
 import { Check, Crown, Globe, X } from "lucide-react";
 
 import type { PublicPlan } from "@/lib/db/platform-settings-repo";
+import { planCardClass } from "@/lib/platform-theme";
 
 const MODULE_LABEL: Record<string, string> = {
   bookings: "الحجوزات",
@@ -42,11 +43,14 @@ export function PlansShowcase({
   currentCode,
   title,
   note,
+  cardStyle,
 }: {
   plans: PublicPlan[];
   currentCode?: string | null;
   title?: string;
   note?: string;
+  /** Visual style chosen by the platform owner. */
+  cardStyle?: string;
 }) {
   if (plans.length === 0) return null;
   return (
@@ -59,13 +63,7 @@ export function PlansShowcase({
         {plans.map((p) => {
           const current = currentCode === p.code;
           return (
-            <article
-              key={p.code}
-              className={
-                "rounded-2xl border bg-card p-5 space-y-4 " +
-                (current ? "border-primary ring-1 ring-primary/40" : "border-border")
-              }
-            >
+            <article key={p.code} className={planCardClass(cardStyle, current)}>
               <div className="flex items-center justify-between">
                 <h3 className="font-extrabold flex items-center gap-2">
                   <Crown className="size-4 text-primary" /> {p.name}

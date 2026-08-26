@@ -29,6 +29,12 @@ import {
   resolvePlatformContent,
   PLATFORM_LANGS,
 } from "@/lib/db/platform-settings-repo";
+import {
+  fontHref,
+  primaryButtonClass,
+  secondaryButtonClass,
+  themeVars,
+} from "@/lib/platform-theme";
 import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
@@ -129,7 +135,24 @@ function Landing() {
     : features;
   const includedItems = (home.includedItems ?? []).filter((i) => i.trim());
   const includedList = includedItems.length ? includedItems : included;
+  const theme = home.theme;
+  const btnPrimary = primaryButtonClass(theme);
+  const btnSecondary = secondaryButtonClass(theme);
 
+  // The owner-selected web font is loaded on demand.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const href = fontHref(theme?.font);
+    if (!href) return;
+    let link = document.querySelector<HTMLLinkElement>('link[data-platform-font="1"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.dataset["platformFont"] = "1";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [theme?.font]);
 
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
@@ -168,7 +191,7 @@ function Landing() {
   }, [navigate]);
 
   return (
-    <main dir={dir} className="min-h-screen bg-background">
+    <main dir={dir} style={themeVars(theme)} className="min-h-screen bg-background text-foreground">
       <header className="h-16 border-b border-border flex items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-3">
           {home.logoUrl ? (
@@ -220,7 +243,7 @@ function Landing() {
           </Link>
           <Link
             to="/auth"
-            className="inline-flex h-10 items-center px-5 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-bold"
+            className={`inline-flex h-10 items-center px-5 text-sm ${btnPrimary}`}
           >
             سجّل مشغلك
           </Link>
@@ -255,14 +278,14 @@ function Landing() {
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               to="/auth"
-              className="inline-flex h-12 items-center gap-2 px-7 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold"
+              className={`inline-flex h-12 items-center gap-2 px-7 ${btnPrimary}`}
             >
               {home.ctaLabel || "ابدأ تجربة 30 يومًا"}
               <ArrowLeft className="size-4" />
             </Link>
             <Link
               to="/site"
-              className="inline-flex h-12 items-center px-7 rounded-xl border border-border font-semibold hover:bg-muted bg-background/70"
+              className={`inline-flex h-12 items-center px-7 ${btnSecondary}`}
             >
               {home.ctaSecondaryLabel || "استعراض موقع صالون"}
             </Link>
@@ -321,7 +344,7 @@ function Landing() {
           </ul>
           <Link
             to="/auth"
-            className="mt-7 inline-flex h-11 items-center gap-2 px-6 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm"
+            className={`mt-7 inline-flex h-11 items-center gap-2 px-6 text-sm ${btnPrimary}`}
           >
             أنشئ حساب مالك المشغل <ArrowLeft className="size-4" />
           </Link>
@@ -366,6 +389,7 @@ function Landing() {
             home.plansNote ||
             "اختر الباقة المناسبة لحجم مشغلك — تُفعّل الأقسام والحدود تلقائيًا حسب الباقة."
           }
+          cardStyle={theme?.planCardStyle}
         />
       </section>
       )}

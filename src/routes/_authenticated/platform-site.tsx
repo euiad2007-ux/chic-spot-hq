@@ -14,6 +14,7 @@ import {
   Search,
   Languages,
   Link2,
+  Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,6 +34,17 @@ import {
   type PlatformSeo,
   type PlatformSettings,
 } from "@/lib/db/platform-settings-repo";
+import {
+  BUTTON_STYLES,
+  FONT_OPTIONS,
+  PLAN_CARD_STYLES,
+  RADIUS_OPTIONS,
+  primaryButtonClass,
+  planCardClass,
+  secondaryButtonClass,
+  themeVars,
+  type PlatformTheme,
+} from "@/lib/platform-theme";
 
 
 export const Route = createFileRoute("/_authenticated/platform-site")({
@@ -86,6 +98,9 @@ function PlatformSitePage() {
   const setSeo = <K extends keyof PlatformSeo>(k: K, v: string) =>
     setHome("seo", { ...seo, [k]: v } as PlatformSeo);
   const navLinks = home.navLinks ?? [];
+  const theme = home.theme ?? {};
+  const setTheme = <K extends keyof PlatformTheme>(k: K, v: string) =>
+    setHome("theme", { ...theme, [k]: v } as PlatformTheme);
 
   const defaultLang = home.defaultLang ?? "ar";
   const enabled = home.languages ?? ["ar"];
@@ -150,6 +165,87 @@ function PlatformSitePage() {
             onChange={(v) => setHome("faviconUrl", v)}
           />
 
+        </Card>
+
+        <Card title="الألوان والخطوط والأنماط" icon={Palette}>
+          <div className="grid grid-cols-2 gap-3">
+            <ColorField
+              label="اللون الأساسي"
+              value={theme.primary ?? "#a855f7"}
+              onChange={(v) => setTheme("primary", v)}
+            />
+            <ColorField
+              label="اللون المساعد"
+              value={theme.accent ?? "#f472b6"}
+              onChange={(v) => setTheme("accent", v)}
+            />
+            <ColorField
+              label="لون الخلفية"
+              value={theme.background ?? "#fdfaff"}
+              onChange={(v) => setTheme("background", v)}
+            />
+            <ColorField
+              label="لون النص"
+              value={theme.foreground ?? "#211830"}
+              onChange={(v) => setTheme("foreground", v)}
+            />
+            <ColorField
+              label="لون البطاقات"
+              value={theme.cardBg ?? "#ffffff"}
+              onChange={(v) => setTheme("cardBg", v)}
+            />
+          </div>
+
+          <SelectField
+            label="الخط"
+            value={theme.font ?? "cairo"}
+            onChange={(v) => setTheme("font", v)}
+            options={FONT_OPTIONS.map((f) => ({ value: f.code, label: f.label }))}
+          />
+          <SelectField
+            label="نمط الأزرار"
+            value={theme.buttonStyle ?? "gradient"}
+            onChange={(v) => setTheme("buttonStyle", v)}
+            options={BUTTON_STYLES.map((b) => ({ value: b.code, label: b.label }))}
+          />
+          <SelectField
+            label="نمط بطاقات الاشتراك"
+            value={theme.planCardStyle ?? "bordered"}
+            onChange={(v) => setTheme("planCardStyle", v)}
+            options={PLAN_CARD_STYLES.map((c) => ({ value: c.code, label: c.label }))}
+          />
+          <SelectField
+            label="انحناء الزوايا"
+            value={theme.radius ?? "md"}
+            onChange={(v) => setTheme("radius", v)}
+            options={RADIUS_OPTIONS.map((r) => ({ value: r.code, label: r.label }))}
+          />
+
+          {/* Live preview of the chosen colors, font and styles */}
+          <div
+            style={themeVars(theme)}
+            className="rounded-xl border border-border bg-background p-4 space-y-3"
+          >
+            <p className="text-xs text-muted-foreground">معاينة مباشرة</p>
+            <h3 className="text-lg font-extrabold text-foreground">{form.brandName || "اسم المنصة"}</h3>
+            <div className="flex flex-wrap gap-2">
+              <span className={`inline-flex h-10 items-center px-5 text-sm ${primaryButtonClass(theme)}`}>
+                {home.ctaLabel || "ابدأ الآن"}
+              </span>
+              <span className={`inline-flex h-10 items-center px-5 text-sm ${secondaryButtonClass(theme)}`}>
+                {home.ctaSecondaryLabel || "تعرّف أكثر"}
+              </span>
+            </div>
+            <div className={`${planCardClass(theme.planCardStyle, true)} text-sm`}>
+              <div className="font-extrabold">باقة تجريبية</div>
+              <div className="text-2xl font-extrabold">
+                299 <span className="text-xs text-muted-foreground">ر.س / شهريًا</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            اتركها كما هي لاستخدام هوية المنصة الافتراضية. تُطبَّق الألوان والخطوط على الصفحة الرئيسية.
+          </p>
         </Card>
 
         <Card title="القسم الرئيسي (Hero)" icon={ImageIcon}>
@@ -626,6 +722,65 @@ function Card({
       </h2>
       {children}
     </section>
+  );
+}
+
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="size-10 rounded-lg border border-border bg-background p-1"
+        />
+        <input
+          value={value}
+          dir="ltr"
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 h-10 rounded-lg border border-border bg-background px-3 text-sm"
+        />
+      </span>
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
