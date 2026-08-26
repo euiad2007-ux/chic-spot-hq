@@ -57,6 +57,7 @@ import { listBranches, logBranchSwitch, type Branch } from "@/lib/db/ops-repo";
 import { restoreActiveBranch, setActiveBranch, useActiveBranch } from "@/lib/active-branch";
 import { searchBranches } from "@/lib/branch-scope";
 import { PlanUpgradeNotice } from "@/components/platform/plan-gate";
+import { lastSeenSignups, listSignupNotifications } from "@/lib/db/join-requests-repo";
 
 
 /** Which roles may open each area. Anything not listed is open to any signed-in user. */
