@@ -167,6 +167,87 @@ function PlatformSitePage() {
 
         </Card>
 
+        <Card title="الألوان والخطوط والأنماط" icon={Palette}>
+          <div className="grid grid-cols-2 gap-3">
+            <ColorField
+              label="اللون الأساسي"
+              value={theme.primary ?? "#a855f7"}
+              onChange={(v) => setTheme("primary", v)}
+            />
+            <ColorField
+              label="اللون المساعد"
+              value={theme.accent ?? "#f472b6"}
+              onChange={(v) => setTheme("accent", v)}
+            />
+            <ColorField
+              label="لون الخلفية"
+              value={theme.background ?? "#fdfaff"}
+              onChange={(v) => setTheme("background", v)}
+            />
+            <ColorField
+              label="لون النص"
+              value={theme.foreground ?? "#211830"}
+              onChange={(v) => setTheme("foreground", v)}
+            />
+            <ColorField
+              label="لون البطاقات"
+              value={theme.cardBg ?? "#ffffff"}
+              onChange={(v) => setTheme("cardBg", v)}
+            />
+          </div>
+
+          <SelectField
+            label="الخط"
+            value={theme.font ?? "cairo"}
+            onChange={(v) => setTheme("font", v)}
+            options={FONT_OPTIONS.map((f) => ({ value: f.code, label: f.label }))}
+          />
+          <SelectField
+            label="نمط الأزرار"
+            value={theme.buttonStyle ?? "gradient"}
+            onChange={(v) => setTheme("buttonStyle", v)}
+            options={BUTTON_STYLES.map((b) => ({ value: b.code, label: b.label }))}
+          />
+          <SelectField
+            label="نمط بطاقات الاشتراك"
+            value={theme.planCardStyle ?? "bordered"}
+            onChange={(v) => setTheme("planCardStyle", v)}
+            options={PLAN_CARD_STYLES.map((c) => ({ value: c.code, label: c.label }))}
+          />
+          <SelectField
+            label="انحناء الزوايا"
+            value={theme.radius ?? "md"}
+            onChange={(v) => setTheme("radius", v)}
+            options={RADIUS_OPTIONS.map((r) => ({ value: r.code, label: r.label }))}
+          />
+
+          {/* Live preview of the chosen colors, font and styles */}
+          <div
+            style={themeVars(theme)}
+            className="rounded-xl border border-border bg-background p-4 space-y-3"
+          >
+            <p className="text-xs text-muted-foreground">معاينة مباشرة</p>
+            <h3 className="text-lg font-extrabold text-foreground">{form.brandName || "اسم المنصة"}</h3>
+            <div className="flex flex-wrap gap-2">
+              <span className={`inline-flex h-10 items-center px-5 text-sm ${primaryButtonClass(theme)}`}>
+                {home.ctaLabel || "ابدأ الآن"}
+              </span>
+              <span className={`inline-flex h-10 items-center px-5 text-sm ${secondaryButtonClass(theme)}`}>
+                {home.ctaSecondaryLabel || "تعرّف أكثر"}
+              </span>
+            </div>
+            <div className={`${planCardClass(theme.planCardStyle, true)} text-sm`}>
+              <div className="font-extrabold">باقة تجريبية</div>
+              <div className="text-2xl font-extrabold">
+                299 <span className="text-xs text-muted-foreground">ر.س / شهريًا</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            اتركها كما هي لاستخدام هوية المنصة الافتراضية. تُطبَّق الألوان والخطوط على الصفحة الرئيسية.
+          </p>
+        </Card>
+
         <Card title="القسم الرئيسي (Hero)" icon={ImageIcon}>
           <Field
             label="الشريط العلوي الصغير"
