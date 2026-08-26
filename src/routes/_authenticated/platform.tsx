@@ -96,12 +96,16 @@ type Tab = "overview" | "salons" | "billing" | "support" | "plans" | "admins";
 
 const MODULE_OPTIONS = [
   ["bookings", "الحجوزات"], ["calendar", "التقويم"], ["services", "الخدمات"],
-  ["inventory", "المخزون"], ["staff", "الموظفون"], ["payroll", "الرواتب"],
+  ["inventory", "المخزون والجرد"], ["staff", "الموظفون"], ["payroll", "الرواتب"],
   ["attendance", "الحضور"], ["customers", "العملاء"], ["coupons", "الكوبونات"],
   ["invoices", "الفواتير"], ["pos", "نقطة البيع"], ["cash", "الصندوق والورديات"],
   ["expenses", "المصروفات"], ["accounting", "المحاسبة"], ["reports", "التقارير"],
-  ["booking_settings", "ضبط الحجز"], ["site_settings", "إعدادات الموقع"],
+  ["ledger", "السجل المالي"], ["branches", "الفروع"],
+  ["booking_settings", "ضبط الحجز"], ["invoice_settings", "ضبط الفواتير"],
+  ["site_settings", "إعدادات الموقع"], ["users", "المستخدمون والصلاحيات"],
+  ["activity_log", "سجل النشاط"], ["branch_audit", "سجل تدقيق الفروع"],
 ] as const;
+
 
 const money = (v: number) =>
   `${Number(v || 0).toLocaleString("ar-SA", { maximumFractionDigits: 2 })} ر.س`;
