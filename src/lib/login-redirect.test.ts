@@ -28,11 +28,15 @@ vi.mock("@/integrations/supabase/client", () => ({
         error: state.signInError,
       }),
     },
-    from: () => ({
-      select: () => ({
-        eq: () => Promise.resolve({ data: [], error: null }),
-      }),
-    }),
+    from: () => {
+      const query = {
+        select: () => query,
+        eq: () => query,
+        limit: async () => ({ data: [], error: null }),
+        maybeSingle: async () => ({ data: null, error: null }),
+      };
+      return query;
+    },
     rpc: async () => ({ data: null, error: null }),
   },
 }));
