@@ -79,6 +79,8 @@ export const Route = createFileRoute("/")({
   head: ({ loaderData }) => {
     const d = loaderData;
     const fontHref = d?.settings ? themeFontsHref(d.settings.home?.theme) : undefined;
+    const canonical =
+      d?.lang && d.lang !== "ar" ? `https://novaa.live/?lang=${d.lang}` : "https://novaa.live/";
     return {
       meta: [
         { title: d?.title || FALLBACK_TITLE },
