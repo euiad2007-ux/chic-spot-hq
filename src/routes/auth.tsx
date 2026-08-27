@@ -46,6 +46,13 @@ const OAUTH_PENDING = "platformAuth.oauthPending";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  // Keeps a same-origin return path (e.g. the OAuth consent screen) across the
+  // whole sign-in round trip.
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const n = s["next"];
+    const safe = typeof n === "string" && n.startsWith("/") && !n.startsWith("//");
+    return safe ? { next: n as string } : {};
+  },
   head: () => ({
     meta: [
       { title: "تسجيل الدخول وفتح مشغل جديد — Salon Flow" },
@@ -70,6 +77,7 @@ type Mode = "signin" | "signup";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const refreshAccount = useRefreshAccount();
   const platform = usePlatformSettings();
   const settings = platform.data ?? EMPTY_PLATFORM_SETTINGS;
@@ -158,6 +166,10 @@ function AuthPage() {
     if (!account) throw new Error("تعذّر تحميل الحساب بعد الدخول، حاول مرة أخرى");
     if (email.trim()) window.localStorage.setItem(LAST_EMAIL_KEY, email.trim());
     await refreshAccount();
+    if (next) {
+      window.location.href = next;
+      return;
+    }
     await navigate({ to: homeForRole(account.role), replace: true });
   }
 
@@ -255,7 +267,10 @@ function AuthPage() {
     try {
       window.sessionStorage.setItem(OAUTH_PENDING, "1");
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/auth",
+        redirect_uri:
+          window.location.origin +
+          "/auth" +
+          (next ? `?next=${encodeURIComponent(next)}` : ""),
       });
       if (result.error) throw result.error;
       if (result.redirected) return;

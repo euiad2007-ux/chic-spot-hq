@@ -7,6 +7,7 @@
 import path from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { loadEnv } from "vite";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 // Load all env vars (including non-VITE_ server-only ones) into process.env for
 // server routes. These are NOT injected into the client bundle.
@@ -14,6 +15,7 @@ const serverEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), 
 Object.assign(process.env, serverEnv);
 
 export default defineConfig({
+  plugins: [mcpPlugin()],
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
