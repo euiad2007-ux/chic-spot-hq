@@ -40,6 +40,8 @@ import {
   brandNameStyle,
 } from "@/lib/platform-theme";
 import { markNewStore } from "@/components/salon/new-store-welcome";
+import { PasswordStrength, passwordRules } from "@/components/salon/password-strength";
+import { checkEmail } from "@/lib/email-check";
 
 const LAST_EMAIL_KEY = "platformAuth.lastEmail";
 const OAUTH_PENDING = "platformAuth.oauthPending";
