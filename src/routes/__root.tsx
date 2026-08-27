@@ -84,7 +84,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "لمسة — نظام إدارة المشاغل والصالونات" },
       { property: "og:description", content: "أدر حجوزاتك وموظفيك وعملاءك وفواتيرك من مكان واحد." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "لمسة" },
+      { property: "og:locale", content: "ar_SA" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "لمسة",
+          url: "https://novaa.live/",
+          logo: "https://novaa.live/favicon.png",
+          description:
+            "منصة سحابية لإدارة المشاغل والصالونات: حجوزات، فواتير ضريبية، فروع، مخزون ورواتب.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "لمسة",
+          url: "https://novaa.live/",
+          inLanguage: "ar",
+        }),
+      },
     ],
     links: [
       {
