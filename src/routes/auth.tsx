@@ -97,6 +97,12 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [blocked, setBlocked] = useState<string | null>(null);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  // Live email diagnostics: names the exact problem and offers a fix.
+  const emailIssue = useMemo(() => checkEmail(email), [email]);
+  const showEmailIssue = emailTouched && !!email && !!emailIssue;
+
 
   const lastEmail = useMemo(
     () => (typeof window === "undefined" ? "" : window.localStorage.getItem(LAST_EMAIL_KEY) ?? ""),
