@@ -174,6 +174,7 @@ const nav: {
   { to: "/invoice-settings", label: "ضبط الفواتير", icon: Receipt, manager: true, module: "invoice_settings", group: "system" },
 
   { to: "/users", label: "المستخدمون والصلاحيات", icon: ShieldCheck, manager: true, module: "users", group: "system" },
+  { to: "/store-settings", label: "إعدادات المتجر والتوثيق", icon: ShieldCheck, manager: true, group: "system" },
   { to: "/subscription", label: "الاشتراك والباقة", icon: Crown, manager: true, group: "system" },
   { to: "/activity-log", label: "سجل النشاط", icon: History, manager: true, module: "activity_log", group: "system" },
   { to: "/branch-audit", label: "سجل تدقيق الفروع", icon: Building2, manager: true, module: "branch_audit", group: "system" },

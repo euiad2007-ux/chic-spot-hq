@@ -223,8 +223,61 @@ export async function signUp(input: SignUpInput) {
     },
   });
   if (error) throw new Error(translateAuthError(error.message));
-  return { needsConfirmation: data.session === null };
+  // Supabase hides email enumeration: an existing account comes back with an
+  // empty identities array instead of an error.
+  const alreadyRegistered = Boolean(data.user && (data.user.identities?.length ?? 0) === 0);
+  return { needsConfirmation: data.session === null, alreadyRegistered };
 }
+
+/** True when the signed-in user already owns a salon (one store per account). */
+export async function currentUserOwnsSalon(): Promise<boolean> {
+  const { data: userRes } = await supabase.auth.getUser();
+  const uid = userRes.user?.id;
+  if (!uid) return false;
+  const { data } = await supabase.from("salons").select("id").eq("owner_id", uid).limit(1);
+  return (data?.length ?? 0) > 0;
+}
+
+/** Sends a fresh confirmation link for the signed-in user's email address. */
+export async function resendEmailConfirmation(email: string) {
+  await resendConfirmation(email);
+}
+
+/** Starts an email change; Supabase mails a confirmation link to the new address. */
+export async function changeEmail(newEmail: string) {
+  const { error } = await supabase.auth.updateUser(
+    { email: newEmail.trim() },
+    { emailRedirectTo: window.location.origin + "/auth" },
+  );
+  if (error) throw new Error(translateAuthError(error.message));
+}
+
+/** Changes the password of a signed-in user (current password required). */
+export async function changePassword(currentPassword: string, password: string) {
+  const { error } = await supabase.auth.updateUser({
+    password,
+    ...({ current_password: currentPassword } as { current_password: string }),
+  });
+  if (error) throw new Error(translateAuthError(error.message));
+}
+
+/** Generates a strong, easy-to-copy password suggestion. */
+export function suggestPassword(): string {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const digits = "23456789";
+  const symbols = "!@#$%&*?";
+  const all = upper + lower + digits + symbols;
+  const pick = (set: string) => set[Math.floor(Math.random() * set.length)]!;
+  const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
+  while (chars.length < 14) chars.push(pick(all));
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j]!, chars[i]!];
+  }
+  return chars.join("");
+}
+
 
 export async function signOutAccount() {
   await supabase.auth.signOut();
