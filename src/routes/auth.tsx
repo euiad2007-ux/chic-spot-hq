@@ -48,11 +48,11 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   // Keeps a same-origin return path (e.g. the OAuth consent screen) across the
   // whole sign-in round trip.
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s["next"] === "string" && s["next"].startsWith("/") && !s["next"].startsWith("//")
-      ? s["next"]
-      : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const n = s["next"];
+    const safe = typeof n === "string" && n.startsWith("/") && !n.startsWith("//");
+    return safe ? { next: n as string } : {};
+  },
   head: () => ({
     meta: [
       { title: "تسجيل الدخول وفتح مشغل جديد — Salon Flow" },
