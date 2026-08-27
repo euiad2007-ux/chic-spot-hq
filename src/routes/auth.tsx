@@ -466,10 +466,20 @@ function AuthPage() {
                   label="البريد الإلكتروني"
                   icon={Mail}
                   value={email}
-                  onChange={setEmail}
+                  onChange={(v) => {
+                    setEmail(v);
+                    setEmailTouched(true);
+                  }}
+                  onBlur={() => setEmailTouched(true)}
                   type="email"
                   autoComplete="username email"
                   required
+                  aria-invalid={showEmailIssue || undefined}
+                />
+                <EmailHint
+                  show={showEmailIssue}
+                  issue={emailIssue}
+                  onApply={(v) => setEmail(v)}
                 />
                 <Field
                   label="كلمة المرور"
