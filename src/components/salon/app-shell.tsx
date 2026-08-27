@@ -386,7 +386,7 @@ export function AppShell({
   return (
     <div className="min-h-screen flex" dir="rtl">
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
+      <aside data-tour="sidebar" className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
           {site.logoUrl ? (
             <img
@@ -414,6 +414,7 @@ export function AppShell({
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
             <Link
               to="/settings"
+              data-tour="/settings"
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
             >
               <Settings className="size-4" />
