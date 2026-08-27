@@ -520,7 +520,7 @@ export function AppShell({
         </header>
 
         <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
-          <div>
+          <div data-tour="page-title">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
             {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
           </div>
