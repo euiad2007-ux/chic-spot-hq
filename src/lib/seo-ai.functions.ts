@@ -19,12 +19,12 @@ export const generateSeoContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => schema.parse(data))
   .handler(async ({ data, context }) => {
-    const { data: isOwner, error } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "platform_owner",
+    const { data: isOwner, error } = await context.supabase.rpc("is_platform_owner", {
+      _uid: context.userId,
     });
     if (error) throw new Error(error.message);
     if (!isOwner) throw new Error("هذه الميزة متاحة لمالك المنصة فقط");
+
 
     const { draftSeoContent } = await import("@/lib/seo-ai.server");
     return draftSeoContent(data);
