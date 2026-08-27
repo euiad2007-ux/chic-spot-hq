@@ -321,6 +321,9 @@ function AuthPage() {
         </Link>
 
         <div className="rounded-3xl border border-border bg-card/85 p-6 shadow-xl backdrop-blur-xl">
+          <h1 className="mb-5 text-center text-xl font-extrabold text-foreground">
+            {mode === "signin" ? "تسجيل الدخول" : "فتح مشغل جديد"}
+          </h1>
           <div className="mb-6 grid grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1">
             {(["signin", "signup"] as Mode[]).map((m) => (
               <button
