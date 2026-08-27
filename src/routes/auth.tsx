@@ -176,12 +176,16 @@ function AuthPage() {
           setSent(true);
           toast.success("تم إنشاء الحساب — تحقق من بريدك لتأكيد الحساب");
         } else {
+          // تأكيد وجود المتجر فورًا حتى لا تُطلب أي خطوة تجهيز بعد التسجيل.
+          await ensureOwnedSalon(store, phone);
           toast.success("تم إنشاء متجرك وتفعيل الاشتراك المجاني");
           await afterAuth();
         }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "تعذّر إكمال العملية");
+      const message = err instanceof Error ? err.message : "تعذّر إكمال العملية";
+      setFormError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
