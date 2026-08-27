@@ -114,6 +114,62 @@ function PlatformSitePage() {
   const seo = home.seo ?? {};
   const setSeo = <K extends keyof PlatformSeo>(k: K, v: string) =>
     setHome("seo", { ...seo, [k]: v } as PlatformSeo);
+
+  const keywords = (seo.keywords ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+  const setKeywords = (list: string[]) => setSeo("keywords", list.join("، "));
+  const addKeyword = () => {
+    const v = kwDraft.trim();
+    if (!v) return;
+    if (!keywords.includes(v)) setKeywords([...keywords, v]);
+    setKwDraft("");
+  };
+
+  const aiSeo = {
+    isPending: aiBusy,
+    mutate: () => {
+      setAiBusy(true);
+      void (async () => {
+        try {
+          const draft = await generateSeoContent({
+            data: {
+              brandName: form.brandName || "Salon Flow",
+              lang: home.defaultLang ?? "ar",
+              tagline: home.tagline ?? undefined,
+              headline: home.headline ?? undefined,
+              subheadline: home.subheadline ?? undefined,
+              features: (home.features ?? []).map((f) => f.title).filter(Boolean).slice(0, 20),
+              services: (home.includedItems ?? []).slice(0, 20),
+              extraHint: aiHint.trim() || undefined,
+            },
+          });
+          setForm((f) => ({
+            ...f,
+            home: {
+              ...f.home,
+              seo: {
+                ...(f.home.seo ?? {}),
+                title: draft.title || f.home.seo?.title,
+                description: draft.description || f.home.seo?.description,
+                keywords: draft.keywords.length ? draft.keywords.join("، ") : f.home.seo?.keywords,
+                ogTitle: draft.ogTitle || f.home.seo?.ogTitle,
+                ogDescription: draft.ogDescription || f.home.seo?.ogDescription,
+              },
+            },
+          }));
+          setAiExtra({ features: draft.features, includedItems: draft.includedItems });
+          toast.success("تم توليد المحتوى — راجعه ثم احفظ");
+        } catch (e) {
+          toast.error((e as Error).message);
+        } finally {
+          setAiBusy(false);
+        }
+      })();
+    },
+  };
+
   const navLinks = home.navLinks ?? [];
   const theme = home.theme ?? {};
   const setTheme = <K extends keyof PlatformTheme>(k: K, v: string) =>
