@@ -129,9 +129,28 @@ function AuthPage() {
   }
 
 
+  /** Human-readable field checks shown before contacting the server. */
+  function validate(): string | null {
+    const mail = email.trim();
+    if (!mail) return "البريد الإلكتروني مطلوب";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))
+      return "صيغة البريد الإلكتروني غير صحيحة (مثال: name@example.com)";
+    if (!password) return "كلمة المرور مطلوبة";
+    if (mode === "signup" && password.length < 6)
+      return "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل";
+    return null;
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
+    const invalid = validate();
+    if (invalid) {
+      setFormError(invalid);
+      toast.error(invalid);
+      return;
+    }
+    setFormError(null);
     setBusy(true);
     try {
       if (mode === "signin") {
