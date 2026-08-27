@@ -40,6 +40,8 @@ import {
   brandNameStyle,
 } from "@/lib/platform-theme";
 import { markNewStore } from "@/components/salon/new-store-welcome";
+import { PasswordStrength, passwordRules } from "@/components/salon/password-strength";
+import { checkEmail } from "@/lib/email-check";
 
 const LAST_EMAIL_KEY = "platformAuth.lastEmail";
 const OAUTH_PENDING = "platformAuth.oauthPending";
@@ -95,6 +97,12 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [blocked, setBlocked] = useState<string | null>(null);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  // Live email diagnostics: names the exact problem and offers a fix.
+  const emailIssue = useMemo(() => checkEmail(email), [email]);
+  const showEmailIssue = emailTouched && !!email && !!emailIssue;
+
 
   const lastEmail = useMemo(
     () => (typeof window === "undefined" ? "" : window.localStorage.getItem(LAST_EMAIL_KEY) ?? ""),
@@ -174,17 +182,15 @@ function AuthPage() {
   }
 
   function validate(): string | null {
-    const mail = email.trim();
     if (mode === "signup" && !salonName.trim()) return "اسم المشغل مطلوب";
     if (mode === "signup" && !/^[0-9+\s-]{8,}$/.test(phone.trim()))
       return "رقم الجوال غير صحيح (٨ أرقام على الأقل)";
-    if (!mail) return "البريد الإلكتروني مطلوب";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))
-      return "صيغة البريد الإلكتروني غير صحيحة (مثال: name@example.com)";
+    if (emailIssue) return emailIssue.message;
     if (!password) return "كلمة المرور مطلوبة";
-    if (mode === "signup" && password.length < 8)
-      return "كلمة المرور يجب أن تتكون من ٨ أحرف على الأقل";
-    if (mode === "signup" && password !== confirm) return "كلمة المرور وتأكيدها غير متطابقين";
+    if (mode === "signup") {
+      const failing = passwordRules(password, confirm).filter((r) => !r.ok);
+      if (failing.length) return `كلمة المرور غير مكتملة: ${failing[0]!.label}`;
+    }
     return null;
   }
 
@@ -392,10 +398,20 @@ function AuthPage() {
                   label="البريد الإلكتروني"
                   icon={Mail}
                   value={email}
-                  onChange={setEmail}
+                  onChange={(v) => {
+                    setEmail(v);
+                    setEmailTouched(true);
+                  }}
+                  onBlur={() => setEmailTouched(true)}
                   type="email"
                   autoComplete="email"
                   required
+                  aria-invalid={showEmailIssue || undefined}
+                />
+                <EmailHint
+                  show={showEmailIssue}
+                  issue={emailIssue}
+                  onApply={(v) => setEmail(v)}
                 />
                 <Field
                   label="كلمة المرور"
@@ -409,6 +425,7 @@ function AuthPage() {
                   reveal={showPwd}
                   onToggleReveal={() => setShowPwd((v) => !v)}
                 />
+                <PasswordStrength password={password} confirm={confirm} />
                 <button
                   type="button"
                   onClick={() => {
@@ -449,10 +466,20 @@ function AuthPage() {
                   label="البريد الإلكتروني"
                   icon={Mail}
                   value={email}
-                  onChange={setEmail}
+                  onChange={(v) => {
+                    setEmail(v);
+                    setEmailTouched(true);
+                  }}
+                  onBlur={() => setEmailTouched(true)}
                   type="email"
                   autoComplete="username email"
                   required
+                  aria-invalid={showEmailIssue || undefined}
+                />
+                <EmailHint
+                  show={showEmailIssue}
+                  issue={emailIssue}
+                  onApply={(v) => setEmail(v)}
                 />
                 <Field
                   label="كلمة المرور"
@@ -517,6 +544,36 @@ function AuthPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+/** Precise, live email diagnostics with a one-tap correction. */
+function EmailHint({
+  show,
+  issue,
+  onApply,
+}: {
+  show: boolean;
+  issue: ReturnType<typeof checkEmail>;
+  onApply: (value: string) => void;
+}) {
+  if (!show || !issue) return null;
+  const tone = issue.incomplete
+    ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+    : "border-destructive/40 bg-destructive/10 text-destructive";
+  return (
+    <p role="status" className={`rounded-xl border px-3 py-2 text-[11px] font-semibold ${tone}`}>
+      {issue.message}
+      {issue.suggestion && (
+        <button
+          type="button"
+          onClick={() => onApply(issue.suggestion!)}
+          className="mr-2 underline underline-offset-2 hover:no-underline"
+        >
+          تصحيح إلى {issue.suggestion}
+        </button>
+      )}
+    </p>
   );
 }
 

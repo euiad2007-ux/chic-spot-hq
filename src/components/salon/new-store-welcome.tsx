@@ -79,21 +79,74 @@ const STEPS: Step[] = [
   },
 ];
 
+/**
+ * Reads the persisted tour state from the signed-in user's profile so the tour
+ * never reappears on a later sign-in once completed or skipped.
+ */
+async function fetchTourState(): Promise<string | null> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return null;
+    const { data } = await supabase
+      .from("profiles")
+      .select("onboarding_tour_state")
+      .eq("id", uid)
+      .maybeSingle();
+    return (data?.onboarding_tour_state as string | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveTourState(state: "completed" | "skipped") {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return;
+    await supabase
+      .from("profiles")
+      .update({ onboarding_tour_state: state, onboarding_tour_done_at: new Date().toISOString() })
+      .eq("id", uid);
+  } catch {
+    /* offline: the local flag still prevents a repeat on this device */
+  }
+}
+
 /** Congratulation dialog + guided dashboard tour, shown once for a new store. */
 export function NewStoreWelcome({ salonName }: { salonName?: string | null }) {
   const [phase, setPhase] = useState<"hidden" | "welcome" | "tour">("hidden");
   const [step, setStep] = useState(0);
 
   useEffect(() => {
+    let flagged = false;
     try {
-      if (window.localStorage.getItem(NEW_STORE_FLAG) === "1") setPhase("welcome");
+      flagged = window.localStorage.getItem(NEW_STORE_FLAG) === "1";
     } catch {
       /* ignore */
     }
+    if (!flagged) return;
+    let cancelled = false;
+    void (async () => {
+      const state = await fetchTourState();
+      if (cancelled) return;
+      // Already completed or skipped on any device → never show it again.
+      if (state) {
+        clearNewStore();
+        return;
+      }
+      setPhase("welcome");
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  function finish() {
+  function finish(state: "completed" | "skipped" = "skipped") {
     clearNewStore();
+    void saveTourState(state);
     setPhase("hidden");
   }
 
@@ -111,7 +164,7 @@ export function NewStoreWelcome({ salonName }: { salonName?: string | null }) {
           <div className="relative bg-gradient-to-l from-primary/20 to-accent/15 px-6 pt-7 pb-6 text-center">
             <button
               type="button"
-              onClick={finish}
+              onClick={() => finish("skipped")}
               aria-label="إغلاق"
               className="absolute top-3 left-3 size-8 rounded-lg grid place-items-center text-muted-foreground hover:bg-muted/60"
             >
@@ -161,7 +214,7 @@ export function NewStoreWelcome({ salonName }: { salonName?: string | null }) {
             </button>
             <button
               type="button"
-              onClick={finish}
+              onClick={() => finish("skipped")}
               className="flex-1 h-11 rounded-xl border border-input text-sm font-semibold hover:bg-muted/50"
             >
               تخطّي والبدء بالعمل
@@ -172,7 +225,7 @@ export function NewStoreWelcome({ salonName }: { salonName?: string | null }) {
     );
   }
 
-  return <TourOverlay step={step} onStep={setStep} onClose={finish} />;
+  return <TourOverlay step={step} onStep={setStep} onClose={(state) => finish(state)} />;
 }
 
 function TourOverlay({
@@ -182,7 +235,7 @@ function TourOverlay({
 }: {
   step: number;
   onStep: (n: number) => void;
-  onClose: () => void;
+  onClose: (state: "completed" | "skipped") => void;
 }) {
   const current = STEPS[step]!;
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -226,7 +279,7 @@ function TourOverlay({
 
   return (
     <div dir="rtl" className="fixed inset-0 z-[100]" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px]" onClick={() => onClose("skipped")} />
       {rect && (
         <div
           className="absolute rounded-xl border-2 border-primary pointer-events-none shadow-[0_0_0_9999px_hsl(var(--background)/0.7)]"
@@ -251,7 +304,7 @@ function TourOverlay({
           </span>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => onClose("skipped")}
             aria-label="إنهاء الجولة"
             className="size-7 rounded-lg grid place-items-center text-muted-foreground hover:bg-muted/60"
           >
@@ -272,7 +325,7 @@ function TourOverlay({
           </button>
           <button
             type="button"
-            onClick={() => (last ? onClose() : onStep(step + 1))}
+            onClick={() => (last ? onClose("completed") : onStep(step + 1))}
             className="flex-1 h-10 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold inline-flex items-center justify-center gap-1"
           >
             {last ? "إنهاء الجولة والبدء" : "التالي"}
@@ -281,7 +334,7 @@ function TourOverlay({
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => onClose("skipped")}
           className="mt-3 w-full text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
           تخطّي الجولة
