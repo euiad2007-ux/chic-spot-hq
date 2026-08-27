@@ -176,17 +176,15 @@ function AuthPage() {
   }
 
   function validate(): string | null {
-    const mail = email.trim();
     if (mode === "signup" && !salonName.trim()) return "اسم المشغل مطلوب";
     if (mode === "signup" && !/^[0-9+\s-]{8,}$/.test(phone.trim()))
       return "رقم الجوال غير صحيح (٨ أرقام على الأقل)";
-    if (!mail) return "البريد الإلكتروني مطلوب";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))
-      return "صيغة البريد الإلكتروني غير صحيحة (مثال: name@example.com)";
+    if (emailIssue) return emailIssue.message;
     if (!password) return "كلمة المرور مطلوبة";
-    if (mode === "signup" && password.length < 8)
-      return "كلمة المرور يجب أن تتكون من ٨ أحرف على الأقل";
-    if (mode === "signup" && password !== confirm) return "كلمة المرور وتأكيدها غير متطابقين";
+    if (mode === "signup") {
+      const failing = passwordRules(password, confirm).filter((r) => !r.ok);
+      if (failing.length) return `كلمة المرور غير مكتملة: ${failing[0]!.label}`;
+    }
     return null;
   }
 
