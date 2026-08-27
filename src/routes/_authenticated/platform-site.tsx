@@ -15,9 +15,11 @@ import {
   Languages,
   Link2,
   Palette,
+  Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { generateSeoContent } from "@/lib/seo-ai.functions";
 import { OwnerShell } from "@/components/platform/owner-shell";
 import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
