@@ -71,6 +71,7 @@ import { Route as AuthenticatedAccountingCreditNotesRouteImport } from './routes
 import { Route as AuthenticatedAccountingClosingRouteImport } from './routes/_authenticated/accounting.closing'
 import { Route as AuthenticatedAccountingAssetsRouteImport } from './routes/_authenticated/accounting.assets'
 import { Route as AuthenticatedAccountingAccountsRouteImport } from './routes/_authenticated/accounting.accounts'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api/public/hooks/booking-reminders'
 
@@ -406,6 +407,11 @@ const AuthenticatedAccountingAccountsRoute =
     path: '/accounts',
     getParentRoute: () => AuthenticatedAccountingRoute,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -468,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/store-settings': typeof AuthenticatedStoreSettingsRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -532,6 +539,7 @@ export interface FileRoutesByTo {
   '/store-settings': typeof AuthenticatedStoreSettingsRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -599,6 +607,7 @@ export interface FileRoutesById {
   '/_authenticated/store-settings': typeof AuthenticatedStoreSettingsRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
   '/_authenticated/accounting/assets': typeof AuthenticatedAccountingAssetsRoute
   '/_authenticated/accounting/closing': typeof AuthenticatedAccountingClosingRoute
@@ -666,6 +675,7 @@ export interface FileRouteTypes {
     | '/store-settings'
     | '/subscription'
     | '/users'
+    | '/.lovable/oauth/consent'
     | '/accounting/accounts'
     | '/accounting/assets'
     | '/accounting/closing'
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/store-settings'
     | '/subscription'
     | '/users'
+    | '/.lovable/oauth/consent'
     | '/accounting/accounts'
     | '/accounting/assets'
     | '/accounting/closing'
@@ -796,6 +807,7 @@ export interface FileRouteTypes {
     | '/_authenticated/store-settings'
     | '/_authenticated/subscription'
     | '/_authenticated/users'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/accounting/accounts'
     | '/_authenticated/accounting/assets'
     | '/_authenticated/accounting/closing'
@@ -821,6 +833,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SiteRoute: typeof SiteRoute
   StoreLoginRoute: typeof StoreLoginRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   SalonSlugLoginRoute: typeof SalonSlugLoginRoute
   SalonSlugIndexRoute: typeof SalonSlugIndexRoute
@@ -1264,6 +1277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountingAccountsRouteImport
       parentRoute: typeof AuthenticatedAccountingRoute
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -1418,6 +1438,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SiteRoute: SiteRoute,
   StoreLoginRoute: StoreLoginRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   SalonSlugLoginRoute: SalonSlugLoginRoute,
   SalonSlugIndexRoute: SalonSlugIndexRoute,
