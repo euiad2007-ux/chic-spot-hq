@@ -547,6 +547,36 @@ function AuthPage() {
   );
 }
 
+/** Precise, live email diagnostics with a one-tap correction. */
+function EmailHint({
+  show,
+  issue,
+  onApply,
+}: {
+  show: boolean;
+  issue: ReturnType<typeof checkEmail>;
+  onApply: (value: string) => void;
+}) {
+  if (!show || !issue) return null;
+  const tone = issue.incomplete
+    ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+    : "border-destructive/40 bg-destructive/10 text-destructive";
+  return (
+    <p role="status" className={`rounded-xl border px-3 py-2 text-[11px] font-semibold ${tone}`}>
+      {issue.message}
+      {issue.suggestion && (
+        <button
+          type="button"
+          onClick={() => onApply(issue.suggestion!)}
+          className="mr-2 underline underline-offset-2 hover:no-underline"
+        >
+          تصحيح إلى {issue.suggestion}
+        </button>
+      )}
+    </p>
+  );
+}
+
 type FieldProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> & {
   label: string;
   value: string;
