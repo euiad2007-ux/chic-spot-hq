@@ -15,9 +15,11 @@ import {
   Languages,
   Link2,
   Palette,
+  Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { generateSeoContent } from "@/lib/seo-ai.functions";
 import { OwnerShell } from "@/components/platform/owner-shell";
 import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
@@ -83,6 +85,14 @@ function PlatformSitePage() {
   const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
   const [settingsReady, setSettingsReady] = useState(false);
   const [trLang, setTrLang] = useState<string>("en");
+  const [aiHint, setAiHint] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [kwDraft, setKwDraft] = useState("");
+  const [aiExtra, setAiExtra] = useState<{
+    features: { title: string; desc: string }[];
+    includedItems: string[];
+  } | null>(null);
+
 
   useEffect(() => {
     if (loaded.data && !loaded.isFetching) {
@@ -114,6 +124,62 @@ function PlatformSitePage() {
   const seo = home.seo ?? {};
   const setSeo = <K extends keyof PlatformSeo>(k: K, v: string) =>
     setHome("seo", { ...seo, [k]: v } as PlatformSeo);
+
+  const keywords = (seo.keywords ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+  const setKeywords = (list: string[]) => setSeo("keywords", list.join("، "));
+  const addKeyword = () => {
+    const v = kwDraft.trim();
+    if (!v) return;
+    if (!keywords.includes(v)) setKeywords([...keywords, v]);
+    setKwDraft("");
+  };
+
+  const aiSeo = {
+    isPending: aiBusy,
+    mutate: () => {
+      setAiBusy(true);
+      void (async () => {
+        try {
+          const draft = await generateSeoContent({
+            data: {
+              brandName: form.brandName || "Salon Flow",
+              lang: home.defaultLang ?? "ar",
+              tagline: home.tagline ?? undefined,
+              headline: home.headline ?? undefined,
+              subheadline: home.subheadline ?? undefined,
+              features: (home.features ?? []).map((f) => f.title).filter(Boolean).slice(0, 20),
+              services: (home.includedItems ?? []).slice(0, 20),
+              extraHint: aiHint.trim() || undefined,
+            },
+          });
+          setForm((f) => ({
+            ...f,
+            home: {
+              ...f.home,
+              seo: {
+                ...(f.home.seo ?? {}),
+                title: draft.title || f.home.seo?.title,
+                description: draft.description || f.home.seo?.description,
+                keywords: draft.keywords.length ? draft.keywords.join("، ") : f.home.seo?.keywords,
+                ogTitle: draft.ogTitle || f.home.seo?.ogTitle,
+                ogDescription: draft.ogDescription || f.home.seo?.ogDescription,
+              },
+            },
+          }));
+          setAiExtra({ features: draft.features, includedItems: draft.includedItems });
+          toast.success("تم توليد المحتوى — راجعه ثم احفظ");
+        } catch (e) {
+          toast.error((e as Error).message);
+        } finally {
+          setAiBusy(false);
+        }
+      })();
+    },
+  };
+
   const navLinks = home.navLinks ?? [];
   const theme = home.theme ?? {};
   const setTheme = <K extends keyof PlatformTheme>(k: K, v: string) =>
@@ -629,6 +695,32 @@ function PlatformSitePage() {
         </Card>
 
         <Card title="تحسين محركات البحث (SEO)" icon={Search}>
+          <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 space-y-2">
+            <p className="text-xs font-semibold flex items-center gap-1.5">
+              <Wand2 className="size-3.5" /> توليد المحتوى بالذكاء الاصطناعي
+            </p>
+            <Field
+              label="توجيه للذكاء الاصطناعي (اختياري)"
+              value={aiHint}
+              onChange={setAiHint}
+              placeholder="مثال: نستهدف مشاغل الرياض وجدة، ركّز على الفواتير الضريبية والحجز الإلكتروني"
+              multiline
+            />
+            <button
+              type="button"
+              onClick={() => aiSeo.mutate()}
+              disabled={aiSeo.isPending}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              <Wand2 className="size-3.5" />
+              {aiSeo.isPending ? "جاري التوليد…" : "توليد الوصف والكلمات المفتاحية"}
+            </button>
+            <p className="text-[11px] text-muted-foreground">
+              يُقترح العنوان والوصف والكلمات المفتاحية بناءً على اسم المنصة ومحتوى الصفحة — ويمكنك تعديل
+              كل شيء قبل الحفظ.
+            </p>
+          </div>
+
           <Field
             label="عنوان الصفحة (Title)"
             value={seo.title ?? ""}
@@ -636,18 +728,105 @@ function PlatformSitePage() {
             placeholder="أقل من 60 حرفًا"
           />
           <Field
-            label="وصف الصفحة (Meta description)"
+            label="وصف الموقع (Meta description)"
             value={seo.description ?? ""}
             onChange={(v) => setSeo("description", v)}
             placeholder="أقل من 160 حرفًا"
             multiline
           />
-          <Field
-            label="الكلمات المفتاحية (اختياري)"
-            value={seo.keywords ?? ""}
-            onChange={(v) => setSeo("keywords", v)}
-            placeholder="إدارة صالونات، حجوزات، فواتير ضريبية"
-          />
+
+          <div className="space-y-2">
+            <span className="text-xs text-muted-foreground">الكلمات المفتاحية</span>
+            <div className="flex flex-wrap gap-1.5">
+              {keywords.length === 0 && (
+                <span className="text-[11px] text-muted-foreground">لا توجد كلمات مفتاحية بعد.</span>
+              )}
+              {keywords.map((k, i) => (
+                <span
+                  key={`${k}-${i}`}
+                  className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[11px]"
+                >
+                  {k}
+                  <button
+                    type="button"
+                    aria-label={`حذف ${k}`}
+                    onClick={() => setKeywords(keywords.filter((_, j) => j !== i))}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                value={kwDraft}
+                onChange={(e) => setKwDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  addKeyword();
+                }}
+                placeholder="أضف كلمة مفتاحية ثم Enter"
+                className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm"
+              />
+              <button
+                type="button"
+                onClick={addKeyword}
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-3 h-9 text-xs"
+              >
+                <Plus className="size-3.5" /> إضافة
+              </button>
+            </div>
+          </div>
+
+          {aiExtra && (
+            <div className="rounded-xl border border-border p-3 space-y-2">
+              <p className="text-xs font-semibold">اقتراحات المزايا والخدمات</p>
+              {aiExtra.features.length > 0 && (
+                <div className="space-y-1">
+                  <ul className="list-disc pr-4 text-[11px] text-muted-foreground space-y-0.5">
+                    {aiExtra.features.map((f, i) => (
+                      <li key={i}>
+                        <span className="text-foreground font-medium">{f.title}</span>
+                        {f.desc ? ` — ${f.desc}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHome("features", aiExtra.features);
+                      toast.success("تم تحديث قسم المزايا");
+                    }}
+                    className="rounded-lg border border-border px-3 py-1.5 text-[11px]"
+                  >
+                    استبدال قسم المزايا بهذه الاقتراحات
+                  </button>
+                </div>
+              )}
+              {aiExtra.includedItems.length > 0 && (
+                <div className="space-y-1">
+                  <ul className="list-disc pr-4 text-[11px] text-muted-foreground space-y-0.5">
+                    {aiExtra.includedItems.map((s, i) => (
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHome("includedItems", aiExtra.includedItems);
+                      toast.success("تم تحديث قائمة الخدمات المشمولة");
+                    }}
+                    className="rounded-lg border border-border px-3 py-1.5 text-[11px]"
+                  >
+                    استبدال الخدمات المشمولة بهذه الاقتراحات
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <Field
             label="Open Graph — العنوان"
             value={seo.ogTitle ?? ""}
@@ -666,9 +845,11 @@ function PlatformSitePage() {
             onChange={(v) => setSeo("ogImageUrl", v)}
           />
           <p className="text-[11px] text-muted-foreground">
-            قد تحتاج منصات التواصل بعض الوقت لتحديث معاينة الرابط بعد تغيير الصورة أو العنوان.
+            خريطة الموقع متاحة على <span dir="ltr">/sitemap.xml</span> وتتحدث تلقائيًا مع صفحات المتاجر.
+            قد تحتاج منصات التواصل بعض الوقت لتحديث معاينة الرابط.
           </p>
         </Card>
+
 
         <Card title="روابط الأقسام في الشريط العلوي" icon={Link2}>
           {navLinks.map((l, i) => (
