@@ -2388,9 +2388,81 @@ export type Database = {
           },
         ]
       }
+      salon_verification: {
+        Row: {
+          account_holder: string | null
+          bank_name: string | null
+          created_at: string
+          doc_expires_on: string | null
+          doc_issued_on: string | null
+          doc_kind: string
+          doc_number: string | null
+          files: Json
+          iban: string | null
+          legal_name: string | null
+          national_id: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salon_id: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder?: string | null
+          bank_name?: string | null
+          created_at?: string
+          doc_expires_on?: string | null
+          doc_issued_on?: string | null
+          doc_kind?: string
+          doc_number?: string | null
+          files?: Json
+          iban?: string | null
+          legal_name?: string | null
+          national_id?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_id: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string | null
+          bank_name?: string | null
+          created_at?: string
+          doc_expires_on?: string | null
+          doc_issued_on?: string | null
+          doc_kind?: string
+          doc_number?: string | null
+          files?: Json
+          iban?: string | null
+          legal_name?: string | null
+          national_id?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salon_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_verification_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: true
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salons: {
         Row: {
           admin_notes: string | null
+          country: string
           created_at: string
           currency: string
           custom_domain: string | null
@@ -2414,6 +2486,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          country?: string
           created_at?: string
           currency?: string
           custom_domain?: string | null
@@ -2437,6 +2510,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          country?: string
           created_at?: string
           currency?: string
           custom_domain?: string | null
