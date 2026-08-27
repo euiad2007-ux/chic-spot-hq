@@ -279,6 +279,13 @@ function TourOverlay({
             {!last && <ChevronLeft className="size-4" />}
           </button>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-3 w-full text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          تخطّي الجولة
+        </button>
         <div className="mt-3 flex justify-center gap-1.5">
           {STEPS.map((s, i) => (
             <span

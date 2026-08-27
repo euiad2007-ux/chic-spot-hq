@@ -252,6 +252,23 @@ export async function createSalonForCurrentUser(name: string, phone?: string): P
 }
 
 /**
+ * Guarantees the signed-in user owns a salon so a brand-new merchant lands on
+ * the dashboard directly, without any extra setup step.
+ */
+export async function ensureOwnedSalon(name: string, phone?: string): Promise<string | null> {
+  const { data: userRes } = await supabase.auth.getUser();
+  const uid = userRes.user?.id;
+  if (!uid) return null;
+  const { data: existing } = await supabase
+    .from("salons")
+    .select("id")
+    .eq("owner_id", uid)
+    .limit(1);
+  if (existing && existing.length > 0) return existing[0]!.id as string;
+  return await createSalonForCurrentUser(name, phone);
+}
+
+/**
  * Creates the client profile for the signed-in user in one salon.
  * A person may hold a separate client profile at every salon they visit.
  */
