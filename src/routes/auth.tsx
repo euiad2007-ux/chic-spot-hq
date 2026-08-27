@@ -398,10 +398,20 @@ function AuthPage() {
                   label="البريد الإلكتروني"
                   icon={Mail}
                   value={email}
-                  onChange={setEmail}
+                  onChange={(v) => {
+                    setEmail(v);
+                    setEmailTouched(true);
+                  }}
+                  onBlur={() => setEmailTouched(true)}
                   type="email"
                   autoComplete="email"
                   required
+                  aria-invalid={showEmailIssue || undefined}
+                />
+                <EmailHint
+                  show={showEmailIssue}
+                  issue={emailIssue}
+                  onApply={(v) => setEmail(v)}
                 />
                 <Field
                   label="كلمة المرور"
@@ -415,6 +425,7 @@ function AuthPage() {
                   reveal={showPwd}
                   onToggleReveal={() => setShowPwd((v) => !v)}
                 />
+                <PasswordStrength password={password} confirm={confirm} />
                 <button
                   type="button"
                   onClick={() => {
