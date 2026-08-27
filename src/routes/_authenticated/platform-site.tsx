@@ -83,6 +83,14 @@ function PlatformSitePage() {
   const [form, setForm] = useState<PlatformSettings>(EMPTY_PLATFORM_SETTINGS);
   const [settingsReady, setSettingsReady] = useState(false);
   const [trLang, setTrLang] = useState<string>("en");
+  const [aiHint, setAiHint] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [kwDraft, setKwDraft] = useState("");
+  const [aiExtra, setAiExtra] = useState<{
+    features: { title: string; desc: string }[];
+    includedItems: string[];
+  } | null>(null);
+
 
   useEffect(() => {
     if (loaded.data && !loaded.isFetching) {
