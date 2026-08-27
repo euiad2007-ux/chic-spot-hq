@@ -79,21 +79,74 @@ const STEPS: Step[] = [
   },
 ];
 
+/**
+ * Reads the persisted tour state from the signed-in user's profile so the tour
+ * never reappears on a later sign-in once completed or skipped.
+ */
+async function fetchTourState(): Promise<string | null> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return null;
+    const { data } = await supabase
+      .from("profiles")
+      .select("onboarding_tour_state")
+      .eq("id", uid)
+      .maybeSingle();
+    return (data?.onboarding_tour_state as string | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveTourState(state: "completed" | "skipped") {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return;
+    await supabase
+      .from("profiles")
+      .update({ onboarding_tour_state: state, onboarding_tour_done_at: new Date().toISOString() })
+      .eq("id", uid);
+  } catch {
+    /* offline: the local flag still prevents a repeat on this device */
+  }
+}
+
 /** Congratulation dialog + guided dashboard tour, shown once for a new store. */
 export function NewStoreWelcome({ salonName }: { salonName?: string | null }) {
   const [phase, setPhase] = useState<"hidden" | "welcome" | "tour">("hidden");
   const [step, setStep] = useState(0);
 
   useEffect(() => {
+    let flagged = false;
     try {
-      if (window.localStorage.getItem(NEW_STORE_FLAG) === "1") setPhase("welcome");
+      flagged = window.localStorage.getItem(NEW_STORE_FLAG) === "1";
     } catch {
       /* ignore */
     }
+    if (!flagged) return;
+    let cancelled = false;
+    void (async () => {
+      const state = await fetchTourState();
+      if (cancelled) return;
+      // Already completed or skipped on any device → never show it again.
+      if (state) {
+        clearNewStore();
+        return;
+      }
+      setPhase("welcome");
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  function finish() {
+  function finish(state: "completed" | "skipped" = "skipped") {
     clearNewStore();
+    void saveTourState(state);
     setPhase("hidden");
   }
 
