@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoreLoginRouteImport } from './routes/store-login'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SiteRouteImport } from './routes/site'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as NoAccessRouteImport } from './routes/no-access'
@@ -84,6 +85,11 @@ import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api
 const StoreLoginRoute = StoreLoginRouteImport.update({
   id: '/store-login',
   path: '/store-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SiteRoute = SiteRouteImport.update({
@@ -471,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/no-access': typeof NoAccessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -543,6 +550,7 @@ export interface FileRoutesByTo {
   '/no-access': typeof NoAccessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -616,6 +624,7 @@ export interface FileRoutesById {
   '/no-access': typeof NoAccessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -690,6 +699,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/reset-password'
     | '/site'
+    | '/sitemap.xml'
     | '/store-login'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -762,6 +772,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/reset-password'
     | '/site'
+    | '/sitemap.xml'
     | '/store-login'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -834,6 +845,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/reset-password'
     | '/site'
+    | '/sitemap.xml'
     | '/store-login'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -908,6 +920,7 @@ export interface RootRouteChildren {
   NoAccessRoute: typeof NoAccessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SiteRoute: typeof SiteRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StoreLoginRoute: typeof StoreLoginRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -929,6 +942,13 @@ declare module '@tanstack/react-router' {
       path: '/store-login'
       fullPath: '/store-login'
       preLoaderRoute: typeof StoreLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/site': {
@@ -1561,6 +1581,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoAccessRoute: NoAccessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SiteRoute: SiteRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   StoreLoginRoute: StoreLoginRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
