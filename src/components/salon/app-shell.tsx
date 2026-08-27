@@ -356,6 +356,7 @@ export function AppShell({
               <Link
                 key={n.to}
                 to={n.to}
+                data-tour={n.to}
                 onClick={onNavigate}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
@@ -385,7 +386,7 @@ export function AppShell({
   return (
     <div className="min-h-screen flex" dir="rtl">
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
+      <aside data-tour="sidebar" className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
           {site.logoUrl ? (
             <img
@@ -413,6 +414,7 @@ export function AppShell({
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
             <Link
               to="/settings"
+              data-tour="/settings"
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
             >
               <Settings className="size-4" />
@@ -520,7 +522,7 @@ export function AppShell({
         </header>
 
         <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
-          <div>
+          <div data-tour="page-title">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
             {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
           </div>

@@ -14,6 +14,7 @@ import { clearDataContext } from "@/lib/db/context";
 import { resetHydration, hydrateAll } from "@/lib/db/hydrate";
 import { acceptStaffInvite } from "@/lib/db/invites-repo";
 import { supabase } from "@/integrations/supabase/client";
+import { markNewStore } from "@/components/salon/new-store-welcome";
 
 /** True when the signed-in user already owns a salon (one store per account). */
 async function ownsSalon(): Promise<boolean> {
@@ -87,7 +88,8 @@ function Onboarding() {
         if (alreadyOwner) throw new Error("لديك مشغل بالفعل — لا يمكن إنشاء مشغل جديد بنفس الحساب");
         if (!salonName.trim()) throw new Error("اسم المشغل مطلوب");
         await createSalonForCurrentUser(salonName, phone);
-        toast.success("تم إنشاء المشغل");
+        markNewStore();
+        toast.success("تم إنشاء متجرك وتفعيل الاشتراك المجاني");
         await finish("/dashboard");
       } else {
         const id = await ensureClientProfile();

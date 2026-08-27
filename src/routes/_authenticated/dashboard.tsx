@@ -21,6 +21,7 @@ import {
 
 import { AppShell } from "@/components/salon/app-shell";
 import { AttendancePanel } from "@/components/salon/attendance-panel";
+import { NewStoreWelcome } from "@/components/salon/new-store-welcome";
 import { useAccount } from "@/hooks/use-account";
 import { formatSAR, formatTime, STATUS_LABEL, STATUS_TONE } from "@/lib/salon-store";
 import { loadDashboardOverview, type StaffToday, type TodayBooking } from "@/lib/db/dashboard-repo";
@@ -98,6 +99,8 @@ function Dashboard() {
         </div>
       }
     >
+      <NewStoreWelcome salonName={account?.salonName ?? null} />
+
       {/* Operational alerts */}
       <div className="space-y-2">
         {(d?.alerts ?? []).map((a, i) => (

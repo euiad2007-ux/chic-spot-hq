@@ -11,6 +11,7 @@ import { useRefreshAccount } from "@/hooks/use-account";
 import { usePlatformSettings } from "@/components/platform/platform-contact-card";
 import { EMPTY_PLATFORM_SETTINGS } from "@/lib/db/platform-settings-repo";
 import { fontHref, primaryButtonClass, themeVars } from "@/lib/platform-theme";
+import { markNewStore } from "@/components/salon/new-store-welcome";
 
 const REMEMBERED_OWNER_EMAIL = "platformAuth.rememberedEmail";
 const OWNER_OAUTH_PENDING = "platformAuth.oauthPending";
@@ -140,20 +141,23 @@ function AuthPage() {
         toast.success("تم تسجيل الدخول");
         await afterAuth();
       } else {
-        if (!fullName.trim()) throw new Error("الاسم مطلوب");
-        if (!salonName.trim()) throw new Error("اسم المشغل مطلوب");
+        // فتح متجر جديد بأقل بيانات ممكنة: بريد وكلمة مرور فقط. الاسم واسم
+        // المشغل يُشتقّان تلقائيًا ويمكن تعديلهما لاحقًا من إعدادات المشغل.
+        const fallback = email.trim().split("@")[0] || "متجري";
+        const store = salonName.trim() || `مشغل ${fallback}`;
+        markNewStore();
         const { needsConfirmation } = await signUp({
           email,
           password,
-          fullName,
+          fullName: fullName.trim() || fallback,
           phone,
-          salonName,
+          salonName: store,
         });
         if (needsConfirmation) {
           setSent(true);
           toast.success("تم إنشاء الحساب — تحقق من بريدك لتأكيد الحساب");
         } else {
-          toast.success("تم إنشاء الحساب");
+          toast.success("تم إنشاء متجرك وتفعيل الاشتراك المجاني");
           await afterAuth();
         }
       }
@@ -300,29 +304,15 @@ function AuthPage() {
                   <div className="rounded-xl border border-primary/30 bg-primary/10 p-3 flex items-start gap-2 text-[11px] font-semibold text-primary">
                     <Store className="size-4 shrink-0" aria-hidden />
                     <span>
-                      التسجيل هنا لملاك المشاغل فقط. الموظفون والعملاء يدخلون من صفحة دخول المشغل
-                      الخاصة به.
+                      خطوة واحدة فقط: بريد وكلمة مرور، ونفتح متجرك مباشرة مع الاشتراك المجاني وكل
+                      الأقسام مفتوحة. الموظفون والعملاء يدخلون من صفحة دخول المشغل الخاصة به.
                     </span>
                   </div>
                   <Field
-                    label="الاسم الكامل"
-                    value={fullName}
-                    onChange={setFullName}
-                    autoComplete="name"
-                    required
-                  />
-                  <Field
-                    label="اسم المشغل / الصالون"
+                    label="اسم المشغل / الصالون (اختياري)"
                     value={salonName}
                     onChange={setSalonName}
-                    required
-                  />
-                  <Field
-                    label="رقم الجوال"
-                    value={phone}
-                    onChange={setPhone}
-                    type="tel"
-                    autoComplete="tel"
+                    placeholder="يمكنك تركه الآن وتعديله لاحقًا"
                   />
                 </>
               )}
