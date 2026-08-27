@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
+import { Route as AuthenticatedStoreSettingsRouteImport } from './routes/_authenticated/store-settings'
 import { Route as AuthenticatedStocktakeRouteImport } from './routes/_authenticated/stocktake'
 import { Route as AuthenticatedStockLogRouteImport } from './routes/_authenticated/stock-log'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
@@ -116,6 +117,12 @@ const AuthenticatedSubscriptionRoute =
   AuthenticatedSubscriptionRouteImport.update({
     id: '/subscription',
     path: '/subscription',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStoreSettingsRoute =
+  AuthenticatedStoreSettingsRouteImport.update({
+    id: '/store-settings',
+    path: '/store-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedStocktakeRoute = AuthenticatedStocktakeRouteImport.update({
@@ -458,6 +465,7 @@ export interface FileRoutesByFullPath {
   '/staff': typeof AuthenticatedStaffRoute
   '/stock-log': typeof AuthenticatedStockLogRoute
   '/stocktake': typeof AuthenticatedStocktakeRoute
+  '/store-settings': typeof AuthenticatedStoreSettingsRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
@@ -521,6 +529,7 @@ export interface FileRoutesByTo {
   '/staff': typeof AuthenticatedStaffRoute
   '/stock-log': typeof AuthenticatedStockLogRoute
   '/stocktake': typeof AuthenticatedStocktakeRoute
+  '/store-settings': typeof AuthenticatedStoreSettingsRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/users': typeof AuthenticatedUsersRoute
   '/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
@@ -587,6 +596,7 @@ export interface FileRoutesById {
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/_authenticated/stock-log': typeof AuthenticatedStockLogRoute
   '/_authenticated/stocktake': typeof AuthenticatedStocktakeRoute
+  '/_authenticated/store-settings': typeof AuthenticatedStoreSettingsRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/accounting/accounts': typeof AuthenticatedAccountingAccountsRoute
@@ -653,6 +663,7 @@ export interface FileRouteTypes {
     | '/staff'
     | '/stock-log'
     | '/stocktake'
+    | '/store-settings'
     | '/subscription'
     | '/users'
     | '/accounting/accounts'
@@ -716,6 +727,7 @@ export interface FileRouteTypes {
     | '/staff'
     | '/stock-log'
     | '/stocktake'
+    | '/store-settings'
     | '/subscription'
     | '/users'
     | '/accounting/accounts'
@@ -781,6 +793,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff'
     | '/_authenticated/stock-log'
     | '/_authenticated/stocktake'
+    | '/_authenticated/store-settings'
     | '/_authenticated/subscription'
     | '/_authenticated/users'
     | '/_authenticated/accounting/accounts'
@@ -878,6 +891,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof AuthenticatedSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/store-settings': {
+      id: '/_authenticated/store-settings'
+      path: '/store-settings'
+      fullPath: '/store-settings'
+      preLoaderRoute: typeof AuthenticatedStoreSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/stocktake': {
@@ -1336,6 +1356,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
   AuthenticatedStockLogRoute: typeof AuthenticatedStockLogRoute
   AuthenticatedStocktakeRoute: typeof AuthenticatedStocktakeRoute
+  AuthenticatedStoreSettingsRoute: typeof AuthenticatedStoreSettingsRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
@@ -1381,6 +1402,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStaffRoute: AuthenticatedStaffRoute,
   AuthenticatedStockLogRoute: AuthenticatedStockLogRoute,
   AuthenticatedStocktakeRoute: AuthenticatedStocktakeRoute,
+  AuthenticatedStoreSettingsRoute: AuthenticatedStoreSettingsRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }
