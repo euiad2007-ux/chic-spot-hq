@@ -87,7 +87,8 @@ export const Route = createFileRoute("/")({
         { property: "og:title", content: d?.ogTitle || FALLBACK_TITLE },
         { property: "og:description", content: d?.ogDescription || FALLBACK_DESC },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://novaa.live/" },
+        { property: "og:url", content: canonical },
+        { property: "og:locale", content: d?.lang === "en" ? "en_US" : "ar_SA" },
         { name: "twitter:card", content: "summary_large_image" },
         ...(d?.ogImage
           ? [
@@ -97,8 +98,27 @@ export const Route = createFileRoute("/")({
           : []),
       ],
       links: [
-        { rel: "canonical", href: "https://novaa.live/" },
+        { rel: "canonical", href: canonical },
+        { rel: "alternate", hrefLang: "ar", href: "https://novaa.live/" },
+        { rel: "alternate", hrefLang: "en", href: "https://novaa.live/?lang=en" },
+        { rel: "alternate", hrefLang: "x-default", href: "https://novaa.live/" },
         ...(fontHref ? [{ rel: "stylesheet", href: fontHref }] : []),
+      ],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: d?.ogTitle || FALLBACK_TITLE,
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            url: canonical,
+            inLanguage: d?.lang === "en" ? "en" : "ar",
+            description: d?.description || FALLBACK_DESC,
+            offers: { "@type": "Offer", priceCurrency: "SAR", price: "0" },
+          }),
+        },
       ],
     };
   },
