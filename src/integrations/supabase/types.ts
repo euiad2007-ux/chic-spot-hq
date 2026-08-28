@@ -414,8 +414,11 @@ export type Database = {
           card_sales: number
           cash_expenses: number
           cash_sales: number
+          cashier_name: string | null
+          cashier_staff_id: string | null
           closed_at: string | null
           closed_by: string | null
+          counted_card: number | null
           counted_cash: number | null
           created_at: string
           difference: number | null
@@ -424,6 +427,7 @@ export type Database = {
           note: string | null
           opened_at: string
           opened_by: string | null
+          opening_card: number
           opening_float: number
           salon_id: string
           status: string
@@ -434,8 +438,11 @@ export type Database = {
           card_sales?: number
           cash_expenses?: number
           cash_sales?: number
+          cashier_name?: string | null
+          cashier_staff_id?: string | null
           closed_at?: string | null
           closed_by?: string | null
+          counted_card?: number | null
           counted_cash?: number | null
           created_at?: string
           difference?: number | null
@@ -444,6 +451,7 @@ export type Database = {
           note?: string | null
           opened_at?: string
           opened_by?: string | null
+          opening_card?: number
           opening_float?: number
           salon_id: string
           status?: string
@@ -454,8 +462,11 @@ export type Database = {
           card_sales?: number
           cash_expenses?: number
           cash_sales?: number
+          cashier_name?: string | null
+          cashier_staff_id?: string | null
           closed_at?: string | null
           closed_by?: string | null
+          counted_card?: number | null
           counted_cash?: number | null
           created_at?: string
           difference?: number | null
@@ -464,6 +475,7 @@ export type Database = {
           note?: string | null
           opened_at?: string
           opened_by?: string | null
+          opening_card?: number
           opening_float?: number
           salon_id?: string
           status?: string
