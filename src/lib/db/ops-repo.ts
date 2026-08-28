@@ -85,6 +85,10 @@ export interface CashShift {
   cash_expenses: number;
   status: string;
   note: string | null;
+  cashier_staff_id: string | null;
+  cashier_name: string | null;
+  opening_card: number;
+  counted_card: number | null;
 }
 
 export interface Expense {
