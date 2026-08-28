@@ -190,20 +190,20 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     navigate({ to: account ? homeForRole(account.role) : "/", replace: true });
   }
 
-  async function onGoogle() {
+  async function onOAuth(provider: "google" | "apple") {
     if (busy) return;
     setBusy(true);
     try {
       window.sessionStorage.setItem("storeLogin.audience", audience);
       window.sessionStorage.setItem(STORE_OAUTH_PENDING, "1");
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin + (slug ? `/salon/${slug}/login` : "/store-login"),
       });
       if (result.error) throw result.error;
       if (!("redirected" in result && result.redirected)) await afterAuth();
     } catch (err) {
       window.sessionStorage.removeItem(STORE_OAUTH_PENDING);
-      toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
+      toast.error(err instanceof Error ? err.message : "تعذّر إكمال تسجيل الدخول");
     } finally {
       setBusy(false);
     }
@@ -398,7 +398,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
 
           <button
             type="button"
-            onClick={onGoogle}
+            onClick={() => onOAuth("google")}
             disabled={busy}
             className="mt-4 w-full h-11 rounded-xl border border-border bg-background hover:bg-muted/50 font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
@@ -418,6 +418,18 @@ export function StoreLoginView({ slug }: { slug?: string }) {
               />
             </svg>
             {audience === "staff" ? "متابعة بحساب Google كموظف" : "متابعة بحساب Google"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOAuth("apple")}
+            disabled={busy}
+            className="mt-3 w-full h-11 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60 bg-foreground text-background hover:opacity-90"
+          >
+            <svg viewBox="0 0 24 24" className="size-4" aria-hidden fill="currentColor">
+              <path d="M17.05 20.28c-.98.95-2.05.86-3.08.41-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.41C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8.98-.2 1.92-.86 3.24-.8 1.44.12 2.52.7 3.24 1.76-3.03 1.81-2.3 5.78.55 6.92-.65 1.61-1.49 3.21-2.11 4.29ZM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25Z" />
+            </svg>
+            {audience === "staff" ? "متابعة بحساب Apple كموظف" : "متابعة بحساب Apple"}
           </button>
 
           <button
