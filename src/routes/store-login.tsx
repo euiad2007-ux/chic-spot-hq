@@ -190,20 +190,20 @@ export function StoreLoginView({ slug }: { slug?: string }) {
     navigate({ to: account ? homeForRole(account.role) : "/", replace: true });
   }
 
-  async function onGoogle() {
+  async function onOAuth(provider: "google" | "apple") {
     if (busy) return;
     setBusy(true);
     try {
       window.sessionStorage.setItem("storeLogin.audience", audience);
       window.sessionStorage.setItem(STORE_OAUTH_PENDING, "1");
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin + (slug ? `/salon/${slug}/login` : "/store-login"),
       });
       if (result.error) throw result.error;
       if (!("redirected" in result && result.redirected)) await afterAuth();
     } catch (err) {
       window.sessionStorage.removeItem(STORE_OAUTH_PENDING);
-      toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Google");
+      toast.error(err instanceof Error ? err.message : "تعذّر إكمال تسجيل الدخول");
     } finally {
       setBusy(false);
     }
