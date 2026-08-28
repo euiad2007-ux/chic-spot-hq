@@ -290,6 +290,29 @@ function AuthPage() {
     }
   }
 
+  async function onApple() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      window.sessionStorage.setItem(OAUTH_PENDING, "1");
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri:
+          window.location.origin +
+          "/auth" +
+          (next ? `?next=${encodeURIComponent(next)}` : ""),
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      toast.success("تم تسجيل الدخول");
+      await afterAuth();
+    } catch (err) {
+      window.sessionStorage.removeItem(OAUTH_PENDING);
+      toast.error(err instanceof Error ? err.message : "تعذّر الدخول عبر Apple");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main
       dir="rtl"
@@ -529,6 +552,16 @@ function AuthPage() {
               <GoogleMark />
               المتابعة باستخدام Google
             </button>
+
+            <button
+              type="button"
+              onClick={onApple}
+              disabled={busy}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-input bg-foreground text-sm font-bold text-background transition hover:opacity-90 disabled:opacity-60"
+            >
+              <AppleMark />
+              المتابعة باستخدام Apple
+            </button>
           </form>
         </div>
 
@@ -629,6 +662,14 @@ function Field({
         )}
       </div>
     </label>
+  );
+}
+
+function AppleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill="currentColor">
+      <path d="M17.05 20.28c-.98.95-2.05.86-3.08.41-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.41C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8.98-.2 1.92-.86 3.24-.8 1.44.12 2.52.7 3.24 1.76-3.03 1.81-2.3 5.78.55 6.92-.65 1.61-1.49 3.21-2.11 4.29ZM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25Z" />
+    </svg>
   );
 }
 
