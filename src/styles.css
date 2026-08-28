@@ -166,3 +166,15 @@
   font-size: 0.875rem;
   outline: none;
 }
+
+@media print {
+  body.printing-shift * { visibility: hidden !important; }
+  body.printing-shift .shift-print,
+  body.printing-shift .shift-print * { visibility: visible !important; }
+  body.printing-shift .shift-print {
+    position: absolute !important; inset: 0 !important; margin: 0 !important;
+    background: white !important; color: #111 !important; box-shadow: none !important;
+    max-height: none !important; overflow: visible !important;
+  }
+  body.printing-shift { background: white !important; }
+}
