@@ -398,7 +398,7 @@ export function StoreLoginView({ slug }: { slug?: string }) {
 
           <button
             type="button"
-            onClick={onGoogle}
+            onClick={() => onOAuth("google")}
             disabled={busy}
             className="mt-4 w-full h-11 rounded-xl border border-border bg-background hover:bg-muted/50 font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
