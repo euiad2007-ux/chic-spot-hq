@@ -212,14 +212,46 @@ export function findOpenShift(shifts: CashShift[], branchId: string | null): Cas
   );
 }
 
-export async function openShift(salonId: string, branchId: string | null, openingFloat: number) {
+export interface ShiftOpenExtras {
+  cashierStaffId?: string | null;
+  cashierName?: string | null;
+  /** Opening balance already sitting on the card terminal (جهاز الشبكة). */
+  openingCard?: number;
+}
+
+export async function openShift(
+  salonId: string,
+  branchId: string | null,
+  openingFloat: number,
+  extras?: ShiftOpenExtras,
+) {
   const { data, error } = await supabase.rpc("open_shift", {
     _salon: salonId,
     _branch: branchId,
     _opening_float: openingFloat,
   } as never);
   if (error) throw new Error(error.message);
-  return data as string;
+  const id = data as string;
+  if (extras && (extras.cashierName || extras.cashierStaffId || extras.openingCard)) {
+    await supabase
+      .from("cash_shifts")
+      .update({
+        cashier_staff_id: extras.cashierStaffId ?? null,
+        cashier_name: extras.cashierName ?? null,
+        opening_card: extras.openingCard ?? 0,
+      } as never)
+      .eq("id", id);
+  }
+  return id;
+}
+
+/** Stores the counted card-terminal amount alongside the standard cash closing. */
+export async function setShiftCountedCard(shiftId: string, countedCard: number) {
+  const { error } = await supabase
+    .from("cash_shifts")
+    .update({ counted_card: countedCard } as never)
+    .eq("id", shiftId);
+  if (error) throw new Error(error.message);
 }
 
 export interface ShiftClosing {
