@@ -107,59 +107,64 @@ function BookingsPage() {
 
   return (
     <AppShell
-      title="الحجوزات"
-      subtitle={`${rows.length} حجز`}
+      fullBleed
+      title="لوحة الحجوزات"
+      subtitle={`${rows.length} حجز — شاشة تشغيل الاستقبال`}
       action={
         <button
           onClick={() => setOpenNew(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-primary to-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90"
+          data-tour="new-booking"
+          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-primary to-accent px-7 h-14 text-base font-bold text-primary-foreground shadow-[var(--shadow-glow)] active:scale-95 transition"
         >
-          <Plus className="size-4" /> حجز جديد
+          <Plus className="size-5" /> حجز جديد
         </button>
       }
     >
-      <div className="glass-card rounded-2xl p-4 mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث برقم الحجز، اسم أو جوال العميل..."
-            className="w-full h-10 rounded-lg bg-muted/40 border border-border pr-10 pl-3 text-sm outline-none focus:border-primary/50"
-          />
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-medium border transition",
-                filter === f.id
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-muted/40 border-border text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {f.label}
+      <div className="flex flex-col gap-3 min-h-0 flex-1">
+        <ShiftConsole />
+
+        <div className="glass-card rounded-2xl p-3 flex flex-wrap items-center gap-2 shrink-0">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="بحث برقم الحجز، اسم أو جوال العميل..."
+              className="w-full h-12 rounded-xl bg-muted/40 border border-border pr-10 pl-3 text-sm outline-none focus:border-primary/50"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={cn(
+                  "px-4 h-12 rounded-xl text-sm font-semibold border transition active:scale-95",
+                  filter === f.id
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/40 border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 ms-auto">
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-12 rounded-xl bg-muted/40 border border-border px-3 text-xs" aria-label="من تاريخ" />
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-12 rounded-xl bg-muted/40 border border-border px-3 text-xs" aria-label="إلى تاريخ" />
+            <button onClick={exportRows} aria-label="تصدير CSV" className="inline-flex size-12 items-center justify-center rounded-xl border border-border hover:text-primary">
+              <FileDown className="size-5" />
             </button>
-          ))}
+            <button onClick={printReport} aria-label="طباعة PDF" className="inline-flex size-12 items-center justify-center rounded-xl border border-border hover:text-primary">
+              <Printer className="size-5" />
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 ms-auto">
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-xs" aria-label="من تاريخ" />
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-10 rounded-lg bg-muted/40 border border-border px-3 text-xs" aria-label="إلى تاريخ" />
-          <button onClick={exportRows} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold hover:text-primary">
-            <FileDown className="size-4" /> CSV
-          </button>
-          <button onClick={printReport} className="inline-flex h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold hover:text-primary">
-            <Printer className="size-4" /> PDF
-          </button>
-        </div>
-      </div>
 
       {rows.length === 0 ? (
-        <div className="glass-card rounded-2xl p-16 text-center text-muted-foreground">لا توجد حجوزات مطابقة</div>
+        <div className="glass-card rounded-2xl flex-1 grid place-items-center text-muted-foreground">لا توجد حجوزات مطابقة</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div className="flex-1 min-h-0 overflow-y-auto pb-2 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 auto-rows-min">
           {rows.map((b, idx) => {
             const c = customers.find((x) => x.id === b.customerId);
             const st = staff.find((x) => x.id === b.staffId);
