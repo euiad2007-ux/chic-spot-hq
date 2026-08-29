@@ -187,11 +187,14 @@ export function AppShell({
   title,
   subtitle,
   action,
+  fullBleed = false,
 }: {
   children: ReactNode;
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  /** Screen-filling pages (booking board / POS): compact header, no page scroll. */
+  fullBleed?: boolean;
 }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
@@ -385,7 +388,7 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen flex" dir="rtl">
+    <div className={cn("flex", fullBleed ? "h-screen overflow-hidden" : "min-h-screen")} dir="rtl">
       {/* Sidebar */}
       <aside data-tour="sidebar" className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
@@ -442,7 +445,7 @@ export function AppShell({
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={cn("flex-1 flex flex-col min-w-0", fullBleed && "min-h-0 overflow-hidden")}>
         <header className="h-16 border-b border-border bg-background/40 backdrop-blur-xl sticky top-0 z-30">
           <div className="h-full px-4 md:px-8 flex items-center gap-3">
             <button
@@ -522,15 +525,27 @@ export function AppShell({
           </div>
         </header>
 
-        <div className="px-4 md:px-8 py-6 flex items-start justify-between gap-4 flex-wrap">
+        <div
+          className={cn(
+            "flex items-start justify-between gap-4 flex-wrap",
+            fullBleed ? "px-4 md:px-6 py-3" : "px-4 md:px-8 py-6",
+          )}
+        >
           <div data-tour="page-title">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
+            <h1 className={cn("font-bold tracking-tight", fullBleed ? "text-xl md:text-2xl" : "text-2xl md:text-3xl")}>{title}</h1>
             {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
           </div>
           {action}
         </div>
 
-        <main className="px-4 md:px-8 pb-24 md:pb-10 flex-1 min-w-0">
+        <main
+          className={cn(
+            "flex-1 min-w-0",
+            fullBleed
+              ? "px-3 md:px-6 pb-20 md:pb-4 min-h-0 flex flex-col"
+              : "px-4 md:px-8 pb-24 md:pb-10",
+          )}
+        >
           {lockedModule ? <PlanUpgradeNotice module={lockedModule} /> : children}
         </main>
 
