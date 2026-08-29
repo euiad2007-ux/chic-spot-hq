@@ -187,11 +187,14 @@ export function AppShell({
   title,
   subtitle,
   action,
+  fullBleed = false,
 }: {
   children: ReactNode;
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  /** Screen-filling pages (booking board / POS): compact header, no page scroll. */
+  fullBleed?: boolean;
 }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
