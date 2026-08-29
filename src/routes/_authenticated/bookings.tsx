@@ -540,7 +540,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             {/* CUSTOMER */}
             <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-bold flex items-center gap-2"><Search className="size-4 text-primary" /> بيانات العميل</div>
+                <div className="text-base font-bold flex items-center gap-2"><span className="size-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-black">1</span><Search className="size-4 text-primary" /> بيانات العميل</div>
                 <button onClick={() => { setShowNew((v) => !v); setCustomerId(""); }} className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
                   <UserPlus className="size-3.5" /> {showNew ? "بحث بعميل موجود" : "عميل جديد"}
                 </button>
@@ -625,7 +625,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             {/* SERVICES */}
             <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-bold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> الخدمات المتاحة</div>
+                <div className="text-base font-bold flex items-center gap-2"><span className="size-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-black">2</span><Sparkles className="size-4 text-primary" /> الخدمات المتاحة</div>
                 <div className="text-[11px] text-muted-foreground">{selectedServices.length} مختارة</div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -641,7 +641,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                       onClick={() => toggleService(s.id)}
                       disabled={eligNames.length === 0}
                       className={cn(
-                        "text-right p-3 rounded-xl border transition text-sm",
+                        "text-right p-4 rounded-2xl border transition text-sm min-h-[7rem] active:scale-[0.98]",
                         sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
                         eligNames.length === 0 && "opacity-50 cursor-not-allowed",
                       )}
@@ -675,7 +675,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             {/* STAFF PICKER */}
             <section className="rounded-xl border border-border bg-card/40 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-bold flex items-center gap-2"><UserPlus className="size-4 text-primary" /> اختيار الموظفة</div>
+                <div className="text-base font-bold flex items-center gap-2"><span className="size-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-black">3</span><UserPlus className="size-4 text-primary" /> اختيار الموظفة</div>
                 <button
                   type="button"
                   onClick={() => setPreferredStaffId("")}
@@ -697,7 +697,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                         disabled={!qualified}
                         onClick={() => setPreferredStaffId(active ? "" : st.id)}
                         className={cn(
-                          "text-right p-3 rounded-xl border transition text-sm",
+                          "text-right p-4 rounded-2xl border transition text-sm min-h-[5rem] active:scale-[0.98]",
                           active ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
                           !qualified && "opacity-60 cursor-not-allowed",
                         )}
@@ -782,7 +782,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
 
             {/* PAYMENT */}
             <section className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
-              <div className="text-sm font-bold flex items-center gap-2"><CreditCard className="size-4 text-primary" /> طريقة الدفع</div>
+              <div className="text-base font-bold flex items-center gap-2"><span className="size-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-black">4</span><CreditCard className="size-4 text-primary" /> طريقة الدفع</div>
               <div className="grid grid-cols-2 gap-2">
                 {PAY_METHOD_OPTIONS.map((opt) => {
                   const Icon = opt.icon;
@@ -795,7 +795,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                       disabled={disabled}
                       onClick={() => setPayMethod(opt.id)}
                       className={cn(
-                        "flex items-center gap-2 rounded-lg border p-2.5 text-xs font-semibold transition text-right",
+                        "flex items-center gap-2 rounded-xl border p-3.5 min-h-[3.5rem] text-sm font-semibold transition text-right active:scale-95",
                         active ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
                         disabled && "opacity-40 cursor-not-allowed",
                       )}
@@ -847,13 +847,13 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             {selectedServices.length > 0 ? `${selectedServices.length} خدمة · ${combined?.durationMin ?? 0} دقيقة` : "اختر خدمة واحدة على الأقل"}
           </div>
           <div className="flex items-center gap-2 flex-1 sm:flex-none justify-end">
-            <button onClick={onClose} className="px-4 h-10 rounded-lg border border-border text-sm">إلغاء</button>
+            <button onClick={onClose} className="px-6 h-14 rounded-2xl border border-border text-base font-semibold">إلغاء</button>
             <button
               onClick={submit}
               disabled={selectedServices.length === 0 || !combined?.earliest}
-              className="px-6 h-10 rounded-lg bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-semibold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 h-14 rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground text-base font-bold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition inline-flex items-center gap-2"
             >
-              تأكيد الحجز
+              <CheckCircle2 className="size-5" /> تأكيد الحجز
             </button>
           </div>
         </div>
