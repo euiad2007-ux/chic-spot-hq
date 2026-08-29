@@ -310,7 +310,7 @@ function BookingsPage() {
           })}
         </div>
       )}
-
+      </div>
 
       {openNew && <NewBookingDialog onClose={() => setOpenNew(false)} />}
     </AppShell>
