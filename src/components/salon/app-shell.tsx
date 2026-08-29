@@ -388,7 +388,7 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen flex" dir="rtl">
+    <div className={cn("flex", fullBleed ? "h-screen overflow-hidden" : "min-h-screen")} dir="rtl">
       {/* Sidebar */}
       <aside data-tour="sidebar" className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
