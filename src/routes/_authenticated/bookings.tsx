@@ -13,6 +13,7 @@ import { currentSalonId } from "@/lib/db/hydrate";
 import { useActiveBranch } from "@/lib/active-branch";
 import { scopeToBranch, branchForNewRecord } from "@/lib/branch-scope";
 import { exportCsv, printReport, stampName } from "@/lib/export";
+import { ShiftConsole } from "@/components/salon/shift-console";
 
 
 import { useEffect, useMemo, useState } from "react";
