@@ -53,7 +53,7 @@ function MoneyField({
         min={0}
         value={value}
         onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))}
-        className="w-full h-16 rounded-2xl border border-border bg-muted/40 px-4 text-center text-3xl font-black tabular-nums outline-none focus:border-primary"
+        className="w-full h-12 rounded-xl border border-border bg-muted/40 px-4 text-center text-2xl font-black tabular-nums outline-none focus:border-primary"
       />
       <div className="grid grid-cols-3 gap-2">
         {quick.map((q) => (
@@ -61,7 +61,7 @@ function MoneyField({
             key={q}
             type="button"
             onClick={() => onChange(q === 0 ? 0 : value + q)}
-            className="h-11 rounded-xl border border-border bg-muted/30 text-sm font-bold active:scale-95 transition hover:border-primary/50"
+            className="h-9 rounded-xl border border-border bg-muted/30 text-xs font-bold active:scale-95 transition hover:border-primary/50"
           >
             {q === 0 ? "تصفير" : `+${q}`}
           </button>
@@ -115,7 +115,7 @@ function OpenShiftDialog({
           </div>
           <button
             onClick={onSkip}
-            className="h-11 px-4 rounded-xl border border-border text-xs font-semibold hover:text-primary"
+            className="h-9 px-3 rounded-xl border border-border text-xs font-semibold hover:text-primary"
           >
             لاحقاً
           </button>
@@ -142,7 +142,7 @@ function OpenShiftDialog({
                     type="button"
                     onClick={() => { setStaffId(s.id); setManualName(""); }}
                     className={cn(
-                      "h-20 rounded-2xl border p-3 text-right transition active:scale-95",
+                      "h-16 rounded-xl border p-2.5 text-right transition active:scale-95",
                       staffId === s.id
                         ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]"
                         : "border-border bg-muted/30 hover:border-primary/40",
@@ -167,7 +167,7 @@ function OpenShiftDialog({
               value={manualName}
               onChange={(e) => { setManualName(e.target.value); setStaffId(""); }}
               placeholder="أو اكتب اسم الموظف يدوياً"
-              className="w-full h-12 rounded-xl border border-border bg-muted/40 px-3 text-sm outline-none focus:border-primary"
+              className="w-full h-10 rounded-xl border border-border bg-muted/40 px-3 text-sm outline-none focus:border-primary"
             />
           </section>
 
@@ -188,9 +188,9 @@ function OpenShiftDialog({
               onSubmit({ cashierStaffId: staffId || null, cashierName: chosenName, cash, card });
             }}
             disabled={pending}
-            className="w-full sm:w-auto h-14 px-8 rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-base inline-flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 transition"
+            className="w-full sm:w-auto h-11 px-6 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 transition"
           >
-            <CheckCircle2 className="size-5" /> بدء الوردية
+            <CheckCircle2 className="size-4" /> بدء الوردية
           </button>
         </footer>
       </div>
@@ -263,7 +263,7 @@ function CloseShiftDialog({
               عُدّ النقد والمبلغ في الجهاز ثم أصدر تقرير الإغلاق
             </p>
           </div>
-          <button onClick={onCancel} className="size-11 rounded-xl border border-border grid place-items-center hover:text-primary">
+          <button onClick={onCancel} className="size-9 rounded-xl border border-border grid place-items-center hover:text-primary">
             <X className="size-4" />
           </button>
         </header>
@@ -311,9 +311,9 @@ function CloseShiftDialog({
           <button
             onClick={() => close.mutate()}
             disabled={close.isPending}
-            className="w-full h-14 rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-base inline-flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 transition"
+            className="w-full h-11 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 transition"
           >
-            <Lock className="size-5" /> إغلاق وإصدار تقرير الإغلاق
+            <Lock className="size-4" /> إغلاق وإصدار تقرير الإغلاق
           </button>
         </footer>
       </div>
@@ -366,10 +366,10 @@ function ReportDialog({ report, onClose }: { report: ClosingReport; onClose: () 
             ))}
           </div>
           <div className="flex gap-2 print:hidden">
-            <button onClick={print} className="flex-1 h-12 rounded-2xl border border-border font-bold inline-flex items-center justify-center gap-2 hover:text-primary">
+            <button onClick={print} className="flex-1 h-10 rounded-xl border border-border text-sm font-bold inline-flex items-center justify-center gap-2 hover:text-primary">
               <Printer className="size-4" /> طباعة / PDF
             </button>
-            <button onClick={onClose} className="flex-1 h-12 rounded-2xl bg-primary text-primary-foreground font-bold">
+            <button onClick={onClose} className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground text-sm font-bold">
               تم
             </button>
           </div>
@@ -469,16 +469,16 @@ export function ShiftConsole() {
           {current ? (
             <button
               onClick={() => setClosing(true)}
-              className="h-11 px-4 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-bold inline-flex items-center gap-2 active:scale-95 transition"
+              className="h-9 px-3 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground text-xs font-bold inline-flex items-center gap-2 active:scale-95 transition"
             >
-              <Lock className="size-4" /> إغلاق الحجوزات
+              <Lock className="size-3.5" /> إغلاق الحجوزات
             </button>
           ) : (
             <button
               onClick={() => setSkipped(false)}
-              className="h-11 px-4 rounded-xl border border-border text-sm font-bold inline-flex items-center gap-2 hover:text-primary"
+              className="h-9 px-3 rounded-xl border border-border text-xs font-bold inline-flex items-center gap-2 hover:text-primary"
             >
-              <LockOpen className="size-4" /> بدء وردية
+              <LockOpen className="size-3.5" /> بدء وردية
             </button>
           )}
         </div>

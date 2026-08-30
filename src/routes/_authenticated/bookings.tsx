@@ -115,9 +115,9 @@ function BookingsPage() {
         <button
           onClick={() => setOpenNew(true)}
           data-tour="new-booking"
-          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-primary to-accent px-7 h-14 text-base font-bold text-primary-foreground shadow-[var(--shadow-glow)] active:scale-95 transition"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-primary to-accent px-5 h-10 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] active:scale-95 transition"
         >
-          <Plus className="size-5" /> حجز جديد
+          <Plus className="size-4" /> حجز جديد
         </button>
       }
     >
@@ -131,7 +131,7 @@ function BookingsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث برقم الحجز، اسم أو جوال العميل..."
-              className="w-full h-12 rounded-xl bg-muted/40 border border-border pr-10 pl-3 text-sm outline-none focus:border-primary/50"
+              className="w-full h-10 rounded-xl bg-muted/40 border border-border pr-10 pl-3 text-sm outline-none focus:border-primary/50"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -140,7 +140,7 @@ function BookingsPage() {
                 key={f.id}
                 onClick={() => setFilter(f.id)}
                 className={cn(
-                  "px-4 h-12 rounded-xl text-sm font-semibold border transition active:scale-95",
+                  "px-3 h-10 rounded-xl text-xs font-semibold border transition active:scale-95",
                   filter === f.id
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-muted/40 border-border text-muted-foreground hover:text-foreground",
@@ -151,13 +151,13 @@ function BookingsPage() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 ms-auto">
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-12 rounded-xl bg-muted/40 border border-border px-3 text-xs" aria-label="من تاريخ" />
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-12 rounded-xl bg-muted/40 border border-border px-3 text-xs" aria-label="إلى تاريخ" />
-            <button onClick={exportRows} aria-label="تصدير CSV" className="inline-flex size-12 items-center justify-center rounded-xl border border-border hover:text-primary">
-              <FileDown className="size-5" />
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-10 rounded-xl bg-muted/40 border border-border px-3 text-xs" aria-label="من تاريخ" />
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-10 rounded-xl bg-muted/40 border border-border px-3 text-xs" aria-label="إلى تاريخ" />
+            <button onClick={exportRows} aria-label="تصدير CSV" className="inline-flex size-10 items-center justify-center rounded-xl border border-border hover:text-primary">
+              <FileDown className="size-4" />
             </button>
-            <button onClick={printReport} aria-label="طباعة PDF" className="inline-flex size-12 items-center justify-center rounded-xl border border-border hover:text-primary">
-              <Printer className="size-5" />
+            <button onClick={printReport} aria-label="طباعة PDF" className="inline-flex size-10 items-center justify-center rounded-xl border border-border hover:text-primary">
+              <Printer className="size-4" />
             </button>
           </div>
         </div>
@@ -641,7 +641,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                       onClick={() => toggleService(s.id)}
                       disabled={eligNames.length === 0}
                       className={cn(
-                        "text-right p-4 rounded-2xl border transition text-sm min-h-[7rem] active:scale-[0.98]",
+                        "text-right p-3 rounded-xl border transition text-sm min-h-[6rem] active:scale-[0.98]",
                         sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
                         eligNames.length === 0 && "opacity-50 cursor-not-allowed",
                       )}
@@ -697,7 +697,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                         disabled={!qualified}
                         onClick={() => setPreferredStaffId(active ? "" : st.id)}
                         className={cn(
-                          "text-right p-4 rounded-2xl border transition text-sm min-h-[5rem] active:scale-[0.98]",
+                          "text-right p-3 rounded-xl border transition text-sm min-h-[4.25rem] active:scale-[0.98]",
                           active ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
                           !qualified && "opacity-60 cursor-not-allowed",
                         )}
@@ -795,7 +795,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                       disabled={disabled}
                       onClick={() => setPayMethod(opt.id)}
                       className={cn(
-                        "flex items-center gap-2 rounded-xl border p-3.5 min-h-[3.5rem] text-sm font-semibold transition text-right active:scale-95",
+                        "flex items-center gap-2 rounded-xl border p-2.5 min-h-[3rem] text-xs font-semibold transition text-right active:scale-95",
                         active ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:bg-muted/40",
                         disabled && "opacity-40 cursor-not-allowed",
                       )}
@@ -847,13 +847,13 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
             {selectedServices.length > 0 ? `${selectedServices.length} خدمة · ${combined?.durationMin ?? 0} دقيقة` : "اختر خدمة واحدة على الأقل"}
           </div>
           <div className="flex items-center gap-2 flex-1 sm:flex-none justify-end">
-            <button onClick={onClose} className="px-6 h-14 rounded-2xl border border-border text-base font-semibold">إلغاء</button>
+            <button onClick={onClose} className="px-5 h-11 rounded-xl border border-border text-sm font-semibold">إلغاء</button>
             <button
               onClick={submit}
               disabled={selectedServices.length === 0 || !combined?.earliest}
-              className="px-8 h-14 rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground text-base font-bold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition inline-flex items-center gap-2"
+              className="px-6 h-11 rounded-xl bg-gradient-to-l from-primary to-accent text-primary-foreground text-sm font-bold shadow-[var(--shadow-glow)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition inline-flex items-center gap-2"
             >
-              <CheckCircle2 className="size-5" /> تأكيد الحجز
+              <CheckCircle2 className="size-4" /> تأكيد الحجز
             </button>
           </div>
         </div>
