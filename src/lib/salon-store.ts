@@ -28,6 +28,8 @@ export interface Service {
   cleanupMin: number;
   materials: ServiceMaterial[];
   active: boolean;
+  /** Square artwork shown on booking cards. */
+  imageUrl?: string | null;
   /** Branch that offers this service. `null` = available in every branch. */
   branchId?: string | null;
 }
