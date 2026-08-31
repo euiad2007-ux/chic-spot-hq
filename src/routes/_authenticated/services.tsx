@@ -14,6 +14,7 @@ import { useState, useMemo, useEffect } from "react";
 
 import { Plus, Trash2, Clock, Tag, X, Pencil, Package, Timer, Users, Coins, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ImageUploadField } from "@/components/platform/image-upload-field";
 import { toast } from "sonner";
 import { limitMessage, usePlanCaps, withinLimit } from "@/lib/plan-limits";
 
@@ -39,12 +40,13 @@ type FormState = {
   prepMin: number;
   cleanupMin: number;
   branchId: string;
+  imageUrl: string;
   materials: ServiceMaterial[];
 };
 
 const empty: FormState = {
   name: "", category: "الشعر", price: 100, durationMin: 30, prepMin: 5, cleanupMin: 5,
-  branchId: "", materials: [],
+  branchId: "", imageUrl: "", materials: [],
 };
 
 
@@ -87,6 +89,7 @@ function ServicesPage() {
       name: s.name, category: s.category, price: s.price, durationMin: s.durationMin,
       prepMin: s.prepMin ?? 0, cleanupMin: s.cleanupMin ?? 0, materials: s.materials ?? [],
       branchId: s.branchId ?? "",
+      imageUrl: s.imageUrl ?? "",
     });
     setStaffIds(staff.filter((st) => st.services.includes(s.id)).map((st) => st.id));
     setOpen(true);
@@ -97,7 +100,7 @@ function ServicesPage() {
     if (form.durationMin <= 0) return toast.error("مدة الخدمة غير صحيحة");
     if (!editing && !withinLimit(plan?.maxServices, services.length))
       return toast.error(limitMessage(plan, "خدمة/خدمات", plan!.maxServices));
-    const payload = { ...form, branchId: form.branchId || null };
+    const payload = { ...form, branchId: form.branchId || null, imageUrl: form.imageUrl || null };
     let serviceId = editing?.id;
     if (editing) {
       actions.updateService(editing.id, payload);
@@ -201,6 +204,14 @@ function ServiceCard({ s, branchLabel, onEdit }: { s: Service; branchLabel: stri
   return (
     <div className="glass-card rounded-2xl p-4 group relative">
       <div className="flex items-start justify-between gap-3">
+        {s.imageUrl && (
+          <img
+            src={s.imageUrl}
+            alt={s.name}
+            loading="lazy"
+            className="size-14 rounded-xl object-cover border border-border shrink-0"
+          />
+        )}
         <div className="flex-1 min-w-0">
           <div className="font-bold text-base">{s.name}</div>
           <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
@@ -351,6 +362,13 @@ function ServiceDialog({ form, setForm, branches, staffIds, setStaffIds, onClose
             </select>
           </Field>
 
+
+          <ImageUploadField
+            label="صورة الخدمة (مربّعة)"
+            value={form.imageUrl}
+            preset="square"
+            onChange={(url) => setForm({ ...form, imageUrl: url })}
+          />
 
           <div>
             <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1">

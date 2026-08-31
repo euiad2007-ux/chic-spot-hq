@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /** Target geometry for each kind of platform artwork. */
-export type MediaPreset = "logo" | "favicon" | "hero" | "wide" | "og";
+export type MediaPreset = "logo" | "favicon" | "hero" | "wide" | "og" | "square";
 
 interface PresetSpec {
   w: number;
@@ -19,6 +19,7 @@ export const MEDIA_PRESETS: Record<MediaPreset, PresetSpec> = {
   hero: { w: 1920, h: 1080, fit: "cover", mime: "image/jpeg", quality: 0.86, hint: "بانر عريض 1920×1080" },
   wide: { w: 1400, h: 1050, fit: "cover", mime: "image/jpeg", quality: 0.86, hint: "صورة قسم 1400×1050" },
   og: { w: 1200, h: 630, fit: "cover", mime: "image/jpeg", quality: 0.86, hint: "صورة مشاركة 1200×630" },
+  square: { w: 800, h: 800, fit: "cover", mime: "image/jpeg", quality: 0.86, hint: "صورة مربّعة 800×800" },
 };
 
 const MAX_INPUT_BYTES = 10 * 1024 * 1024;

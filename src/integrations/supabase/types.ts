@@ -411,7 +411,9 @@ export type Database = {
       cash_shifts: {
         Row: {
           branch_id: string | null
+          card_diff: number
           card_sales: number
+          cash_diff: number
           cash_expenses: number
           cash_sales: number
           cashier_name: string | null
@@ -435,7 +437,9 @@ export type Database = {
         }
         Insert: {
           branch_id?: string | null
+          card_diff?: number
           card_sales?: number
+          cash_diff?: number
           cash_expenses?: number
           cash_sales?: number
           cashier_name?: string | null
@@ -459,7 +463,9 @@ export type Database = {
         }
         Update: {
           branch_id?: string | null
+          card_diff?: number
           card_sales?: number
+          cash_diff?: number
           cash_expenses?: number
           cash_sales?: number
           cashier_name?: string | null
@@ -2651,6 +2657,7 @@ export type Database = {
           daily_capacity: number | null
           duration_min: number
           id: string
+          image_url: string | null
           name: string
           prep_min: number
           price: number
@@ -2666,6 +2673,7 @@ export type Database = {
           daily_capacity?: number | null
           duration_min?: number
           id?: string
+          image_url?: string | null
           name: string
           prep_min?: number
           price?: number
@@ -2681,6 +2689,7 @@ export type Database = {
           daily_capacity?: number | null
           duration_min?: number
           id?: string
+          image_url?: string | null
           name?: string
           prep_min?: number
           price?: number

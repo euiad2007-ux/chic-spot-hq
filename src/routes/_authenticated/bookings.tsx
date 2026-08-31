@@ -628,7 +628,7 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                 <div className="text-base font-bold flex items-center gap-2"><span className="size-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-black">2</span><Sparkles className="size-4 text-primary" /> الخدمات المتاحة</div>
                 <div className="text-[11px] text-muted-foreground">{selectedServices.length} مختارة</div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                 {services.filter((s) => s.active).map((s) => {
                   const sel = selectedServices.includes(s.id);
                   const eligNames = eligibleStaffNames(s);
@@ -641,31 +641,50 @@ function NewBookingDialog({ onClose }: { onClose: () => void }) {
                       onClick={() => toggleService(s.id)}
                       disabled={eligNames.length === 0}
                       className={cn(
-                        "text-right p-3 rounded-xl border transition text-sm min-h-[6rem] active:scale-[0.98]",
-                        sel ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]" : "border-border bg-muted/20 hover:bg-muted/40",
+                        "group relative text-right rounded-2xl border overflow-hidden transition active:scale-[0.98] flex flex-col",
+                        sel ? "border-primary ring-2 ring-primary/40 shadow-[var(--shadow-glow)]" : "border-border hover:border-primary/40",
                         eligNames.length === 0 && "opacity-50 cursor-not-allowed",
                       )}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="font-bold">{s.name}</div>
-                        <div className="text-primary font-bold whitespace-nowrap">{formatSAR(s.price)}</div>
+                      {/* Square artwork */}
+                      <div className="relative aspect-square w-full bg-muted/40 overflow-hidden">
+                        {s.imageUrl ? (
+                          <img src={s.imageUrl} alt={s.name} loading="lazy" className="absolute inset-0 size-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-primary/15 to-accent/15">
+                            <Sparkles className="size-8 text-primary/60" />
+                          </div>
+                        )}
+                        <span className="absolute top-2 right-2 rounded-full bg-background/90 px-2 py-0.5 text-[11px] font-bold text-primary">
+                          {formatSAR(s.price)}
+                        </span>
+                        {sel && (
+                          <span className="absolute top-2 left-2 size-6 rounded-full bg-primary text-primary-foreground grid place-items-center">
+                            <CheckCircle2 className="size-4" />
+                          </span>
+                        )}
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
-                        <Clock className="size-3" /> {total} دقيقة
-                        <span className="text-muted-foreground/50">·</span>
-                        <span>{s.category}</span>
-                      </div>
-                      <div className="mt-1.5 text-[11px]">
-                        <span className="text-muted-foreground">المؤهلون: </span>
-                        {eligNames.length === 0 ? <span className="text-destructive">لا يوجد</span> : <span className="text-foreground">{eligNames.join("، ")}</span>}
-                      </div>
-                      {earliest ? (
-                        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success border border-success/30 px-2 py-0.5 text-[11px] font-semibold">
-                          <CheckCircle2 className="size-3" /> {formatDateShort(earliest.startsAt)} — {formatTime(earliest.startsAt)} · {earliest.staffName}
+
+                      {/* Details */}
+                      <div className={cn("p-2.5 space-y-1 flex-1", sel ? "bg-primary/10" : "bg-card/60")}>
+                        <div className="font-bold text-sm truncate">{s.name}</div>
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                          <Clock className="size-3" /> {total} د
+                          <span className="text-muted-foreground/50">·</span>
+                          <span className="truncate">{s.category}</span>
                         </div>
-                      ) : (
-                        <div className="mt-2 text-[11px] text-warning">لا يوجد وقت متاح قريب</div>
-                      )}
+                        <div className="text-[11px] truncate">
+                          <span className="text-muted-foreground">المؤهلون: </span>
+                          {eligNames.length === 0 ? <span className="text-destructive">لا يوجد</span> : <span className="text-foreground">{eligNames.join("، ")}</span>}
+                        </div>
+                        {earliest ? (
+                          <div className="inline-flex items-center gap-1 rounded-full bg-success/10 text-success border border-success/30 px-1.5 py-0.5 text-[10px] font-semibold">
+                            <CheckCircle2 className="size-3" /> {formatDateShort(earliest.startsAt)} — {formatTime(earliest.startsAt)}
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-warning">لا يوجد وقت متاح قريب</div>
+                        )}
+                      </div>
                     </button>
                   );
                 })}
