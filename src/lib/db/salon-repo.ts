@@ -256,7 +256,7 @@ function buildSnapshot(s: SalonState, salonId: string): Snapshot {
 const serviceRow = (s: Service, salon_id: string): Row => ({
   id: s.id, salon_id, name: s.name, category: s.category || null, price: s.price,
   duration_min: s.durationMin, prep_min: s.prepMin, cleanup_min: s.cleanupMin, active: s.active,
-  branch_id: s.branchId ?? null,
+  branch_id: s.branchId ?? null, image_url: s.imageUrl ?? null,
 
 });
 
