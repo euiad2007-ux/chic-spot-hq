@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /** Target geometry for each kind of platform artwork. */
-export type MediaPreset = "logo" | "favicon" | "hero" | "wide" | "og";
+export type MediaPreset = "logo" | "favicon" | "hero" | "wide" | "og" | "square";
 
 interface PresetSpec {
   w: number;
