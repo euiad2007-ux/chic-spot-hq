@@ -2713,6 +2713,59 @@ export type Database = {
           },
         ]
       }
+      site_visits: {
+        Row: {
+          browser: string | null
+          country: string | null
+          created_at: string
+          device: string | null
+          id: string
+          language: string | null
+          os: string | null
+          path: string
+          referrer: string | null
+          region: string | null
+          salon_id: string | null
+          session_key: string | null
+        }
+        Insert: {
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          language?: string | null
+          os?: string | null
+          path?: string
+          referrer?: string | null
+          region?: string | null
+          salon_id?: string | null
+          session_key?: string | null
+        }
+        Update: {
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          language?: string | null
+          os?: string | null
+          path?: string
+          referrer?: string | null
+          region?: string | null
+          salon_id?: string | null
+          session_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visits_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff: {
         Row: {
           active: boolean
@@ -3585,6 +3638,7 @@ export type Database = {
           total_bytes: number
         }[]
       }
+      platform_visits_overview: { Args: { _days?: number }; Returns: Json }
       pos_checkout: {
         Args: {
           _branch: string

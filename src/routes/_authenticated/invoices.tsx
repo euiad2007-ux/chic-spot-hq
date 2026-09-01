@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon, formatSAR, formatDate, type Invoice } from "@/lib/salon-store";
-import { Receipt, TrendingUp, CheckCircle2, Eye } from "lucide-react";
+import { Receipt, TrendingUp, CheckCircle2, Eye, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { InvoiceReceipt } from "@/components/salon/invoice-receipt";
 import { useActiveBranch } from "@/lib/active-branch";
@@ -35,7 +35,23 @@ function InvoicesPage() {
 
 
   return (
-    <AppShell title="الفواتير" subtitle={`${invoices.length} فاتورة`}>
+    <AppShell
+      title="الفواتير"
+      subtitle={`${invoices.length} فاتورة`}
+      action={
+        <Link
+          to="/invoice-settings"
+          title="ضبط الفواتير"
+          aria-label="ضبط الفواتير"
+          className="group relative inline-flex size-9 items-center justify-center rounded-xl border border-border hover:border-primary/50 hover:text-primary"
+        >
+          <SlidersHorizontal className="size-4" />
+          <span className="pointer-events-none absolute -bottom-7 whitespace-nowrap rounded-md bg-foreground px-2 py-0.5 text-[10px] font-semibold text-background opacity-0 transition group-hover:opacity-100 z-20">
+            ضبط الفواتير
+          </span>
+        </Link>
+      }
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
           <div className="size-12 rounded-xl bg-primary/20 text-primary grid place-items-center"><Receipt className="size-6" /></div>

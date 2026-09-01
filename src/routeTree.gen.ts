@@ -34,6 +34,7 @@ import { Route as AuthenticatedPlatformSiteRouteImport } from './routes/_authent
 import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
 import { Route as AuthenticatedPlatformDatabaseRouteImport } from './routes/_authenticated/platform-database'
 import { Route as AuthenticatedPlatformCustomersRouteImport } from './routes/_authenticated/platform-customers'
+import { Route as AuthenticatedPlatformAnalyticsRouteImport } from './routes/_authenticated/platform-analytics'
 import { Route as AuthenticatedPlatformActivityRouteImport } from './routes/_authenticated/platform-activity'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPayrollRouteImport } from './routes/_authenticated/payroll'
@@ -43,6 +44,7 @@ import { Route as AuthenticatedJoinRequestsRouteImport } from './routes/_authent
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInvoiceSettingsRouteImport } from './routes/_authenticated/invoice-settings'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedHrRouteImport } from './routes/_authenticated/hr'
 import { Route as AuthenticatedFinancialsRouteImport } from './routes/_authenticated/financials'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -213,6 +215,12 @@ const AuthenticatedPlatformCustomersRoute =
     path: '/platform-customers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlatformAnalyticsRoute =
+  AuthenticatedPlatformAnalyticsRouteImport.update({
+    id: '/platform-analytics',
+    path: '/platform-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPlatformActivityRoute =
   AuthenticatedPlatformActivityRouteImport.update({
     id: '/platform-activity',
@@ -259,6 +267,11 @@ const AuthenticatedInvoiceSettingsRoute =
 const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHrRoute = AuthenticatedHrRouteImport.update({
+  id: '/hr',
+  path: '/hr',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFinancialsRoute = AuthenticatedFinancialsRouteImport.update({
@@ -498,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/financials': typeof AuthenticatedFinancialsRoute
+  '/hr': typeof AuthenticatedHrRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
@@ -507,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/platform-activity': typeof AuthenticatedPlatformActivityRoute
+  '/platform-analytics': typeof AuthenticatedPlatformAnalyticsRoute
   '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
@@ -570,6 +585,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/financials': typeof AuthenticatedFinancialsRoute
+  '/hr': typeof AuthenticatedHrRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
@@ -579,6 +595,7 @@ export interface FileRoutesByTo {
   '/payroll': typeof AuthenticatedPayrollRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/platform-activity': typeof AuthenticatedPlatformActivityRoute
+  '/platform-analytics': typeof AuthenticatedPlatformAnalyticsRoute
   '/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
@@ -645,6 +662,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/financials': typeof AuthenticatedFinancialsRoute
+  '/_authenticated/hr': typeof AuthenticatedHrRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
@@ -654,6 +672,7 @@ export interface FileRoutesById {
   '/_authenticated/payroll': typeof AuthenticatedPayrollRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/platform-activity': typeof AuthenticatedPlatformActivityRoute
+  '/_authenticated/platform-analytics': typeof AuthenticatedPlatformAnalyticsRoute
   '/_authenticated/platform-customers': typeof AuthenticatedPlatformCustomersRoute
   '/_authenticated/platform-database': typeof AuthenticatedPlatformDatabaseRoute
   '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
@@ -720,6 +739,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/expenses'
     | '/financials'
+    | '/hr'
     | '/inventory'
     | '/invoice-settings'
     | '/invoices'
@@ -729,6 +749,7 @@ export interface FileRouteTypes {
     | '/payroll'
     | '/platform'
     | '/platform-activity'
+    | '/platform-analytics'
     | '/platform-customers'
     | '/platform-database'
     | '/platform-settings'
@@ -792,6 +813,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/expenses'
     | '/financials'
+    | '/hr'
     | '/inventory'
     | '/invoice-settings'
     | '/invoices'
@@ -801,6 +823,7 @@ export interface FileRouteTypes {
     | '/payroll'
     | '/platform'
     | '/platform-activity'
+    | '/platform-analytics'
     | '/platform-customers'
     | '/platform-database'
     | '/platform-settings'
@@ -866,6 +889,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/expenses'
     | '/_authenticated/financials'
+    | '/_authenticated/hr'
     | '/_authenticated/inventory'
     | '/_authenticated/invoice-settings'
     | '/_authenticated/invoices'
@@ -875,6 +899,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payroll'
     | '/_authenticated/platform'
     | '/_authenticated/platform-activity'
+    | '/_authenticated/platform-analytics'
     | '/_authenticated/platform-customers'
     | '/_authenticated/platform-database'
     | '/_authenticated/platform-settings'
@@ -1112,6 +1137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformCustomersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform-analytics': {
+      id: '/_authenticated/platform-analytics'
+      path: '/platform-analytics'
+      fullPath: '/platform-analytics'
+      preLoaderRoute: typeof AuthenticatedPlatformAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/platform-activity': {
       id: '/_authenticated/platform-activity'
       path: '/platform-activity'
@@ -1173,6 +1205,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof AuthenticatedInventoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hr': {
+      id: '/_authenticated/hr'
+      path: '/hr'
+      fullPath: '/hr'
+      preLoaderRoute: typeof AuthenticatedHrRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/financials': {
@@ -1497,6 +1536,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedFinancialsRoute: typeof AuthenticatedFinancialsRoute
+  AuthenticatedHrRoute: typeof AuthenticatedHrRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoiceSettingsRoute: typeof AuthenticatedInvoiceSettingsRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
@@ -1506,6 +1546,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPayrollRoute: typeof AuthenticatedPayrollRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPlatformActivityRoute: typeof AuthenticatedPlatformActivityRoute
+  AuthenticatedPlatformAnalyticsRoute: typeof AuthenticatedPlatformAnalyticsRoute
   AuthenticatedPlatformCustomersRoute: typeof AuthenticatedPlatformCustomersRoute
   AuthenticatedPlatformDatabaseRoute: typeof AuthenticatedPlatformDatabaseRoute
   AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
@@ -1542,6 +1583,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedFinancialsRoute: AuthenticatedFinancialsRoute,
+  AuthenticatedHrRoute: AuthenticatedHrRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoiceSettingsRoute: AuthenticatedInvoiceSettingsRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
@@ -1551,6 +1593,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPayrollRoute: AuthenticatedPayrollRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPlatformActivityRoute: AuthenticatedPlatformActivityRoute,
+  AuthenticatedPlatformAnalyticsRoute: AuthenticatedPlatformAnalyticsRoute,
   AuthenticatedPlatformCustomersRoute: AuthenticatedPlatformCustomersRoute,
   AuthenticatedPlatformDatabaseRoute: AuthenticatedPlatformDatabaseRoute,
   AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,

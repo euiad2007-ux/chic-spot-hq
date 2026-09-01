@@ -134,6 +134,12 @@ export function SalonSiteView({ slug }: { slug?: string }) {
   const [notFound, setNotFound] = useState(false);
   const [branding, setBranding] = useState<PublicBranding | null>(null);
   useEffect(() => {
+    void import("@/lib/visit-tracking").then((m) =>
+      m.trackVisit(slug ? `/salon/${slug}` : "/site", meta.salonId),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, meta.salonId]);
+  useEffect(() => {
     let active = true;
     let resolvedBranding = false;
     setLoading(true);

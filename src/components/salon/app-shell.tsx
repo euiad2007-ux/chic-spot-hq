@@ -7,9 +7,7 @@ import {
   CalendarDays,
   CalendarCog,
   Sparkles,
-  Users2,
   Globe,
-  UserPlus,
   UserCircle,
   Receipt,
   Settings,
@@ -17,8 +15,6 @@ import {
   Bell,
   Scissors,
   Package,
-  Fingerprint,
-  Wallet,
   Ticket,
   Crown,
   LogOut,
@@ -44,6 +40,9 @@ import {
   FileCode2,
   ExternalLink,
   Share2,
+  PanelRightClose,
+  PanelRightOpen,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,6 +69,7 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/platform-customers", roles: ["platform_owner"] },
   { prefix: "/platform-database", roles: ["platform_owner"] },
   { prefix: "/platform-activity", roles: ["platform_owner"] },
+  { prefix: "/platform-analytics", roles: ["platform_owner"] },
 
   { prefix: "/dashboard", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/services", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -91,6 +91,7 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/activity-log", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/branch-audit", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/hr", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/staff", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/payroll", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/attendance", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -142,7 +143,6 @@ const nav: {
   { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, module: "pos", group: "daily" },
   { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, module: "cash", group: "daily" },
   { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers", group: "daily" },
-  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "daily" },
 
   // Financial management & accounting
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "finance" },
@@ -156,13 +156,11 @@ const nav: {
   { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, module: "accounting", group: "finance" },
   { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, module: "accounting", group: "finance" },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, module: "accounting", group: "finance" },
-  { to: "/payroll", label: "الرواتب والعمولات", icon: Wallet, manager: true, module: "payroll", group: "finance" },
   { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, module: "reports", group: "finance" },
 
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
-  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "manage" },
-  { to: "/join-requests", label: "طلبات الانضمام والتسجيلات", icon: UserPlus, manager: true, module: "staff", group: "manage" },
+  { to: "/hr", label: "الموارد البشرية", icon: BriefcaseBusiness, manager: true, module: "staff", group: "manage" },
   { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "manage" },
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "manage" },
   { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "manage" },
@@ -216,6 +214,17 @@ export function AppShell({
   }, [permitted, account, navigate]);
 
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
+  /** Collapsed (icon-only) sidebar, remembered between visits. */
+  const [railed, setRailed] = useState(false);
+  useEffect(() => {
+    setRailed(localStorage.getItem("sidebar-railed") === "1");
+  }, []);
+  const toggleRail = () =>
+    setRailed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebar-railed", next ? "1" : "0");
+      return next;
+    });
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
     (n.platform ? account?.role === "platform_owner" : n.manager ? manager : true) &&
@@ -336,13 +345,44 @@ export function AppShell({
     }
   }
 
-  const navLinks = (onNavigate?: () => void) =>
+  const navLinks = (onNavigate?: () => void, rail = false) =>
     GROUPS.map((g) => {
       const groupItems = items.filter((n) => n.group === g.id);
       if (groupItems.length === 0) return null;
       const hasActive = groupItems.some((n) => isActive(n.to));
       const expanded = closedGroups[g.id] === undefined ? true : !closedGroups[g.id];
-      const isOpen = expanded || hasActive;
+      const isOpen = rail ? true : expanded || hasActive;
+      if (rail) {
+        return (
+          <div key={g.id} className="space-y-1 pt-2 first:pt-0">
+            <div className="mx-auto h-px w-6 bg-border" />
+            {groupItems.map((n) => {
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  data-tour={n.to}
+                  onClick={onNavigate}
+                  title={n.label}
+                  aria-label={n.label}
+                  className={cn(
+                    "group relative flex items-center justify-center rounded-lg h-10 transition-all",
+                    isActive(n.to)
+                      ? "bg-gradient-to-l from-primary/20 to-accent/10 text-foreground border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                  )}
+                >
+                  <Icon className="size-4" />
+                  <span className="pointer-events-none absolute right-12 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-semibold text-background opacity-0 transition group-hover:opacity-100 z-40">
+                    {n.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        );
+      }
       return (
         <div key={g.id} className="space-y-1">
           <button
@@ -390,31 +430,51 @@ export function AppShell({
   return (
     <div className={cn("flex", fullBleed ? "h-screen overflow-hidden" : "min-h-screen")} dir="rtl">
       {/* Sidebar */}
-      <aside data-tour="sidebar" className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
-        <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
+      <aside
+        data-tour="sidebar"
+        className={cn(
+          "shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col transition-[width] duration-200",
+          railed ? "w-16" : "w-64",
+        )}
+      >
+        <div className={cn("h-16 flex items-center gap-3 border-b border-border", railed ? "px-2 justify-center" : "px-5")}>
           {site.logoUrl ? (
             <img
               src={site.logoUrl}
               alt={`شعار ${account?.salonName ?? "Salon Flow"}`}
-              className="h-16 w-auto max-w-[120px] object-contain bg-transparent shrink-0"
+              className={cn("h-16 w-auto object-contain bg-transparent shrink-0", railed ? "max-w-[40px]" : "max-w-[120px]")}
             />
           ) : (
             <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
               <Scissors className="size-5 text-primary-foreground" />
             </div>
           )}
-          <div className="min-w-0">
-            <div className="font-bold text-base leading-none truncate">
-              {account?.salonName ?? "Salon Flow"}
+          {!railed && (
+            <div className="min-w-0">
+              <div className="font-bold text-base leading-none truncate">
+                {account?.salonName ?? "Salon Flow"}
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-1">
+                {account ? ROLE_LABEL[account.role] : "إدارة المشاغل"}
+              </div>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              {account ? ROLE_LABEL[account.role] : "إدارة المشاغل"}
-            </div>
-          </div>
+          )}
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">{navLinks()}</nav>
-        <div className="p-3 border-t border-border space-y-1">
+        <button
+          type="button"
+          onClick={toggleRail}
+          aria-label={railed ? "توسيع القائمة" : "طي القائمة"}
+          title={railed ? "توسيع القائمة" : "طي القائمة"}
+          className={cn(
+            "mx-2 mt-2 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 flex items-center gap-2 transition",
+            railed ? "justify-center" : "justify-between px-3",
+          )}
+        >
+          {railed ? <PanelRightOpen className="size-4" /> : <><span className="text-xs font-semibold">طي القائمة</span><PanelRightClose className="size-4" /></>}
+        </button>
+        <nav className={cn("flex-1 space-y-1 overflow-y-auto", railed ? "p-2" : "p-3")}>{navLinks(undefined, railed)}</nav>
+        <div className={cn("border-t border-border space-y-1", railed ? "p-2" : "p-3")}>
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
             <Link
               to="/settings"
@@ -422,7 +482,7 @@ export function AppShell({
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
             >
               <Settings className="size-4" />
-              <span>إعدادات الموقع</span>
+              {!railed && <span>إعدادات الموقع</span>}
             </Link>
           )}
           <a
@@ -432,14 +492,14 @@ export function AppShell({
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
           >
             <Sparkles className="size-4" />
-            <span>الموقع العام</span>
+            {!railed && <span>الموقع العام</span>}
           </a>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive hover:bg-sidebar-accent"
           >
             <LogOut className="size-4" />
-            <span>تسجيل الخروج</span>
+            {!railed && <span>تسجيل الخروج</span>}
           </button>
         </div>
       </aside>

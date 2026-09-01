@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/salon/app-shell";
 import {
   useSalon, actions, formatSAR, formatTime, formatDateShort,
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import {
   Plus, Search, Trash2, CheckCircle2, X, AlertTriangle, Ticket, Wallet,
   UserPlus, Clock, Sparkles, CreditCard, Banknote, Smartphone, Hourglass, FileDown, Printer,
+  SlidersHorizontal, CalendarDays, Users, Scissors,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +36,15 @@ export const Route = createFileRoute("/_authenticated/bookings")({
   }),
   component: BookingsPage,
 });
+
+/** Icon-only shortcuts to the pages a receptionist needs while booking. */
+const BOOKING_TOOLS = [
+  { to: "/booking-settings", label: "ضبط الحجز", icon: SlidersHorizontal },
+  { to: "/calendar", label: "التقويم", icon: CalendarDays },
+  { to: "/staff", label: "الموظفون", icon: Users },
+  { to: "/services", label: "الخدمات", icon: Scissors },
+  { to: "/customers", label: "العملاء", icon: UserPlus },
+] as const;
 
 const STATUS_FILTERS: { id: BookingStatus | "all"; label: string }[] = [
   { id: "all", label: "الكل" },
@@ -159,6 +169,21 @@ function BookingsPage() {
             <button onClick={printReport} aria-label="طباعة PDF" className="inline-flex size-10 items-center justify-center rounded-xl border border-border hover:text-primary">
               <Printer className="size-4" />
             </button>
+            <span className="mx-1 h-6 w-px bg-border" />
+            {BOOKING_TOOLS.map((t) => (
+              <Link
+                key={t.to}
+                to={t.to}
+                title={t.label}
+                aria-label={t.label}
+                className="group relative inline-flex size-10 items-center justify-center rounded-xl border border-border hover:border-primary/50 hover:text-primary"
+              >
+                <t.icon className="size-4" />
+                <span className="pointer-events-none absolute -bottom-7 whitespace-nowrap rounded-md bg-foreground px-2 py-0.5 text-[10px] font-semibold text-background opacity-0 transition group-hover:opacity-100 z-20">
+                  {t.label}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
 
