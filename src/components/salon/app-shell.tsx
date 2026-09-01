@@ -214,6 +214,17 @@ export function AppShell({
   }, [permitted, account, navigate]);
 
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
+  /** Collapsed (icon-only) sidebar, remembered between visits. */
+  const [railed, setRailed] = useState(false);
+  useEffect(() => {
+    setRailed(localStorage.getItem("sidebar-railed") === "1");
+  }, []);
+  const toggleRail = () =>
+    setRailed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebar-railed", next ? "1" : "0");
+      return next;
+    });
   const manager = canManage(account?.role);
   const items = nav.filter((n) =>
     (n.platform ? account?.role === "platform_owner" : n.manager ? manager : true) &&
@@ -334,13 +345,44 @@ export function AppShell({
     }
   }
 
-  const navLinks = (onNavigate?: () => void) =>
+  const navLinks = (onNavigate?: () => void, rail = false) =>
     GROUPS.map((g) => {
       const groupItems = items.filter((n) => n.group === g.id);
       if (groupItems.length === 0) return null;
       const hasActive = groupItems.some((n) => isActive(n.to));
       const expanded = closedGroups[g.id] === undefined ? true : !closedGroups[g.id];
-      const isOpen = expanded || hasActive;
+      const isOpen = rail ? true : expanded || hasActive;
+      if (rail) {
+        return (
+          <div key={g.id} className="space-y-1 pt-2 first:pt-0">
+            <div className="mx-auto h-px w-6 bg-border" />
+            {groupItems.map((n) => {
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  data-tour={n.to}
+                  onClick={onNavigate}
+                  title={n.label}
+                  aria-label={n.label}
+                  className={cn(
+                    "group relative flex items-center justify-center rounded-lg h-10 transition-all",
+                    isActive(n.to)
+                      ? "bg-gradient-to-l from-primary/20 to-accent/10 text-foreground border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                  )}
+                >
+                  <Icon className="size-4" />
+                  <span className="pointer-events-none absolute right-12 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-semibold text-background opacity-0 transition group-hover:opacity-100 z-40">
+                    {n.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        );
+      }
       return (
         <div key={g.id} className="space-y-1">
           <button
@@ -388,8 +430,14 @@ export function AppShell({
   return (
     <div className={cn("flex", fullBleed ? "h-screen overflow-hidden" : "min-h-screen")} dir="rtl">
       {/* Sidebar */}
-      <aside data-tour="sidebar" className="w-64 shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col">
-        <div className="h-16 flex items-center gap-3 px-5 border-b border-border">
+      <aside
+        data-tour="sidebar"
+        className={cn(
+          "shrink-0 border-l border-border bg-sidebar/60 backdrop-blur-xl hidden md:flex flex-col transition-[width] duration-200",
+          railed ? "w-16" : "w-64",
+        )}
+      >
+        <div className={cn("h-16 flex items-center gap-3 border-b border-border", railed ? "px-2 justify-center" : "px-5")}>
           {site.logoUrl ? (
             <img
               src={site.logoUrl}
@@ -411,7 +459,19 @@ export function AppShell({
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">{navLinks()}</nav>
+        <button
+          type="button"
+          onClick={toggleRail}
+          aria-label={railed ? "توسيع القائمة" : "طي القائمة"}
+          title={railed ? "توسيع القائمة" : "طي القائمة"}
+          className={cn(
+            "mx-2 mt-2 h-9 rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary/40 flex items-center gap-2 transition",
+            railed ? "justify-center" : "justify-between px-3",
+          )}
+        >
+          {railed ? <PanelRightOpen className="size-4" /> : <><span className="text-xs font-semibold">طي القائمة</span><PanelRightClose className="size-4" /></>}
+        </button>
+        <nav className={cn("flex-1 space-y-1 overflow-y-auto", railed ? "p-2" : "p-3")}>{navLinks(undefined, railed)}</nav>
         <div className="p-3 border-t border-border space-y-1">
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
             <Link
