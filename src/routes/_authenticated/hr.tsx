@@ -12,6 +12,7 @@ import {
 import { AppShell } from "@/components/salon/app-shell";
 import { useSalon } from "@/lib/salon-store";
 import { listJoinRequests } from "@/lib/db/join-requests-repo";
+import { currentSalonId } from "@/lib/db/hydrate";
 
 export const Route = createFileRoute("/_authenticated/hr")({
   head: () => ({
@@ -55,9 +56,11 @@ const CARDS = [
 function HrPage() {
   const staff = useSalon((s) => s.staff);
   const activeStaff = staff.filter((s) => s.active).length;
+  const salonId = currentSalonId();
   const requests = useQuery({
-    queryKey: ["join-requests", "hr"],
-    queryFn: () => listJoinRequests(),
+    queryKey: ["join-requests", "hr", salonId],
+    enabled: !!salonId,
+    queryFn: () => listJoinRequests(salonId as string),
   });
   const pending = (requests.data ?? []).filter((r) => r.status === "pending").length;
 
