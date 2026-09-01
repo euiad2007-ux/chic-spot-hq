@@ -43,6 +43,7 @@ import { Route as AuthenticatedJoinRequestsRouteImport } from './routes/_authent
 import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedInvoiceSettingsRouteImport } from './routes/_authenticated/invoice-settings'
 import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedHrRouteImport } from './routes/_authenticated/hr'
 import { Route as AuthenticatedFinancialsRouteImport } from './routes/_authenticated/financials'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -259,6 +260,11 @@ const AuthenticatedInvoiceSettingsRoute =
 const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHrRoute = AuthenticatedHrRouteImport.update({
+  id: '/hr',
+  path: '/hr',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFinancialsRoute = AuthenticatedFinancialsRouteImport.update({
@@ -498,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/financials': typeof AuthenticatedFinancialsRoute
+  '/hr': typeof AuthenticatedHrRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
@@ -570,6 +577,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/financials': typeof AuthenticatedFinancialsRoute
+  '/hr': typeof AuthenticatedHrRoute
   '/inventory': typeof AuthenticatedInventoryRoute
   '/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/invoices': typeof AuthenticatedInvoicesRoute
@@ -645,6 +653,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/financials': typeof AuthenticatedFinancialsRoute
+  '/_authenticated/hr': typeof AuthenticatedHrRoute
   '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
   '/_authenticated/invoice-settings': typeof AuthenticatedInvoiceSettingsRoute
   '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
@@ -720,6 +729,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/expenses'
     | '/financials'
+    | '/hr'
     | '/inventory'
     | '/invoice-settings'
     | '/invoices'
@@ -792,6 +802,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/expenses'
     | '/financials'
+    | '/hr'
     | '/inventory'
     | '/invoice-settings'
     | '/invoices'
@@ -866,6 +877,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/expenses'
     | '/_authenticated/financials'
+    | '/_authenticated/hr'
     | '/_authenticated/inventory'
     | '/_authenticated/invoice-settings'
     | '/_authenticated/invoices'
@@ -1173,6 +1185,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof AuthenticatedInventoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hr': {
+      id: '/_authenticated/hr'
+      path: '/hr'
+      fullPath: '/hr'
+      preLoaderRoute: typeof AuthenticatedHrRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/financials': {
@@ -1497,6 +1516,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedFinancialsRoute: typeof AuthenticatedFinancialsRoute
+  AuthenticatedHrRoute: typeof AuthenticatedHrRoute
   AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
   AuthenticatedInvoiceSettingsRoute: typeof AuthenticatedInvoiceSettingsRoute
   AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
@@ -1542,6 +1562,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedFinancialsRoute: AuthenticatedFinancialsRoute,
+  AuthenticatedHrRoute: AuthenticatedHrRoute,
   AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
   AuthenticatedInvoiceSettingsRoute: AuthenticatedInvoiceSettingsRoute,
   AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
