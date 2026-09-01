@@ -159,6 +159,21 @@ function BookingsPage() {
             <button onClick={printReport} aria-label="طباعة PDF" className="inline-flex size-10 items-center justify-center rounded-xl border border-border hover:text-primary">
               <Printer className="size-4" />
             </button>
+            <span className="mx-1 h-6 w-px bg-border" />
+            {BOOKING_TOOLS.map((t) => (
+              <Link
+                key={t.to}
+                to={t.to}
+                title={t.label}
+                aria-label={t.label}
+                className="group relative inline-flex size-10 items-center justify-center rounded-xl border border-border hover:border-primary/50 hover:text-primary"
+              >
+                <t.icon className="size-4" />
+                <span className="pointer-events-none absolute -bottom-7 whitespace-nowrap rounded-md bg-foreground px-2 py-0.5 text-[10px] font-semibold text-background opacity-0 transition group-hover:opacity-100 z-20">
+                  {t.label}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
 
