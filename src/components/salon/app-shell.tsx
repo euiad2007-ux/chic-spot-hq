@@ -44,6 +44,9 @@ import {
   FileCode2,
   ExternalLink,
   Share2,
+  PanelRightClose,
+  PanelRightOpen,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,6 +73,7 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/platform-customers", roles: ["platform_owner"] },
   { prefix: "/platform-database", roles: ["platform_owner"] },
   { prefix: "/platform-activity", roles: ["platform_owner"] },
+  { prefix: "/platform-analytics", roles: ["platform_owner"] },
 
   { prefix: "/dashboard", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/services", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -91,6 +95,7 @@ const ROUTE_ROLES: { prefix: string; roles: AppRole[] }[] = [
   { prefix: "/subscription", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/activity-log", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/branch-audit", roles: ["platform_owner", "salon_owner", "branch_manager"] },
+  { prefix: "/hr", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/staff", roles: ["platform_owner", "salon_owner", "branch_manager"] },
   { prefix: "/payroll", roles: ["platform_owner", "salon_owner"] },
   { prefix: "/attendance", roles: ["platform_owner", "salon_owner", "branch_manager"] },
@@ -142,7 +147,6 @@ const nav: {
   { to: "/pos", label: "نقطة البيع", icon: ShoppingCart, manager: true, module: "pos", group: "daily" },
   { to: "/cash", label: "الصندوق والورديات", icon: Banknote, manager: true, module: "cash", group: "daily" },
   { to: "/customers", label: "العملاء", icon: UserCircle, manager: true, module: "customers", group: "daily" },
-  { to: "/attendance", label: "الحضور والانصراف", icon: Fingerprint, manager: true, module: "attendance", group: "daily" },
 
   // Financial management & accounting
   { to: "/invoices", label: "الفواتير", icon: Receipt, manager: true, module: "invoices", group: "finance" },
@@ -156,13 +160,11 @@ const nav: {
   { to: "/accounting/vat", label: "الضرائب والإقرارات", icon: Percent, manager: true, module: "accounting", group: "finance" },
   { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, module: "accounting", group: "finance" },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, module: "accounting", group: "finance" },
-  { to: "/payroll", label: "الرواتب والعمولات", icon: Wallet, manager: true, module: "payroll", group: "finance" },
   { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, module: "reports", group: "finance" },
 
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
-  { to: "/staff", label: "الموظفون", icon: Users2, manager: true, module: "staff", group: "manage" },
-  { to: "/join-requests", label: "طلبات الانضمام والتسجيلات", icon: UserPlus, manager: true, module: "staff", group: "manage" },
+  { to: "/hr", label: "الموارد البشرية", icon: BriefcaseBusiness, manager: true, module: "staff", group: "manage" },
   { to: "/inventory", label: "المخزون", icon: Package, manager: true, module: "inventory", group: "manage" },
   { to: "/stocktake", label: "جرد المستودع", icon: ClipboardCheck, manager: true, module: "inventory", group: "manage" },
   { to: "/stock-log", label: "حركات المخزون", icon: PackageSearch, manager: true, module: "inventory", group: "manage" },
