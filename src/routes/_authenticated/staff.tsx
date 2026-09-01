@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/salon/app-shell";
 import { useAccount } from "@/hooks/use-account";
-import { listBranches } from "@/lib/db/ops-repo";
+import { listBranches, listStaffShiftVariances } from "@/lib/db/ops-repo";
 import { useSalon, actions, formatSAR, type Staff } from "@/lib/salon-store";
 import { useMemo, useState } from "react";
-import { Plus, UserPlus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, AlarmClock, CalendarDays as CalendarDaysIcon } from "lucide-react";
+import { Plus, UserPlus, Phone, Trash2, X, Pencil, Star, StickyNote, Wallet, TrendingUp, Award, Minus, AlarmClock, Scale, CalendarDays as CalendarDaysIcon } from "lucide-react";
 import { DelayLog } from "@/components/salon/delay-log";
 import { StaffInviteDialog } from "@/components/salon/staff-invite-panel";
 import { cn } from "@/lib/utils";
@@ -397,7 +397,7 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
   revenue: number;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "allowances" | "leaves" | "notes" | "points" | "delays">("overview");
+  const [tab, setTab] = useState<"overview" | "allowances" | "leaves" | "notes" | "points" | "delays" | "shifts">("overview");
   const [leaveFrom, setLeaveFrom] = useState("");
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
@@ -455,6 +455,7 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
             ["notes", "الملاحظات", StickyNote],
             ["points", "النقاط", Award],
             ["delays", "ملف التأخير", AlarmClock],
+            ["shifts", "فروقات الورديات", Scale],
           ] as const).map(([k, label, Icon]) => (
 
             <button
@@ -590,6 +591,8 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
 
           {tab === "delays" && <DelayLog staffId={staff.id} />}
 
+          {tab === "shifts" && <ShiftVariances staffId={staff.id} />}
+
           {tab === "points" && (
             <div className="space-y-4">
               <div className="rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 p-5 text-center">
@@ -628,6 +631,51 @@ function DetailDialog({ staff, bookingsCount, revenue, onClose }: {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Cash/card variances recorded against this employee when closing shifts. */
+function ShiftVariances({ staffId }: { staffId: string }) {
+  const { data: account } = useAccount();
+  const salonId = account?.salonId ?? null;
+  const { data, isLoading } = useQuery({
+    queryKey: ["staff-shift-variances", salonId, staffId],
+    queryFn: () => listStaffShiftVariances(salonId!, staffId),
+    enabled: !!salonId,
+  });
+  const rows = data ?? [];
+  const totalCash = rows.reduce((a, r) => a + Number(r.cash_diff || 0), 0);
+  const totalCard = rows.reduce((a, r) => a + Number(r.card_diff || 0), 0);
+
+  if (isLoading) return <div className="py-8 text-center text-sm text-muted-foreground">جاري التحميل…</div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <Stat label="إجمالي فرق النقد" value={formatSAR(totalCash)} highlight={totalCash !== 0} />
+        <Stat label="إجمالي فرق الجهاز" value={formatSAR(totalCard)} highlight={totalCard !== 0} />
+      </div>
+      {rows.length === 0 ? (
+        <div className="text-center py-8 text-sm text-muted-foreground">لا توجد فروقات مسجلة</div>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((r) => (
+            <div key={r.id} className="rounded-xl border border-border bg-muted/20 p-3 space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground text-xs">
+                  {new Date(r.closed_at ?? r.opened_at).toLocaleString("ar-SA", { dateStyle: "medium", timeStyle: "short", calendar: "gregory", numberingSystem: "latn" })}
+                </span>
+                <span className="flex items-center gap-3 font-bold">
+                  <span className={cn(Number(r.cash_diff) === 0 ? "text-success" : "text-destructive")}>نقد {formatSAR(Number(r.cash_diff || 0))}</span>
+                  <span className={cn(Number(r.card_diff) === 0 ? "text-success" : "text-destructive")}>جهاز {formatSAR(Number(r.card_diff || 0))}</span>
+                </span>
+              </div>
+              {r.note && <div className="text-[11px] text-muted-foreground">{r.note}</div>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
