@@ -442,21 +442,23 @@ export function AppShell({
             <img
               src={site.logoUrl}
               alt={`شعار ${account?.salonName ?? "Salon Flow"}`}
-              className="h-16 w-auto max-w-[120px] object-contain bg-transparent shrink-0"
+              className={cn("h-16 w-auto object-contain bg-transparent shrink-0", railed ? "max-w-[40px]" : "max-w-[120px]")}
             />
           ) : (
             <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[var(--shadow-glow)]">
               <Scissors className="size-5 text-primary-foreground" />
             </div>
           )}
-          <div className="min-w-0">
-            <div className="font-bold text-base leading-none truncate">
-              {account?.salonName ?? "Salon Flow"}
+          {!railed && (
+            <div className="min-w-0">
+              <div className="font-bold text-base leading-none truncate">
+                {account?.salonName ?? "Salon Flow"}
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-1">
+                {account ? ROLE_LABEL[account.role] : "إدارة المشاغل"}
+              </div>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              {account ? ROLE_LABEL[account.role] : "إدارة المشاغل"}
-            </div>
-          </div>
+          )}
         </div>
 
         <button
@@ -472,7 +474,7 @@ export function AppShell({
           {railed ? <PanelRightOpen className="size-4" /> : <><span className="text-xs font-semibold">طي القائمة</span><PanelRightClose className="size-4" /></>}
         </button>
         <nav className={cn("flex-1 space-y-1 overflow-y-auto", railed ? "p-2" : "p-3")}>{navLinks(undefined, railed)}</nav>
-        <div className="p-3 border-t border-border space-y-1">
+        <div className={cn("border-t border-border space-y-1", railed ? "p-2" : "p-3")}>
           {manager && (account?.role === "platform_owner" || account?.enabledModules.includes("site_settings")) && (
             <Link
               to="/settings"
