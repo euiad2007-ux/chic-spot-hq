@@ -19,7 +19,7 @@ import { useActiveBranch } from "@/lib/active-branch";
 import { scopeToBranch } from "@/lib/branch-scope";
 import {
   listBranches, listShifts, findOpenShift, openShift as openShiftRpc,
-  closeShift as closeShiftRpc, setShiftCountedCard, shiftTotals,
+  closeShift as closeShiftRpc, setShiftClosingExtras, shiftTotals,
   type CashShift, type ShiftClosing,
 } from "@/lib/db/ops-repo";
 
@@ -229,7 +229,11 @@ function CloseShiftDialog({
   const close = useMutation({
     mutationFn: async () => {
       const res = await closeShiftRpc(shift.id, counted, note || undefined);
-      await setShiftCountedCard(shift.id, countedCard).catch(() => undefined);
+      await setShiftClosingExtras(shift.id, {
+        countedCard,
+        cashDiff: Number(res.counted_cash) - Number(res.expected_cash),
+        cardDiff: countedCard - (Number(shift.opening_card ?? 0) + Number(res.card_sales)),
+      }).catch(() => undefined);
       return res;
     },
     onSuccess: (res) => {
@@ -297,6 +301,9 @@ function CloseShiftDialog({
               <span className="font-semibold flex items-center gap-2"><Scale className="size-4 text-primary" /> فرق النقد</span>
               <strong className={diff === 0 ? "text-success" : "text-destructive"}>{formatSAR(diff)}</strong>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              أي فرق (نقص أو زيادة) يُسجَّل على موظف الوردية: {shift.cashier_name ?? "—"}
+            </p>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -346,6 +353,7 @@ function ReportDialog({ report, onClose }: { report: ClosingReport; onClose: () 
     ["فرق النقد", formatSAR(Number(report.difference))],
     ["المعدود في الجهاز", formatSAR(report.countedCard)],
     ["فرق الجهاز", formatSAR(cardDiff)],
+    ["الفرق مسجّل على", report.cashierName ?? "—"],
     ["ملاحظة", report.note || "—"],
   ];
 

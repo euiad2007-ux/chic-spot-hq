@@ -89,6 +89,8 @@ export interface CashShift {
   cashier_name: string | null;
   opening_card: number;
   counted_card: number | null;
+  cash_diff: number;
+  card_diff: number;
 }
 
 export interface Expense {
@@ -245,13 +247,45 @@ export async function openShift(
   return id;
 }
 
-/** Stores the counted card-terminal amount alongside the standard cash closing. */
-export async function setShiftCountedCard(shiftId: string, countedCard: number) {
+/**
+ * Stores the counted card-terminal amount and both variances, so any shortage
+ * or surplus stays recorded against the cashier who ran the shift.
+ */
+export async function setShiftClosingExtras(
+  shiftId: string,
+  extras: { countedCard: number; cashDiff: number; cardDiff: number },
+) {
   const { error } = await supabase
     .from("cash_shifts")
-    .update({ counted_card: countedCard } as never)
+    .update({
+      counted_card: extras.countedCard,
+      cash_diff: extras.cashDiff,
+      card_diff: extras.cardDiff,
+    } as never)
     .eq("id", shiftId);
   if (error) throw new Error(error.message);
+}
+
+/** Closed shifts (with their variances) attributed to one staff member. */
+export async function listStaffShiftVariances(salonId: string, staffId: string, limit = 20) {
+  const { data, error } = await supabase
+    .from("cash_shifts")
+    .select("id, opened_at, closed_at, cash_diff, card_diff, status, note, branch_id")
+    .eq("salon_id", salonId)
+    .eq("cashier_staff_id", staffId)
+    .eq("status", "closed")
+    .order("closed_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as unknown as Array<{
+    id: string;
+    opened_at: string;
+    closed_at: string | null;
+    cash_diff: number;
+    card_diff: number;
+    note: string | null;
+    branch_id: string | null;
+  }>;
 }
 
 export interface ShiftClosing {
