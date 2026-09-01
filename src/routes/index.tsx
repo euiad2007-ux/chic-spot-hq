@@ -145,6 +145,9 @@ const included = [
 ];
 
 function Landing() {
+  useEffect(() => {
+    void import("@/lib/visit-tracking").then((m) => m.trackVisit("/"));
+  }, []);
   const navigate = useNavigate();
   const loaderData = Route.useLoaderData();
   const settings = usePlatformSettings(loaderData.settings);
