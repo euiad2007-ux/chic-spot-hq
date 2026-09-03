@@ -1825,6 +1825,59 @@ export type Database = {
           },
         ]
       }
+      login_events: {
+        Row: {
+          browser: string | null
+          country: string | null
+          created_at: string
+          device: string | null
+          email: string | null
+          id: string
+          language: string | null
+          os: string | null
+          region: string | null
+          role_label: string | null
+          salon_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          language?: string | null
+          os?: string | null
+          region?: string | null
+          role_label?: string | null
+          salon_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          language?: string | null
+          os?: string | null
+          region?: string | null
+          role_label?: string | null
+          salon_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_events_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_transactions: {
         Row: {
           created_at: string
@@ -3765,6 +3818,10 @@ export type Database = {
       }
       review_join_request: {
         Args: { _approve: boolean; _branch?: string; _request: string }
+        Returns: Json
+      }
+      salon_analytics_overview: {
+        Args: { _days?: number; _salon: string }
         Returns: Json
       }
       salon_staff_directory: {
