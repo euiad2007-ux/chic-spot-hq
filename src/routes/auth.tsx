@@ -175,7 +175,12 @@ function AuthPage() {
     if (email.trim()) window.localStorage.setItem(LAST_EMAIL_KEY, email.trim());
     await refreshAccount();
     if (next) {
-      window.location.href = next;
+      // Same-origin destinations stay inside the client router (no full reload).
+      if (next.startsWith("/")) {
+        await navigate({ to: next, replace: true });
+      } else {
+        window.location.href = next;
+      }
       return;
     }
     await navigate({ to: homeForRole(account.role), replace: true });
