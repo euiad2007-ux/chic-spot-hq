@@ -5,6 +5,7 @@ const BASE_URL = "https://novaa.live";
 
 interface SitemapEntry {
   path: string;
+  lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
 }
@@ -15,7 +16,7 @@ async function salonEntries(): Promise<SitemapEntry[]> {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("salons")
-      .select("slug, is_suspended, subscription_status")
+      .select("slug, is_suspended, subscription_status, updated_at")
       .eq("is_suspended", false)
       .limit(5000);
     if (error || !data) return [];
@@ -23,6 +24,9 @@ async function salonEntries(): Promise<SitemapEntry[]> {
       .filter((s) => s.slug && s.subscription_status !== "canceled")
       .map((s) => ({
         path: `/salon/${encodeURIComponent(s.slug)}`,
+        lastmod: (s as { updated_at?: string | null }).updated_at
+          ? new Date((s as { updated_at?: string | null }).updated_at as string).toISOString().slice(0, 10)
+          : undefined,
         changefreq: "weekly" as const,
         priority: "0.7",
       }));
@@ -35,8 +39,9 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const today = new Date().toISOString().slice(0, 10);
         const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
+          { path: "/", lastmod: today, changefreq: "weekly", priority: "1.0" },
           { path: "/?lang=en", changefreq: "weekly", priority: "0.8" },
           { path: "/site", changefreq: "weekly", priority: "0.8" },
           { path: "/auth", changefreq: "monthly", priority: "0.5" },
@@ -47,6 +52,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path.replace(/&/g, "&amp;")}</loc>`,
+            e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             `  </url>`,
