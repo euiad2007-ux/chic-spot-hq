@@ -158,6 +158,7 @@ const nav: {
   { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, module: "accounting", group: "finance" },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, module: "accounting", group: "finance" },
   { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, module: "reports", group: "finance" },
+  { to: "/analytics", label: "الإحصائيات والزوار", icon: BarChart3, manager: true, group: "finance" },
 
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
