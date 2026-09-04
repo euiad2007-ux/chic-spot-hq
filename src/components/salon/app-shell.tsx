@@ -158,6 +158,7 @@ const nav: {
   { to: "/accounting/einvoice", label: "الفواتير الإلكترونية", icon: FileCode2, manager: true, module: "accounting", group: "finance" },
   { to: "/accounting/assets", label: "الأصول الثابتة", icon: Building, manager: true, module: "accounting", group: "finance" },
   { to: "/reports", label: "مركز التقارير", icon: BarChart3, manager: true, module: "reports", group: "finance" },
+  { to: "/analytics", label: "الإحصائيات والزوار", icon: BarChart3, manager: true, group: "finance" },
 
   // Salon management
   { to: "/services", label: "الخدمات", icon: Sparkles, manager: true, module: "services", group: "manage" },
@@ -213,6 +214,19 @@ export function AppShell({
       navigate({ to: homeForRole(account.role), replace: true });
     }
   }, [permitted, account, navigate]);
+
+  // Records one sign-in per browser session for the store statistics page.
+  useEffect(() => {
+    if (!account) return;
+    void import("@/lib/salon-analytics").then((m) =>
+      m.trackLogin({
+        userId: account.userId,
+        salonId: account.salonId,
+        email: account.email,
+        roleLabel: ROLE_LABEL[account.role] ?? account.role,
+      }),
+    );
+  }, [account]);
 
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   /** Collapsed (icon-only) sidebar, remembered between visits. */

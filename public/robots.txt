@@ -1,4 +1,18 @@
 User-agent: *
 Allow: /
 
+# Private application areas (no SEO value)
+Disallow: /dashboard
+Disallow: /bookings
+Disallow: /invoices
+Disallow: /accounting
+Disallow: /platform
+Disallow: /platform-
+Disallow: /analytics
+Disallow: /hr
+Disallow: /settings
+Disallow: /store-settings
+Disallow: /reset-password
+Disallow: /api/
+
 Sitemap: https://novaa.live/sitemap.xml

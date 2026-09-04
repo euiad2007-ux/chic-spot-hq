@@ -121,6 +121,58 @@ export const Route = createFileRoute("/")({
             offers: { "@type": "Offer", priceCurrency: "SAR", price: "0" },
           }),
         },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            inLanguage: d?.lang === "en" ? "en" : "ar",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "ما هو نظام إدارة المشاغل والصالونات؟",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "نظام سحابي يدير الحجوزات والخدمات والموظفين والفواتير الضريبية والمخزون والرواتب لمشاغل التجميل والصالونات من مكان واحد.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "هل يوجد موقع إلكتروني لكل مشغل؟",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "نعم، لكل مشغل صفحة إلكترونية بهويته وألوانه ورابط خاص مع إمكانية ربط دومين خاص وحجز إلكتروني مباشر.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "هل الفواتير متوافقة مع الفاتورة الإلكترونية والضريبة؟",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "نعم، الفواتير تدعم ضريبة القيمة المضافة ورمز QR ومتطلبات الفاتورة الإلكترونية (ZATCA) بصيغة حرارية أو A4.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "هل يمكن تجربة النظام مجانًا؟",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "نعم، كل متجر جديد يحصل تلقائيًا على باقة تجريبية تشمل جميع الأقسام قبل الاشتراك.",
+                },
+              },
+            ],
+          }),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "الرئيسية", item: "https://novaa.live/" },
+            ],
+          }),
+        },
       ],
     };
   },
