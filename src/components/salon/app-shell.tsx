@@ -215,6 +215,19 @@ export function AppShell({
     }
   }, [permitted, account, navigate]);
 
+  // Records one sign-in per browser session for the store statistics page.
+  useEffect(() => {
+    if (!account) return;
+    void import("@/lib/salon-analytics").then((m) =>
+      m.trackLogin({
+        userId: account.userId,
+        salonId: account.salonId,
+        email: account.email,
+        roleLabel: ROLE_LABEL[account.role] ?? account.role,
+      }),
+    );
+  }, [account]);
+
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   /** Collapsed (icon-only) sidebar, remembered between visits. */
   const [railed, setRailed] = useState(false);
