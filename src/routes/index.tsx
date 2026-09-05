@@ -489,9 +489,8 @@ function Landing() {
       </section>
       )}
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        {home.footerText || `© ${new Date().getFullYear()} ${brand} — جميع الحقوق محفوظة`}
-      </footer>
+      <MarketingFooter />
+
     </main>
   );
 }
