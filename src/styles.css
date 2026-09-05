@@ -185,6 +185,7 @@
 @utility aurora {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   &::before {
     content: "";
     position: absolute;

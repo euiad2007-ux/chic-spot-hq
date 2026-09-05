@@ -110,7 +110,7 @@ export function MarketingPage({
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
       <MarketingHeader />
-      <section className="aurora border-b border-border/60">
+      <section className="aurora overflow-hidden border-b border-border/60">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-8 sm:py-20">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
             {kicker}
