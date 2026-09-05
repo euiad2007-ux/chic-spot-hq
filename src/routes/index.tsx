@@ -290,15 +290,19 @@ function Landing() {
             )}
           </span>
         </div>
-        {navLinks.length > 0 && (
-          <nav className="hidden md:flex items-center gap-4 text-sm">
-            {navLinks.map((l) => (
-              <a key={`${l.label}-${l.href}`} href={l.href} className="hover:text-primary">
-                {l.label}
-              </a>
-            ))}
-          </nav>
-        )}
+        <nav className="hidden md:flex items-center gap-4 text-sm">
+          {navLinks.map((l) => (
+            <a key={`${l.label}-${l.href}`} href={l.href} className="hover:text-primary">
+              {l.label}
+            </a>
+          ))}
+          {MARKETING_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} className="text-muted-foreground hover:text-primary">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="flex items-center gap-2">
           {enabledLangs.length > 1 && (
             <div className="hidden sm:flex items-center gap-1 rounded-lg border border-border p-1">
