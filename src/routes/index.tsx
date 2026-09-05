@@ -52,6 +52,7 @@ import heroImg from "@/assets/platform-hero.jpg";
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
 import officeVideo from "@/assets/novaa-office.mp4.asset.json";
+import officePoster from "@/assets/novaa-office-poster.jpg.asset.json";
 
 const FALLBACK_TITLE = "Salon Flow — منصة إدارة المشاغل والصالونات";
 const FALLBACK_DESC =
@@ -407,6 +408,7 @@ function Landing() {
           <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-border card-glow">
             <video
               src={officeVideo.url}
+              poster={officePoster.url}
               autoPlay
               loop
               muted
