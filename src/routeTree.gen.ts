@@ -13,6 +13,7 @@ import { Route as StoreLoginRouteImport } from './routes/store-login'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SiteRouteImport } from './routes/site'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -105,6 +106,11 @@ const SiteRoute = SiteRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NoAccessRoute = NoAccessRouteImport.update({
@@ -508,6 +514,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/mcp': typeof McpRoute
   '/no-access': typeof NoAccessRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -586,6 +593,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/mcp': typeof McpRoute
   '/no-access': typeof NoAccessRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -665,6 +673,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/mcp': typeof McpRoute
   '/no-access': typeof NoAccessRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -745,6 +754,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/mcp'
     | '/no-access'
+    | '/privacy'
     | '/reset-password'
     | '/site'
     | '/sitemap.xml'
@@ -823,6 +833,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/mcp'
     | '/no-access'
+    | '/privacy'
     | '/reset-password'
     | '/site'
     | '/sitemap.xml'
@@ -901,6 +912,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/mcp'
     | '/no-access'
+    | '/privacy'
     | '/reset-password'
     | '/site'
     | '/sitemap.xml'
@@ -981,6 +993,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   McpRoute: typeof McpRoute
   NoAccessRoute: typeof NoAccessRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SiteRoute: typeof SiteRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1026,6 +1039,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/no-access': {
@@ -1685,6 +1705,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   McpRoute: McpRoute,
   NoAccessRoute: NoAccessRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SiteRoute: SiteRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
