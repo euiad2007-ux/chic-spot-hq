@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StoreLoginRouteImport } from './routes/store-login'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SiteRouteImport } from './routes/site'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NoAccessRouteImport } from './routes/no-access'
@@ -107,6 +108,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SiteRoute = SiteRouteImport.update({
   id: '/site',
   path: '/site',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -522,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/no-access': typeof NoAccessRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/security': typeof SecurityRoute
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
@@ -602,6 +609,7 @@ export interface FileRoutesByTo {
   '/no-access': typeof NoAccessRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/security': typeof SecurityRoute
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
@@ -683,6 +691,7 @@ export interface FileRoutesById {
   '/no-access': typeof NoAccessRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/security': typeof SecurityRoute
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
@@ -765,6 +774,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/privacy'
     | '/reset-password'
+    | '/security'
     | '/site'
     | '/sitemap.xml'
     | '/store-login'
@@ -845,6 +855,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/privacy'
     | '/reset-password'
+    | '/security'
     | '/site'
     | '/sitemap.xml'
     | '/store-login'
@@ -925,6 +936,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/privacy'
     | '/reset-password'
+    | '/security'
     | '/site'
     | '/sitemap.xml'
     | '/store-login'
@@ -1007,6 +1019,7 @@ export interface RootRouteChildren {
   NoAccessRoute: typeof NoAccessRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SecurityRoute: typeof SecurityRoute
   SiteRoute: typeof SiteRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StoreLoginRoute: typeof StoreLoginRoute
@@ -1052,6 +1065,13 @@ declare module '@tanstack/react-router' {
       path: '/site'
       fullPath: '/site'
       preLoaderRoute: typeof SiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1727,6 +1747,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoAccessRoute: NoAccessRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SecurityRoute: SecurityRoute,
   SiteRoute: SiteRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StoreLoginRoute: StoreLoginRoute,
