@@ -13,11 +13,16 @@ import {
   Check,
   Sparkles,
   Languages,
+  PlayCircle,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 
 import { PlansShowcase } from "@/components/platform/plans-showcase";
+import {
+  MARKETING_LINKS,
+  MarketingFooter,
+} from "@/components/platform/marketing-page";
 import {
   PlatformContactCard,
   usePlatformSettings,
@@ -46,6 +51,7 @@ import { resolveTenant } from "@/lib/tenant-domain";
 import heroImg from "@/assets/platform-hero.jpg";
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
+import officeVideo from "@/assets/novaa-office.mp4.asset.json";
 
 const FALLBACK_TITLE = "Salon Flow — منصة إدارة المشاغل والصالونات";
 const FALLBACK_DESC =
@@ -337,7 +343,7 @@ function Landing() {
       </header>
 
 
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden aurora">
         <img
           src={home.heroImageUrl || heroImg}
           alt="صالون تجميل فاخر بإضاءة ذهبية وكراسي بلون الليلك"
@@ -351,7 +357,7 @@ function Landing() {
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
             {home.heroBadge || "منصة SaaS لملاك المشاغل والصالونات"}
           </span>
-          <h1 className="mt-6 text-3xl sm:text-5xl font-extrabold leading-tight">
+          <h1 className="rise-in mt-6 text-3xl sm:text-6xl font-extrabold leading-[1.15] tracking-tight">
             {home.headline || (
               <>
                 أدِر مشغلك وفروعك من <span className="gradient-text">لوحة واحدة</span>
