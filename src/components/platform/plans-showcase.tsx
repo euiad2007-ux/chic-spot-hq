@@ -1,8 +1,8 @@
-import { Check, Crown, Globe, X } from "lucide-react";
+import { Check, Crown, Globe, Sparkles, X } from "lucide-react";
 
 import type { PublicPlan } from "@/lib/db/platform-settings-repo";
+import { cn } from "@/lib/utils";
 import {
-  planCardClass,
   planCardStyleVars,
   planPriceStyle,
   planTitleStyle,
@@ -63,64 +63,104 @@ export function PlansShowcase({
   theme?: PlatformTheme;
 }) {
   if (plans.length === 0) return null;
+  // The middle plan is highlighted as the recommended one, unless the viewer is
+  // already subscribed to a specific plan.
+  const featuredIndex = currentCode
+    ? plans.findIndex((p) => p.code === currentCode)
+    : Math.min(1, plans.length - 1);
+
   return (
-    <section className="space-y-5">
+    <section className="space-y-8">
       <div className="text-center">
-        <h2 className="text-2xl sm:text-3xl font-extrabold">{title || "باقات الاشتراك"}</h2>
-        {note && <p className="mt-2 text-sm text-muted-foreground">{note}</p>}
+        <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
+          <Sparkles className="size-3.5" /> اشتراك مرن — رقّ أو خفّض في أي وقت
+        </span>
+        <h2 className="mt-4 text-2xl font-extrabold sm:text-4xl">{title || "باقات الاشتراك"}</h2>
+        {note && (
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {note}
+          </p>
+        )}
       </div>
-      <div className="grid gap-4 md:grid-cols-3 items-start">
-        {plans.map((p) => {
+
+      <div className="grid items-stretch gap-5 md:grid-cols-3">
+        {plans.map((p, i) => {
           const current = currentCode === p.code;
+          const featured = i === featuredIndex;
           return (
             <article
               key={p.code}
               style={planCardStyleVars(theme)}
-              className={planCardClass(cardStyle ?? theme?.planCardStyle, current)}
+              className={cn(
+                "relative flex flex-col gap-5 rounded-3xl p-6 transition-transform duration-300",
+                "plan-ring bg-card",
+                featured
+                  ? "card-glow md:-translate-y-3 md:scale-[1.03]"
+                  : "hover:-translate-y-1.5",
+                cardStyle === "glass" && "glass-card",
+              )}
             >
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold flex items-center gap-2" style={planTitleStyle(theme)}>
-                  <Crown className="size-4 text-primary" /> {p.name}
-                </h3>
-                {current && (
-                  <span className="rounded-full bg-primary/10 text-primary text-xs px-2.5 py-1 font-semibold">
-                    باقتك الحالية
-                  </span>
-                )}
-              </div>
-              <div>
-                <span className="text-3xl font-extrabold" style={planPriceStyle(theme)}>
-                  {Number(p.price_monthly)}
+              {(featured || current) && (
+                <span className="absolute -top-3 right-6 rounded-full bg-gradient-to-l from-primary to-accent px-3 py-1 text-[11px] font-extrabold text-primary-foreground shadow-lg">
+                  {current ? "باقتك الحالية" : "الأكثر اختيارًا"}
                 </span>
-                <span className="text-sm text-muted-foreground"> ر.س / شهريًا</span>
+              )}
+
+              <div className="space-y-3">
+                <span
+                  className={cn(
+                    "inline-flex size-11 items-center justify-center rounded-2xl",
+                    featured
+                      ? "bg-gradient-to-br from-primary to-accent text-primary-foreground"
+                      : "bg-primary/10 text-primary",
+                  )}
+                >
+                  <Crown className="size-5" />
+                </span>
+                <h3 className="text-lg font-extrabold" style={planTitleStyle(theme)}>
+                  {p.name}
+                </h3>
+                <div className="flex items-end gap-1.5">
+                  <span
+                    className={cn(
+                      "text-4xl font-extrabold leading-none",
+                      featured && "gradient-text",
+                    )}
+                    style={planPriceStyle(theme)}
+                  >
+                    {Number(p.price_monthly)}
+                  </span>
+                  <span className="pb-1 text-xs text-muted-foreground">ر.س / شهريًا</span>
+                </div>
               </div>
 
+              <div className="hairline" />
 
-              <ul className="space-y-1.5 text-sm">
+              <ul className="space-y-2 text-sm">
                 <Limit label="الفروع" value={num(p.max_branches)} />
                 <Limit label="الموظفون" value={num(p.max_staff)} />
                 <Limit label="الخدمات" value={num(p.max_services)} />
                 <Limit label="العملاء" value={num(p.max_customers)} />
                 <Limit label="الفواتير شهريًا" value={num(p.max_invoices)} />
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-2 pt-1">
                   {p.has_website ? (
                     <Globe className="size-3.5 text-primary" />
                   ) : (
                     <X className="size-3.5 text-muted-foreground" />
                   )}
-                  <span className={p.has_website ? "" : "text-muted-foreground"}>
+                  <span className={p.has_website ? "font-semibold" : "text-muted-foreground"}>
                     موقع إلكتروني للمشغل
                   </span>
                 </li>
               </ul>
 
-              <div className="border-t border-border pt-3">
-                <div className="text-xs text-muted-foreground mb-2">الأقسام المتاحة</div>
+              <div className="rounded-2xl bg-muted/40 p-3">
+                <div className="mb-2 text-xs font-bold text-muted-foreground">الأقسام المتاحة</div>
                 <div className="flex flex-wrap gap-1.5">
                   {(p.enabled_modules ?? []).map((m) => (
                     <span
                       key={m}
-                      className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium"
+                      className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[11px] font-medium"
                     >
                       {moduleLabel(m)}
                     </span>
@@ -129,10 +169,12 @@ export function PlansShowcase({
               </div>
 
               {(p.features ?? []).length > 0 && (
-                <ul className="space-y-1.5 text-sm border-t border-border pt-3">
+                <ul className="space-y-2 border-t border-border/70 pt-4 text-sm">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <Check className="size-4 mt-0.5 text-primary shrink-0" />
+                      <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/15">
+                        <Check className="size-3 text-primary" />
+                      </span>
                       <span>{f}</span>
                     </li>
                   ))}

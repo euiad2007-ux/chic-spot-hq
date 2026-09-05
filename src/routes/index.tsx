@@ -13,11 +13,16 @@ import {
   Check,
   Sparkles,
   Languages,
+  PlayCircle,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 
 import { PlansShowcase } from "@/components/platform/plans-showcase";
+import {
+  MARKETING_LINKS,
+  MarketingFooter,
+} from "@/components/platform/marketing-page";
 import {
   PlatformContactCard,
   usePlatformSettings,
@@ -46,6 +51,8 @@ import { resolveTenant } from "@/lib/tenant-domain";
 import heroImg from "@/assets/platform-hero.jpg";
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
+import officeVideo from "@/assets/novaa-office.mp4.asset.json";
+import officePoster from "@/assets/novaa-office-poster.jpg.asset.json";
 
 const FALLBACK_TITLE = "Salon Flow — منصة إدارة المشاغل والصالونات";
 const FALLBACK_DESC =
@@ -290,15 +297,19 @@ function Landing() {
             )}
           </span>
         </div>
-        {navLinks.length > 0 && (
-          <nav className="hidden md:flex items-center gap-4 text-sm">
-            {navLinks.map((l) => (
-              <a key={`${l.label}-${l.href}`} href={l.href} className="hover:text-primary">
-                {l.label}
-              </a>
-            ))}
-          </nav>
-        )}
+        <nav className="hidden md:flex items-center gap-4 text-sm">
+          {navLinks.map((l) => (
+            <a key={`${l.label}-${l.href}`} href={l.href} className="hover:text-primary">
+              {l.label}
+            </a>
+          ))}
+          {MARKETING_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} className="text-muted-foreground hover:text-primary">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="flex items-center gap-2">
           {enabledLangs.length > 1 && (
             <div className="hidden sm:flex items-center gap-1 rounded-lg border border-border p-1">
@@ -333,7 +344,7 @@ function Landing() {
       </header>
 
 
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden aurora">
         <img
           src={home.heroImageUrl || heroImg}
           alt="صالون تجميل فاخر بإضاءة ذهبية وكراسي بلون الليلك"
@@ -347,7 +358,7 @@ function Landing() {
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
             {home.heroBadge || "منصة SaaS لملاك المشاغل والصالونات"}
           </span>
-          <h1 className="mt-6 text-3xl sm:text-5xl font-extrabold leading-tight">
+          <h1 className="rise-in mt-6 text-3xl sm:text-6xl font-extrabold leading-[1.15] tracking-tight">
             {home.headline || (
               <>
                 أدِر مشغلك وفروعك من <span className="gradient-text">لوحة واحدة</span>
@@ -379,6 +390,58 @@ function Landing() {
           </p>
         </div>
       </section>
+
+      {/* Brand film: the NOVAA team working inside the product. */}
+      <section className="relative px-4 sm:px-8 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
+              <PlayCircle className="size-3.5" /> داخل NOVAA
+            </span>
+            <h2 className="mt-4 text-2xl sm:text-4xl font-extrabold">
+              فريق كامل يعمل خلف <span className="gradient-text">لوحة تحكم متجرك</span>
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground leading-relaxed">
+              تطوير، دعم، ومحاسبة — نبني ونشغّل المنصة يوميًا حتى يبقى تشغيل مشغلك سلسًا.
+            </p>
+          </div>
+          <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-border card-glow">
+            <video
+              src={officeVideo.url}
+              poster={officePoster.url}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-label="فريق نوفا يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق نوفا على شاشات الحاسب"
+              className="h-[240px] w-full object-cover sm:h-[460px]"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute bottom-5 right-6 left-6 flex flex-wrap items-center justify-between gap-3">
+              <span className="rounded-full bg-background/80 px-4 py-1.5 text-xs font-bold backdrop-blur">
+                مقر NOVAA — فريق التطوير والدعم
+              </span>
+              <span className="rounded-full bg-background/80 px-4 py-1.5 text-xs font-bold backdrop-blur">
+                تشغيل حقيقي على أرض الواقع
+              </span>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {[
+              { t: "دعم عربي مباشر", d: "فريق يفهم تشغيل المشاغل ويجيبك بسرعة." },
+              { t: "تحديثات شهرية", d: "ميزات جديدة مبنية على ملاحظات الملاك." },
+              { t: "تأسيس مجاني", d: "نساعدك في إدخال خدماتك وموظفيك من البداية." },
+            ].map((c) => (
+              <div key={c.t} className="rounded-2xl border border-border bg-card/60 p-4">
+                <h3 className="font-bold text-sm">{c.t}</h3>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{c.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {home.showFeatures !== false && (
         <section className="px-4 sm:px-8 py-16 max-w-5xl mx-auto">
@@ -489,9 +552,8 @@ function Landing() {
       </section>
       )}
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        {home.footerText || `© ${new Date().getFullYear()} ${brand} — جميع الحقوق محفوظة`}
-      </footer>
+      <MarketingFooter />
+
     </main>
   );
 }
