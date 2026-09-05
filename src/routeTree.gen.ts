@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StoreLoginRouteImport } from './routes/store-login'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SiteRouteImport } from './routes/site'
@@ -88,6 +89,11 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksBookingRemindersRouteImport } from './routes/api/public/hooks/booking-reminders'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoreLoginRoute = StoreLoginRouteImport.update({
   id: '/store-login',
   path: '/store-login',
@@ -519,6 +525,7 @@ export interface FileRoutesByFullPath {
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
+  '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/accounting': typeof AuthenticatedAccountingRouteWithChildren
@@ -598,6 +605,7 @@ export interface FileRoutesByTo {
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
+  '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/accounts': typeof AuthenticatedAccountsRoute
@@ -678,6 +686,7 @@ export interface FileRoutesById {
   '/site': typeof SiteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store-login': typeof StoreLoginRoute
+  '/terms': typeof TermsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/accounting': typeof AuthenticatedAccountingRouteWithChildren
@@ -759,6 +768,7 @@ export interface FileRouteTypes {
     | '/site'
     | '/sitemap.xml'
     | '/store-login'
+    | '/terms'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/accounting'
@@ -838,6 +848,7 @@ export interface FileRouteTypes {
     | '/site'
     | '/sitemap.xml'
     | '/store-login'
+    | '/terms'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/accounts'
@@ -917,6 +928,7 @@ export interface FileRouteTypes {
     | '/site'
     | '/sitemap.xml'
     | '/store-login'
+    | '/terms'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/accounting'
@@ -998,6 +1010,7 @@ export interface RootRouteChildren {
   SiteRoute: typeof SiteRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StoreLoginRoute: typeof StoreLoginRoute
+  TermsRoute: typeof TermsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -1013,6 +1026,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store-login': {
       id: '/store-login'
       path: '/store-login'
@@ -1710,6 +1730,7 @@ const rootRouteChildren: RootRouteChildren = {
   SiteRoute: SiteRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StoreLoginRoute: StoreLoginRoute,
+  TermsRoute: TermsRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
