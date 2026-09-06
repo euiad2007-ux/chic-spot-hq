@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Scissors,
   CalendarDays,
@@ -49,8 +49,9 @@ import { resolveTenant } from "@/lib/tenant-domain";
 
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
-import officeVideo from "@/assets/novaa-office.mp4.asset.json";
+import officeVideo from "@/assets/novaa-office-long.mp4.asset.json";
 import officePoster from "@/assets/novaa-office-poster.jpg.asset.json";
+import novaaRoseLogo from "@/assets/novaa-rose-logo.png.asset.json";
 
 const FALLBACK_TITLE = "Salon Flow — منصة إدارة المشاغل والصالونات";
 const FALLBACK_DESC =
@@ -206,6 +207,7 @@ function Landing() {
     void import("@/lib/visit-tracking").then((m) => m.trackVisit("/"));
   }, []);
   const navigate = useNavigate();
+  const [showVideoEndCard, setShowVideoEndCard] = useState(false);
   const loaderData = Route.useLoaderData();
   const settings = usePlatformSettings(loaderData.settings);
   const { lang } = Route.useSearch();
@@ -350,13 +352,17 @@ function Landing() {
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           aria-label="فريق NOVAA يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق NOVAA على شاشات الحاسب"
-          style={imageOpacityStyle(theme, "hero")}
+          onTimeUpdate={(event) => {
+            const video = event.currentTarget;
+            const remaining = video.duration - video.currentTime;
+            setShowVideoEndCard(Number.isFinite(remaining) && remaining <= 2.8 && remaining > 0.15);
+          }}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/85 to-background/60" />
-        <div className="relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
+        <div className="absolute inset-0 bg-gradient-to-l from-background/80 via-background/60 to-background/30" />
+        <div className={`relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center transition-opacity duration-500 ${showVideoEndCard ? "opacity-0" : "opacity-100"}`}>
           <div className="mb-6 flex justify-center">
             {home.logoUrl ? (
               <img
@@ -407,6 +413,19 @@ function Landing() {
             {home.heroNote ||
               "التسجيل هنا لملاك المشاغل فقط — الموظفون والعملاء يدخلون من صفحة دخول المشغل."}
           </p>
+        </div>
+        <div
+          aria-hidden={!showVideoEndCard}
+          className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm transition-all duration-700 ${showVideoEndCard ? "visible opacity-100" : "invisible opacity-0"}`}
+        >
+          <div className={`flex flex-col items-center transition-all duration-700 ${showVideoEndCard ? "scale-100 translate-y-0" : "scale-90 translate-y-4"}`}>
+            <img
+              src={novaaRoseLogo.url}
+              alt="شعار NOVAA"
+              className="h-auto w-[min(72vw,430px)] object-contain drop-shadow-2xl"
+            />
+            <div className="mt-4 h-px w-40 bg-gradient-to-r from-transparent via-primary to-transparent" />
+          </div>
         </div>
       </section>
 
