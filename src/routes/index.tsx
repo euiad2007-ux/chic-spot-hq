@@ -13,7 +13,6 @@ import {
   Check,
   Sparkles,
   Languages,
-  PlayCircle,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -48,7 +47,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { loadAccount, homeForRole } from "@/lib/account";
 import { resolveTenant } from "@/lib/tenant-domain";
 
-import heroImg from "@/assets/platform-hero.jpg";
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
 import officeVideo from "@/assets/novaa-office.mp4.asset.json";
@@ -345,16 +343,37 @@ function Landing() {
 
 
       <section className="relative overflow-hidden aurora">
-        <img
-          src={home.heroImageUrl || heroImg}
-          alt="صالون تجميل فاخر بإضاءة ذهبية وكراسي بلون الليلك"
-          width={1600}
-          height={1008}
+        <video
+          src={officeVideo.url}
+          poster={officePoster.url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-label="فريق NOVAA يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق NOVAA على شاشات الحاسب"
           style={imageOpacityStyle(theme, "hero")}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/85 to-background/60" />
         <div className="relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
+          <div className="mb-6 flex justify-center">
+            {home.logoUrl ? (
+              <img
+                src={home.logoUrl}
+                alt={`شعار ${brand}`}
+                style={logoStyle(theme)}
+                className="w-auto object-contain drop-shadow-lg"
+              />
+            ) : (
+              <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/75 px-5 py-3 backdrop-blur-md">
+                <span className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
+                  <Sparkles className="size-5 text-primary-foreground" />
+                </span>
+                <span className="text-xl font-extrabold gradient-text">NOVAA</span>
+              </div>
+            )}
+          </div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
             {home.heroBadge || "منصة SaaS لملاك المشاغل والصالونات"}
           </span>
@@ -390,58 +409,6 @@ function Landing() {
           </p>
         </div>
       </section>
-
-      {/* Brand film: the NOVAA team working inside the product. */}
-      <section className="relative px-4 sm:px-8 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
-              <PlayCircle className="size-3.5" /> داخل NOVAA
-            </span>
-            <h2 className="mt-4 text-2xl sm:text-4xl font-extrabold">
-              فريق كامل يعمل خلف <span className="gradient-text">لوحة تحكم متجرك</span>
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground leading-relaxed">
-              تطوير، دعم، ومحاسبة — نبني ونشغّل المنصة يوميًا حتى يبقى تشغيل مشغلك سلسًا.
-            </p>
-          </div>
-          <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-border card-glow">
-            <video
-              src={officeVideo.url}
-              poster={officePoster.url}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              aria-label="فريق نوفا يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق نوفا على شاشات الحاسب"
-              className="h-[240px] w-full object-cover sm:h-[460px]"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
-            <div className="pointer-events-none absolute bottom-5 right-6 left-6 flex flex-wrap items-center justify-between gap-3">
-              <span className="rounded-full bg-background/80 px-4 py-1.5 text-xs font-bold backdrop-blur">
-                مقر NOVAA — فريق التطوير والدعم
-              </span>
-              <span className="rounded-full bg-background/80 px-4 py-1.5 text-xs font-bold backdrop-blur">
-                تشغيل حقيقي على أرض الواقع
-              </span>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {[
-              { t: "دعم عربي مباشر", d: "فريق يفهم تشغيل المشاغل ويجيبك بسرعة." },
-              { t: "تحديثات شهرية", d: "ميزات جديدة مبنية على ملاحظات الملاك." },
-              { t: "تأسيس مجاني", d: "نساعدك في إدخال خدماتك وموظفيك من البداية." },
-            ].map((c) => (
-              <div key={c.t} className="rounded-2xl border border-border bg-card/60 p-4">
-                <h3 className="font-bold text-sm">{c.t}</h3>
-                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{c.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
 
       {home.showFeatures !== false && (
         <section className="px-4 sm:px-8 py-16 max-w-5xl mx-auto">
