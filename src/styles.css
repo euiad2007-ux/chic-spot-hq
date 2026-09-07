@@ -233,23 +233,23 @@
 }
 
 .hero-content-cycle {
-  animation: hero-content-cycle 10s ease-in-out infinite;
+  animation: hero-content-cycle 19.6667s ease-in-out infinite;
 }
 
 .video-end-card {
   opacity: 0;
   visibility: hidden;
-  animation: video-end-card 10s ease-in-out infinite;
+  animation: video-end-card 19.6667s ease-in-out infinite;
 }
 
 @keyframes hero-content-cycle {
-  0%, 68%, 100% { opacity: 1; }
-  74%, 95% { opacity: 0; }
+  0%, 82%, 100% { opacity: 1; }
+  86%, 96% { opacity: 0; }
 }
 
 @keyframes video-end-card {
-  0%, 68%, 100% { opacity: 0; visibility: hidden; }
-  74%, 95% { opacity: 1; visibility: visible; }
+  0%, 82%, 100% { opacity: 0; visibility: hidden; }
+  86%, 96% { opacity: 1; visibility: visible; }
 }
 
 @media (prefers-reduced-motion: reduce) {
