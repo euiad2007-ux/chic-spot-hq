@@ -231,3 +231,34 @@
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
+
+.hero-content-cycle {
+  animation: hero-content-cycle 10s ease-in-out infinite;
+}
+
+.video-end-card {
+  opacity: 0;
+  visibility: hidden;
+  animation: video-end-card 10s ease-in-out infinite;
+}
+
+@keyframes hero-content-cycle {
+  0%, 68%, 100% { opacity: 1; }
+  74%, 95% { opacity: 0; }
+}
+
+@keyframes video-end-card {
+  0%, 68%, 100% { opacity: 0; visibility: hidden; }
+  74%, 95% { opacity: 1; visibility: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-content-cycle,
+  .video-end-card {
+    animation: none;
+  }
+
+  .video-end-card {
+    display: none;
+  }
+}
