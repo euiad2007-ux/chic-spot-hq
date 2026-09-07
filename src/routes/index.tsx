@@ -49,7 +49,7 @@ import { resolveTenant } from "@/lib/tenant-domain";
 
 import dashboardImg from "@/assets/platform-dashboard.jpg";
 import posImg from "@/assets/platform-pos.jpg";
-import officeVideo from "@/assets/novaa-office-long.mp4.asset.json";
+import officeVideo from "@/assets/novaa-office-combined.mp4.asset.json";
 import officePoster from "@/assets/novaa-office-poster.jpg.asset.json";
 import novaaRoseLogo from "@/assets/novaa-rose-logo.png.asset.json";
 
