@@ -310,11 +310,6 @@ function PlatformSitePage() {
           />
 
           <RangeField
-            label="شفافية صورة القسم الرئيسي"
-            value={theme.heroImageOpacity ?? 100}
-            onChange={(v) => setThemeVal("heroImageOpacity", v)}
-          />
-          <RangeField
             label="شفافية صور الأقسام"
             value={theme.imageOpacity ?? 100}
             onChange={(v) => setThemeVal("imageOpacity", v)}
