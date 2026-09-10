@@ -24,6 +24,10 @@ export interface PlatformTheme {
   /** Opacity (0–100) applied to site images */
   imageOpacity?: number;
   heroImageOpacity?: number;
+  /** Darkening layer above the hero media (0–100) */
+  heroOverlayOpacity?: number;
+  /** Width of the end-of-video logo, in pixels */
+  heroEndLogoWidth?: number;
   /** Plan cards */
   planFont?: string;
   planTitleColor?: string;

@@ -107,3 +107,36 @@ export async function uploadPlatformImage(file: File, preset: MediaPreset): Prom
     throw new MediaError("تم الرفع لكن تعذّر إنشاء رابط الصورة. حاول مرة أخرى.");
   return signed.data.signedUrl;
 }
+
+const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
+
+/** Stores a hero background video as-is and returns a long-lived public link. */
+export async function uploadPlatformVideo(file: File): Promise<string> {
+  if (!file.type.startsWith("video/"))
+    throw new MediaError("الملف المختار ليس فيديو. اختر ملف MP4 أو WEBM.");
+  if (file.size > MAX_VIDEO_BYTES)
+    throw new MediaError("حجم الفيديو أكبر من 80 ميجابايت. اختر ملفًا أصغر أو اضغطه.");
+
+  const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
+  const path = `video/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const up = await supabase.storage.from("platform-media").upload(path, file, {
+    contentType: file.type || "video/mp4",
+    upsert: false,
+  });
+  if (up.error) {
+    const msg = up.error.message || "";
+    if (/exceeded|too large|size/i.test(msg))
+      throw new MediaError("الفيديو أكبر من الحد المسموح للتخزين.");
+    if (/not authorized|permission|policy|row-level/i.test(msg))
+      throw new MediaError("لا تملك صلاحية رفع وسائط المنصة — الدخول مطلوب بحساب مالك المنصة.");
+    throw new MediaError(`فشل رفع الفيديو: ${msg || "خطأ غير معروف"}`);
+  }
+
+  const signed = await supabase.storage
+    .from("platform-media")
+    .createSignedUrl(path, SIGNED_URL_SECONDS);
+  if (signed.error || !signed.data?.signedUrl)
+    throw new MediaError("تم الرفع لكن تعذّر إنشاء رابط الفيديو. حاول مرة أخرى.");
+  return signed.data.signedUrl;
+}

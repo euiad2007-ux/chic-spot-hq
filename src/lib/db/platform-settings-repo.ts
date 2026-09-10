@@ -81,6 +81,13 @@ export interface PlatformHome {
   heroBadge?: string;
   heroImageUrl?: string;
   heroNote?: string;
+  /** Hero background media: video (default) or still image */
+  heroMedia?: "video" | "image";
+  heroVideoUrl?: string;
+  heroPosterUrl?: string;
+  /** Logo shown as an advert card at the end of each video loop */
+  heroEndLogoUrl?: string;
+  showHeroEndCard?: boolean;
   /** Sections */
   featuresTitle?: string;
   features?: PlatformFeatureItem[];
