@@ -427,19 +427,22 @@ function Landing() {
               "التسجيل هنا لملاك المشاغل فقط — الموظفون والعملاء يدخلون من صفحة دخول المشغل."}
           </p>
         </div>
-        <div
-          aria-hidden="true"
-          className="video-end-card pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm"
-        >
-          <div className="flex flex-col items-center">
-            <img
-              src={novaaRoseLogo.url}
-              alt="شعار NOVAA"
-              className="h-auto w-[min(72vw,430px)] object-contain drop-shadow-2xl"
-            />
-            <div className="mt-4 h-px w-40 bg-gradient-to-r from-transparent via-primary to-transparent" />
+        {showEndCard && (
+          <div
+            aria-hidden="true"
+            className="video-end-card pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center">
+              <img
+                src={endLogoUrl}
+                alt="شعار NOVAA"
+                style={{ width: `min(72vw, ${endLogoWidth}px)` }}
+                className="h-auto object-contain drop-shadow-2xl"
+              />
+              <div className="mt-4 h-px w-40 bg-gradient-to-r from-transparent via-primary to-transparent" />
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {home.showFeatures !== false && (
