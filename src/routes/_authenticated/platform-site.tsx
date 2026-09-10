@@ -494,12 +494,62 @@ function PlatformSitePage() {
             onChange={(v) => setHome("heroNote", v)}
             multiline
           />
+          <SelectField
+            label="خلفية القسم الرئيسي"
+            value={home.heroMedia ?? "video"}
+            onChange={(v) => setHome("heroMedia", v === "image" ? "image" : "video")}
+            options={[
+              { value: "video", label: "فيديو متكرر" },
+              { value: "image", label: "صورة ثابتة" },
+            ]}
+          />
+          <VideoUploadField
+            label="فيديو خلفية القسم الرئيسي"
+            value={home.heroVideoUrl ?? ""}
+            onChange={(v) => setHome("heroVideoUrl", v)}
+          />
           <ImageUploadField
-            label="صورة خلفية القسم الرئيسي"
+            label="صورة معاينة الفيديو (Poster)"
+            preset="hero"
+            value={home.heroPosterUrl ?? ""}
+            onChange={(v) => setHome("heroPosterUrl", v)}
+          />
+          <ImageUploadField
+            label="صورة خلفية القسم الرئيسي (بدل الفيديو)"
             preset="hero"
             value={home.heroImageUrl ?? ""}
             onChange={(v) => setHome("heroImageUrl", v)}
           />
+          <ToggleRow
+            label="إظهار شعار إعلاني في نهاية الفيديو"
+            value={home.showHeroEndCard !== false}
+            onChange={(v) => setHome("showHeroEndCard", v)}
+          />
+          <ImageUploadField
+            label="شعار نهاية الفيديو"
+            preset="logo"
+            contain
+            value={home.heroEndLogoUrl ?? ""}
+            onChange={(v) => setHome("heroEndLogoUrl", v)}
+          />
+          <RangeField
+            label="عرض شعار نهاية الفيديو (بكسل)"
+            min={120}
+            max={900}
+            value={theme.heroEndLogoWidth ?? 430}
+            onChange={(v) => setThemeVal("heroEndLogoWidth", v)}
+          />
+          <RangeField
+            label="شفافية الفيديو / الصورة"
+            value={theme.heroImageOpacity ?? 100}
+            onChange={(v) => setThemeVal("heroImageOpacity", v)}
+          />
+          <RangeField
+            label="تعتيم الطبقة فوق الخلفية"
+            value={theme.heroOverlayOpacity ?? 70}
+            onChange={(v) => setThemeVal("heroOverlayOpacity", v)}
+          />
+
 
         </Card>
 
