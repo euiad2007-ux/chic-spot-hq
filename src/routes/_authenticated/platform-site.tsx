@@ -23,6 +23,7 @@ import { generateSeoContent } from "@/lib/seo-ai.functions";
 import { OwnerShell } from "@/components/platform/owner-shell";
 import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
+import { VideoUploadField } from "@/components/platform/video-upload-field";
 import {
   usePlatformSettings,
   PLATFORM_SETTINGS_KEY,
@@ -309,11 +310,6 @@ function PlatformSitePage() {
           />
 
           <RangeField
-            label="شفافية صورة القسم الرئيسي"
-            value={theme.heroImageOpacity ?? 100}
-            onChange={(v) => setThemeVal("heroImageOpacity", v)}
-          />
-          <RangeField
             label="شفافية صور الأقسام"
             value={theme.imageOpacity ?? 100}
             onChange={(v) => setThemeVal("imageOpacity", v)}
@@ -494,12 +490,62 @@ function PlatformSitePage() {
             onChange={(v) => setHome("heroNote", v)}
             multiline
           />
+          <SelectField
+            label="خلفية القسم الرئيسي"
+            value={home.heroMedia ?? "video"}
+            onChange={(v) => setHome("heroMedia", v === "image" ? "image" : "video")}
+            options={[
+              { value: "video", label: "فيديو متكرر" },
+              { value: "image", label: "صورة ثابتة" },
+            ]}
+          />
+          <VideoUploadField
+            label="فيديو خلفية القسم الرئيسي"
+            value={home.heroVideoUrl ?? ""}
+            onChange={(v) => setHome("heroVideoUrl", v)}
+          />
           <ImageUploadField
-            label="صورة خلفية القسم الرئيسي"
+            label="صورة معاينة الفيديو (Poster)"
+            preset="hero"
+            value={home.heroPosterUrl ?? ""}
+            onChange={(v) => setHome("heroPosterUrl", v)}
+          />
+          <ImageUploadField
+            label="صورة خلفية القسم الرئيسي (بدل الفيديو)"
             preset="hero"
             value={home.heroImageUrl ?? ""}
             onChange={(v) => setHome("heroImageUrl", v)}
           />
+          <ToggleRow
+            label="إظهار شعار إعلاني في نهاية الفيديو"
+            value={home.showHeroEndCard !== false}
+            onChange={(v) => setHome("showHeroEndCard", v)}
+          />
+          <ImageUploadField
+            label="شعار نهاية الفيديو"
+            preset="logo"
+            contain
+            value={home.heroEndLogoUrl ?? ""}
+            onChange={(v) => setHome("heroEndLogoUrl", v)}
+          />
+          <RangeField
+            label="عرض شعار نهاية الفيديو (بكسل)"
+            min={120}
+            max={900}
+            value={theme.heroEndLogoWidth ?? 430}
+            onChange={(v) => setThemeVal("heroEndLogoWidth", v)}
+          />
+          <RangeField
+            label="شفافية الفيديو / الصورة"
+            value={theme.heroImageOpacity ?? 100}
+            onChange={(v) => setThemeVal("heroImageOpacity", v)}
+          />
+          <RangeField
+            label="تعتيم الطبقة فوق الخلفية"
+            value={theme.heroOverlayOpacity ?? 70}
+            onChange={(v) => setThemeVal("heroOverlayOpacity", v)}
+          />
+
 
         </Card>
 
@@ -1077,6 +1123,28 @@ function ColorField({
           className="flex-1 h-10 rounded-lg border border-border bg-background px-3 text-sm"
         />
       </span>
+    </label>
+  );
+}
+
+function ToggleRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2.5 text-sm">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(e) => onChange(e.target.checked)}
+        className="size-4 accent-primary"
+      />
     </label>
   );
 }

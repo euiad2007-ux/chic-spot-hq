@@ -232,6 +232,27 @@ function Landing() {
   const btnPrimary = primaryButtonClass(theme);
   const btnSecondary = secondaryButtonClass(theme);
 
+  // Hero background media — all of it owner-editable from the control panel.
+  const heroVideoUrl = home.heroVideoUrl?.trim() || officeVideo.url;
+  const heroPosterUrl = home.heroPosterUrl?.trim() || officePoster.url;
+  const heroImageUrl = home.heroImageUrl?.trim() || "";
+  const heroIsVideo = home.heroMedia !== "image";
+  const endLogoUrl = home.heroEndLogoUrl?.trim() || novaaRoseLogo.url;
+  const endLogoWidth =
+    typeof theme?.heroEndLogoWidth === "number" &&
+    theme.heroEndLogoWidth >= 120 &&
+    theme.heroEndLogoWidth <= 900
+      ? theme.heroEndLogoWidth
+      : 430;
+  const showEndCard = heroIsVideo && home.showHeroEndCard !== false;
+  const heroOverlay =
+    typeof theme?.heroOverlayOpacity === "number" &&
+    theme.heroOverlayOpacity >= 0 &&
+    theme.heroOverlayOpacity <= 100
+      ? theme.heroOverlayOpacity / 100
+      : 0.7;
+
+
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
     if (typeof document === "undefined" || !home.faviconUrl) return;
@@ -344,19 +365,38 @@ function Landing() {
 
 
       <section className="relative overflow-hidden aurora">
-        <video
-          src={officeVideo.url}
-          poster={officePoster.url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          aria-label="فريق NOVAA يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق NOVAA على شاشات الحاسب"
-          className="absolute inset-0 w-full h-full object-cover"
+        {heroIsVideo ? (
+          <video
+            key={heroVideoUrl}
+            src={heroVideoUrl}
+            poster={heroPosterUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            aria-label="فريق NOVAA يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق NOVAA على شاشات الحاسب"
+            style={imageOpacityStyle(theme, "hero")}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          heroImageUrl && (
+            <img
+              src={heroImageUrl}
+              alt=""
+              aria-hidden="true"
+              style={imageOpacityStyle(theme, "hero")}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )
+        )}
+        <div
+          style={{ opacity: heroOverlay }}
+          className="absolute inset-0 bg-gradient-to-l from-background via-background/75 to-background/40"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-background/80 via-background/60 to-background/30" />
-        <div className="hero-content-cycle relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
+        <div
+          className={`${showEndCard ? "hero-content-cycle " : ""}relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center`}
+        >
           <div className="mb-6 flex justify-center">
             {home.logoUrl ? (
               <img
@@ -408,19 +448,22 @@ function Landing() {
               "التسجيل هنا لملاك المشاغل فقط — الموظفون والعملاء يدخلون من صفحة دخول المشغل."}
           </p>
         </div>
-        <div
-          aria-hidden="true"
-          className="video-end-card pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm"
-        >
-          <div className="flex flex-col items-center">
-            <img
-              src={novaaRoseLogo.url}
-              alt="شعار NOVAA"
-              className="h-auto w-[min(72vw,430px)] object-contain drop-shadow-2xl"
-            />
-            <div className="mt-4 h-px w-40 bg-gradient-to-r from-transparent via-primary to-transparent" />
+        {showEndCard && (
+          <div
+            aria-hidden="true"
+            className="video-end-card pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm"
+          >
+            <div className="flex flex-col items-center">
+              <img
+                src={endLogoUrl}
+                alt="شعار NOVAA"
+                style={{ width: `min(72vw, ${endLogoWidth}px)` }}
+                className="h-auto object-contain drop-shadow-2xl"
+              />
+              <div className="mt-4 h-px w-40 bg-gradient-to-r from-transparent via-primary to-transparent" />
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {home.showFeatures !== false && (
