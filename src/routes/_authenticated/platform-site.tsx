@@ -23,6 +23,7 @@ import { generateSeoContent } from "@/lib/seo-ai.functions";
 import { OwnerShell } from "@/components/platform/owner-shell";
 import { SettingsLoadingScreen } from "@/components/salon/settings-loading-screen";
 import { ImageUploadField } from "@/components/platform/image-upload-field";
+import { VideoUploadField } from "@/components/platform/video-upload-field";
 import {
   usePlatformSettings,
   PLATFORM_SETTINGS_KEY,
@@ -1127,6 +1128,28 @@ function ColorField({
           className="flex-1 h-10 rounded-lg border border-border bg-background px-3 text-sm"
         />
       </span>
+    </label>
+  );
+}
+
+function ToggleRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2.5 text-sm">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(e) => onChange(e.target.checked)}
+        className="size-4 accent-primary"
+      />
     </label>
   );
 }
