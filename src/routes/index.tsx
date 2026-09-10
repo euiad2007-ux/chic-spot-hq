@@ -232,6 +232,27 @@ function Landing() {
   const btnPrimary = primaryButtonClass(theme);
   const btnSecondary = secondaryButtonClass(theme);
 
+  // Hero background media — all of it owner-editable from the control panel.
+  const heroVideoUrl = home.heroVideoUrl?.trim() || officeVideo.url;
+  const heroPosterUrl = home.heroPosterUrl?.trim() || officePoster.url;
+  const heroImageUrl = home.heroImageUrl?.trim() || "";
+  const heroIsVideo = home.heroMedia !== "image";
+  const endLogoUrl = home.heroEndLogoUrl?.trim() || novaaRoseLogo.url;
+  const endLogoWidth =
+    typeof theme?.heroEndLogoWidth === "number" &&
+    theme.heroEndLogoWidth >= 120 &&
+    theme.heroEndLogoWidth <= 900
+      ? theme.heroEndLogoWidth
+      : 430;
+  const showEndCard = heroIsVideo && home.showHeroEndCard !== false;
+  const heroOverlay =
+    typeof theme?.heroOverlayOpacity === "number" &&
+    theme.heroOverlayOpacity >= 0 &&
+    theme.heroOverlayOpacity <= 100
+      ? theme.heroOverlayOpacity / 100
+      : 0.7;
+
+
   // The platform's own favicon completes its brand identity.
   useEffect(() => {
     if (typeof document === "undefined" || !home.faviconUrl) return;
