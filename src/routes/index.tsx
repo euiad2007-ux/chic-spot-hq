@@ -344,19 +344,38 @@ function Landing() {
 
 
       <section className="relative overflow-hidden aurora">
-        <video
-          src={officeVideo.url}
-          poster={officePoster.url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          aria-label="فريق NOVAA يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق NOVAA على شاشات الحاسب"
-          className="absolute inset-0 w-full h-full object-cover"
+        {heroIsVideo ? (
+          <video
+            key={heroVideoUrl}
+            src={heroVideoUrl}
+            poster={heroPosterUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            aria-label="فريق NOVAA يعمل في مكتب مفتوح وشعار NOVAA على الحوائط وتطبيق NOVAA على شاشات الحاسب"
+            style={imageOpacityStyle(theme, "hero")}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          heroImageUrl && (
+            <img
+              src={heroImageUrl}
+              alt=""
+              aria-hidden="true"
+              style={imageOpacityStyle(theme, "hero")}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )
+        )}
+        <div
+          style={{ opacity: heroOverlay }}
+          className="absolute inset-0 bg-gradient-to-l from-background via-background/75 to-background/40"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-background/80 via-background/60 to-background/30" />
-        <div className="hero-content-cycle relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
+        <div
+          className={`${showEndCard ? "hero-content-cycle " : ""}relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center`}
+        >
           <div className="mb-6 flex justify-center">
             {home.logoUrl ? (
               <img
