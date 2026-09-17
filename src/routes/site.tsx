@@ -72,9 +72,9 @@ export const Route = createFileRoute("/site")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "صفحة صالون — Chic Spot" },
-      { name: "description", content: "صفحة صالون احترافية للحجز الإلكتروني وعرض الخدمات والفريق والتقييمات عبر Chic Spot." },
-      { property: "og:title", content: "صفحة صالون على Chic Spot" },
+      { title: "صفحة مشغل — NOVAA" },
+      { name: "description", content: "صفحة صالون احترافية للحجز الإلكتروني وعرض الخدمات والفريق والتقييمات عبر NOVAA." },
+      { property: "og:title", content: "صفحة مشغل على NOVAA" },
       { property: "og:description", content: "استعرضي خدمات الصالون واحجزي موعدك مباشرة من صفحة الصالون." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

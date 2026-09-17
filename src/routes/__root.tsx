@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "لمسة — نظام إدارة المشاغل والصالونات" },
+      { title: "NOVAA — نظام إدارة المشاغل والصالونات" },
       { name: "description", content: "منصة متكاملة لإدارة الحجوزات والخدمات والموظفين والفواتير لمشاغل التجميل والصالونات." },
-      { name: "author", content: "Lamsa" },
-      { property: "og:title", content: "لمسة — نظام إدارة المشاغل والصالونات" },
+      { name: "author", content: "NOVAA" },
+      { property: "og:title", content: "NOVAA — نظام إدارة المشاغل والصالونات" },
       { property: "og:description", content: "أدر حجوزاتك وموظفيك وعملاءك وفواتيرك من مكان واحد." },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "لمسة" },
+      { property: "og:site_name", content: "NOVAA" },
       { property: "og:locale", content: "ar_SA" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
@@ -97,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "لمسة",
+          name: "NOVAA",
           url: "https://novaa.live/",
           logo: "https://novaa.live/favicon.png",
           description:
@@ -109,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "لمسة",
+          name: "NOVAA",
           url: "https://novaa.live/",
           inLanguage: "ar",
         }),
