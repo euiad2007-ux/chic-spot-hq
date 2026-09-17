@@ -15,9 +15,12 @@ export const Route = createFileRoute("/about")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://novaa.live/about" },
+      { property: "og:locale", content: "ar_SA" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/about" }],
+    links: [{ rel: "canonical", href: "https://novaa.live/about" }],
   }),
   component: AboutPage,
 });
