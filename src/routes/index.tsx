@@ -415,7 +415,7 @@ function Landing() {
         />
         <div
           className={`relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center transition-opacity duration-700 ${
-            showEndCard && endCardVisible ? "opacity-0" : "opacity-100"
+            showEndCard && endCardVisible ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
         >
           <div className="mb-6 flex justify-center">
@@ -472,7 +472,9 @@ function Landing() {
         {showEndCard && (
           <div
             aria-hidden="true"
-            className="video-end-card pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm"
+            className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm transition-opacity duration-700 ${
+              endCardVisible ? "opacity-100" : "opacity-0"
+            }`}
           >
             <div className="flex flex-col items-center">
               <img
