@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Scissors,
   CalendarDays,
@@ -245,6 +245,21 @@ function Landing() {
       ? theme.heroEndLogoWidth
       : 430;
   const showEndCard = heroIsVideo && home.showHeroEndCard !== false;
+  // The end card follows the real duration of whatever video the owner uploads,
+  // so it always shows in the closing seconds instead of a fixed timing.
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [endCardVisible, setEndCardVisible] = useState(false);
+  useEffect(() => {
+    setEndCardVisible(false);
+  }, [heroVideoUrl, showEndCard]);
+  const handleHeroTime = () => {
+    const v = heroVideoRef.current;
+    if (!v || !showEndCard) return;
+    const duration = Number.isFinite(v.duration) ? v.duration : 0;
+    if (duration <= 0) return;
+    const window = Math.min(3, Math.max(1, duration * 0.18));
+    setEndCardVisible(v.currentTime >= duration - window);
+  };
   const heroOverlay =
     typeof theme?.heroOverlayOpacity === "number" &&
     theme.heroOverlayOpacity >= 0 &&
