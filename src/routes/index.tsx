@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Scissors,
   CalendarDays,
@@ -245,6 +245,21 @@ function Landing() {
       ? theme.heroEndLogoWidth
       : 430;
   const showEndCard = heroIsVideo && home.showHeroEndCard !== false;
+  // The end card follows the real duration of whatever video the owner uploads,
+  // so it always shows in the closing seconds instead of a fixed timing.
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [endCardVisible, setEndCardVisible] = useState(false);
+  useEffect(() => {
+    setEndCardVisible(false);
+  }, [heroVideoUrl, showEndCard]);
+  const handleHeroTime = () => {
+    const v = heroVideoRef.current;
+    if (!v || !showEndCard) return;
+    const duration = Number.isFinite(v.duration) ? v.duration : 0;
+    if (duration <= 0) return;
+    const window = Math.min(3, Math.max(1, duration * 0.18));
+    setEndCardVisible(v.currentTime >= duration - window);
+  };
   const heroOverlay =
     typeof theme?.heroOverlayOpacity === "number" &&
     theme.heroOverlayOpacity >= 0 &&
@@ -368,7 +383,11 @@ function Landing() {
         {heroIsVideo ? (
           <video
             key={heroVideoUrl}
+            ref={heroVideoRef}
             src={heroVideoUrl}
+            onTimeUpdate={handleHeroTime}
+            onLoadedMetadata={handleHeroTime}
+            onSeeked={handleHeroTime}
             poster={heroPosterUrl}
             autoPlay
             loop
@@ -395,7 +414,9 @@ function Landing() {
           className="absolute inset-0 bg-gradient-to-l from-background via-background/75 to-background/40"
         />
         <div
-          className={`${showEndCard ? "hero-content-cycle " : ""}relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center`}
+          className={`relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center transition-opacity duration-700 ${
+            showEndCard && endCardVisible ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
         >
           <div className="mb-6 flex justify-center">
             {home.logoUrl ? (
@@ -451,7 +472,9 @@ function Landing() {
         {showEndCard && (
           <div
             aria-hidden="true"
-            className="video-end-card pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm"
+            className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-sm transition-opacity duration-700 ${
+              endCardVisible ? "opacity-100" : "opacity-0"
+            }`}
           >
             <div className="flex flex-col items-center">
               <img

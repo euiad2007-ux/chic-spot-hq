@@ -15,25 +15,4 @@ Disallow: /store-settings
 Disallow: /reset-password
 Disallow: /api/
 
-User-agent: Googlebot
-Allow: /
-
-User-agent: Googlebot-Image
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Yandex
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Applebot
-Allow: /
-
-User-agent: Baiduspider
-Allow: /
-
 Sitemap: https://novaa.live/sitemap.xml
