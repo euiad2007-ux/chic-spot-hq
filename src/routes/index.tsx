@@ -383,7 +383,11 @@ function Landing() {
         {heroIsVideo ? (
           <video
             key={heroVideoUrl}
+            ref={heroVideoRef}
             src={heroVideoUrl}
+            onTimeUpdate={handleHeroTime}
+            onLoadedMetadata={handleHeroTime}
+            onSeeked={handleHeroTime}
             poster={heroPosterUrl}
             autoPlay
             loop
@@ -410,7 +414,9 @@ function Landing() {
           className="absolute inset-0 bg-gradient-to-l from-background via-background/75 to-background/40"
         />
         <div
-          className={`${showEndCard ? "hero-content-cycle " : ""}relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center`}
+          className={`relative px-4 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center transition-opacity duration-700 ${
+            showEndCard && endCardVisible ? "opacity-0" : "opacity-100"
+          }`}
         >
           <div className="mb-6 flex justify-center">
             {home.logoUrl ? (
