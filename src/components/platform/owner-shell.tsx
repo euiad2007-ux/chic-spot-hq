@@ -31,6 +31,7 @@ export const OWNER_NAV: { to: string; label: string; icon: typeof Crown }[] = [
   { to: "/platform-database", label: "قواعد البيانات", icon: Database },
   { to: "/platform-settings", label: "إعدادات المنصة", icon: Settings },
   { to: "/platform-site", label: "هوية الموقع الرئيسي", icon: Globe },
+  { to: "/platform-ads", label: "الإعلانات والفيديوهات", icon: Clapperboard },
   { to: "/platform-activity", label: "الإشعارات وسجل العمليات", icon: History },
 ];
 

@@ -1947,6 +1947,7 @@ export type Database = {
           invite_id: string | null
           kind: string
           meta: Json
+          read_at: string | null
           recipient: string | null
           salon_id: string
           scheduled_for: string | null
@@ -1969,6 +1970,7 @@ export type Database = {
           invite_id?: string | null
           kind: string
           meta?: Json
+          read_at?: string | null
           recipient?: string | null
           salon_id: string
           scheduled_for?: string | null
@@ -1991,6 +1993,7 @@ export type Database = {
           invite_id?: string | null
           kind?: string
           meta?: Json
+          read_at?: string | null
           recipient?: string | null
           salon_id?: string
           scheduled_for?: string | null
