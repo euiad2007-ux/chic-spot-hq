@@ -27,6 +27,17 @@ export interface PlatformSeo {
   ogImageUrl?: string;
 }
 
+/** A promotional video or image stored in the platform media library. */
+export interface PlatformAd {
+  id: string;
+  title?: string;
+  desc?: string;
+  kind: "video" | "image";
+  url: string;
+  posterUrl?: string;
+  active?: boolean;
+}
+
 export interface PlatformNavLink {
   label: string;
   href: string;
@@ -85,6 +96,8 @@ export interface PlatformHome {
   heroMedia?: "video" | "image";
   heroVideoUrl?: string;
   heroPosterUrl?: string;
+  /** Promotional media library managed from the ads panel */
+  ads?: PlatformAd[];
   /** Logo shown as an advert card at the end of each video loop */
   heroEndLogoUrl?: string;
   showHeroEndCard?: boolean;
