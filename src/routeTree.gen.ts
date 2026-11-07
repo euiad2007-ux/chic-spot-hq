@@ -54,6 +54,7 @@ import { Route as AuthenticatedHrRouteImport } from './routes/_authenticated/hr'
 import { Route as AuthenticatedFinancialsRouteImport } from './routes/_authenticated/financials'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomersLedgerRouteImport } from './routes/_authenticated/customers-ledger'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedCouponsRouteImport } from './routes/_authenticated/coupons'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
@@ -75,6 +76,7 @@ import { Route as SalonSlugIndexRouteImport } from './routes/salon.$slug.index'
 import { Route as AuthenticatedAccountingIndexRouteImport } from './routes/_authenticated/accounting.index'
 import { Route as SalonSlugLoginRouteImport } from './routes/salon.$slug.login'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
+import { Route as AuthenticatedCustomerJourneyIdRouteImport } from './routes/_authenticated/customer-journey.$id'
 import { Route as AuthenticatedAccountingVatRouteImport } from './routes/_authenticated/accounting.vat'
 import { Route as AuthenticatedAccountingTrialBalanceRouteImport } from './routes/_authenticated/accounting.trial-balance'
 import { Route as AuthenticatedAccountingJournalRouteImport } from './routes/_authenticated/accounting.journal'
@@ -327,6 +329,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCustomersLedgerRoute =
+  AuthenticatedCustomersLedgerRouteImport.update({
+    id: '/customers-ledger',
+    path: '/customers-ledger',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
@@ -438,6 +446,12 @@ const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   path: '/lovable/email/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCustomerJourneyIdRoute =
+  AuthenticatedCustomerJourneyIdRouteImport.update({
+    id: '/customer-journey/$id',
+    path: '/customer-journey/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAccountingVatRoute =
   AuthenticatedAccountingVatRouteImport.update({
     id: '/vat',
@@ -557,6 +571,7 @@ export interface FileRoutesByFullPath {
   '/client': typeof AuthenticatedClientRoute
   '/coupons': typeof AuthenticatedCouponsRoute
   '/customers': typeof AuthenticatedCustomersRoute
+  '/customers-ledger': typeof AuthenticatedCustomersLedgerRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/financials': typeof AuthenticatedFinancialsRoute
@@ -599,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/customer-journey/$id': typeof AuthenticatedCustomerJourneyIdRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/accounting/': typeof AuthenticatedAccountingIndexRoute
@@ -638,6 +654,7 @@ export interface FileRoutesByTo {
   '/client': typeof AuthenticatedClientRoute
   '/coupons': typeof AuthenticatedCouponsRoute
   '/customers': typeof AuthenticatedCustomersRoute
+  '/customers-ledger': typeof AuthenticatedCustomersLedgerRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/financials': typeof AuthenticatedFinancialsRoute
@@ -680,6 +697,7 @@ export interface FileRoutesByTo {
   '/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/customer-journey/$id': typeof AuthenticatedCustomerJourneyIdRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/accounting': typeof AuthenticatedAccountingIndexRoute
@@ -722,6 +740,7 @@ export interface FileRoutesById {
   '/_authenticated/client': typeof AuthenticatedClientRoute
   '/_authenticated/coupons': typeof AuthenticatedCouponsRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
+  '/_authenticated/customers-ledger': typeof AuthenticatedCustomersLedgerRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/financials': typeof AuthenticatedFinancialsRoute
@@ -764,6 +783,7 @@ export interface FileRoutesById {
   '/_authenticated/accounting/journal': typeof AuthenticatedAccountingJournalRoute
   '/_authenticated/accounting/trial-balance': typeof AuthenticatedAccountingTrialBalanceRoute
   '/_authenticated/accounting/vat': typeof AuthenticatedAccountingVatRoute
+  '/_authenticated/customer-journey/$id': typeof AuthenticatedCustomerJourneyIdRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/salon/$slug/login': typeof SalonSlugLoginRoute
   '/_authenticated/accounting/': typeof AuthenticatedAccountingIndexRoute
@@ -806,6 +826,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/coupons'
     | '/customers'
+    | '/customers-ledger'
     | '/dashboard'
     | '/expenses'
     | '/financials'
@@ -848,6 +869,7 @@ export interface FileRouteTypes {
     | '/accounting/journal'
     | '/accounting/trial-balance'
     | '/accounting/vat'
+    | '/customer-journey/$id'
     | '/lovable/email/events'
     | '/salon/$slug/login'
     | '/accounting/'
@@ -887,6 +909,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/coupons'
     | '/customers'
+    | '/customers-ledger'
     | '/dashboard'
     | '/expenses'
     | '/financials'
@@ -929,6 +952,7 @@ export interface FileRouteTypes {
     | '/accounting/journal'
     | '/accounting/trial-balance'
     | '/accounting/vat'
+    | '/customer-journey/$id'
     | '/lovable/email/events'
     | '/salon/$slug/login'
     | '/accounting'
@@ -970,6 +994,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client'
     | '/_authenticated/coupons'
     | '/_authenticated/customers'
+    | '/_authenticated/customers-ledger'
     | '/_authenticated/dashboard'
     | '/_authenticated/expenses'
     | '/_authenticated/financials'
@@ -1012,6 +1037,7 @@ export interface FileRouteTypes {
     | '/_authenticated/accounting/journal'
     | '/_authenticated/accounting/trial-balance'
     | '/_authenticated/accounting/vat'
+    | '/_authenticated/customer-journey/$id'
     | '/lovable/email/events'
     | '/salon/$slug/login'
     | '/_authenticated/accounting/'
@@ -1367,6 +1393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customers-ledger': {
+      id: '/_authenticated/customers-ledger'
+      path: '/customers-ledger'
+      fullPath: '/customers-ledger'
+      preLoaderRoute: typeof AuthenticatedCustomersLedgerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/customers': {
       id: '/_authenticated/customers'
       path: '/customers'
@@ -1513,6 +1546,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/events'
       preLoaderRoute: typeof LovableEmailEventsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/customer-journey/$id': {
+      id: '/_authenticated/customer-journey/$id'
+      path: '/customer-journey/$id'
+      fullPath: '/customer-journey/$id'
+      preLoaderRoute: typeof AuthenticatedCustomerJourneyIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/accounting/vat': {
       id: '/_authenticated/accounting/vat'
@@ -1673,6 +1713,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientRoute: typeof AuthenticatedClientRoute
   AuthenticatedCouponsRoute: typeof AuthenticatedCouponsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
+  AuthenticatedCustomersLedgerRoute: typeof AuthenticatedCustomersLedgerRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedFinancialsRoute: typeof AuthenticatedFinancialsRoute
@@ -1704,6 +1745,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStoreSettingsRoute: typeof AuthenticatedStoreSettingsRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedCustomerJourneyIdRoute: typeof AuthenticatedCustomerJourneyIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1722,6 +1764,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientRoute: AuthenticatedClientRoute,
   AuthenticatedCouponsRoute: AuthenticatedCouponsRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
+  AuthenticatedCustomersLedgerRoute: AuthenticatedCustomersLedgerRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedFinancialsRoute: AuthenticatedFinancialsRoute,
@@ -1754,6 +1797,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStoreSettingsRoute: AuthenticatedStoreSettingsRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedCustomerJourneyIdRoute: AuthenticatedCustomerJourneyIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
